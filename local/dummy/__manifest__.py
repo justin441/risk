@@ -1,0 +1,4 @@
+{
+"name": "dummy",
+"installable": False,
+}
