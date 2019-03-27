@@ -6,12 +6,7 @@
     Risk management, Activity, Process
     """,
 
-    'description': """
-    Risk management
-    ===============
-    
-    Add risks to a business processes and manage said risks.
-    """,
+    'description': """ """,
 
     'author': "Noubru Holding",
     'website': "http://noubruholding.com",
