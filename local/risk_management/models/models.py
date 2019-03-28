@@ -12,7 +12,8 @@ class Process(models.Model):
          'The process name must be unique.')
     ]
     name = fields.Char(required=True, index=True, translate=True, size=255)
-    process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O')
+    process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
+                                    required=True)
     description = fields.Text(required=True, translate=True)
     responsible_id = fields.Many2one('res.user', ondelete='set null', delegate=True, string='Responsible')
     output_data_ids = fields.One2many('risk_management.process_data', inverse_name='int_provider_id',
