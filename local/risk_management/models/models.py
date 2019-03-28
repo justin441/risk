@@ -15,13 +15,20 @@ class Process(models.Model):
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
                                     required=True)
     description = fields.Text(required=True, translate=True)
-    responsible_id = fields.Many2one('res.users', ondelete='set null',  string='Responsible')
+    responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible')
     output_data_ids = fields.One2many('risk_management.process_data', inverse_name='int_provider_id',
                                       string='Output data')
     input_data_ids = fields.Many2many(comodel_name='risk_management.process_data',
                                       relation='risk_management_input_ids_consumers_ids_rel',
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
-                                      domain="[('int_provider_id', '!=', 'id')]")
+                                      domain="[('id', 'not in', output_data_ids)]")
+
+    @api.constrains('input_data_ids', 'id')
+    def _check_output_not_in_input(self):
+        for process in self:
+            for data in process.output_data_ids:
+                if data in process.input_data_ids:
+                    raise exceptions.ValidationError("A process cannot consume its own output")
 
 
 class ProcessData(models.Model):
@@ -42,7 +49,7 @@ class ProcessData(models.Model):
     consumer_ids = fields.Many2many(comodel_name='risk_management.process',
                                     relation='risk_management_input_ids_consumers_ids_rel',
                                     column1='consumer_ids', column2='input_data_ids',
-                                    domain="[('id', '!=', 'int_provider_id')]")
+                                    domain="[('id', '!=', int_provider_id)]")
 
     @api.constrains('ext_provider_id', 'int_provider_id')
     def _only_one_provider(self):
@@ -52,3 +59,9 @@ class ProcessData(models.Model):
                 raise exceptions.ValidationError("A process data cannot have 2 provider")
             elif not data.int_provider_id and not data.ext_provider_id:
                 raise exceptions.ValidationError("A process has to have one provider")
+
+    @api.constrains('consumer_ids', 'int_provider_id')
+    def _check_provider_not_in_consumers(self):
+        for data in self:
+            if data.int_provider_id and data.int_provider_id in data.consumer_ids:
+                raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
