@@ -1,30 +1,43 @@
 <odoo>
     <data>
-        <!--  -->
-        <!--   <record id="object0" model="risk_management.risk_management"> -->
-        <!--     <field name="name">Object 0</field> -->
-        <!--     <field name="value">0</field> -->
-        <!--   </record> -->
-        <!--  -->
-        <!--   <record id="object1" model="risk_management.risk_management"> -->
-        <!--     <field name="name">Object 1</field> -->
-        <!--     <field name="value">10</field> -->
-        <!--   </record> -->
-        <!--  -->
-        <!--   <record id="object2" model="risk_management.risk_management"> -->
-        <!--     <field name="name">Object 2</field> -->
-        <!--     <field name="value">20</field> -->
-        <!--   </record> -->
-        <!--  -->
-        <!--   <record id="object3" model="risk_management.risk_management"> -->
-        <!--     <field name="name">Object 3</field> -->
-        <!--     <field name="value">30</field> -->
-        <!--   </record> -->
-        <!--  -->
-        <!--   <record id="object4" model="risk_management.risk_management"> -->
-        <!--     <field name="name">Object 4</field> -->
-        <!--     <field name="value">40</field> -->
-        <!--   </record> -->
-        <!--  -->
+        <!--Processes-->
+        <record id="process00" model="risk_management.process">
+            <field name="name">Planning</field>
+            <field name="description">
+                Thinking about the activities required to achieve a desired goal.
+                It provides a systematic way of viewing problems and developing
+                short- and long-term solutions. It involves the creation and maintenance of a plan.
+            </field>
+            <field name="process_type" eval="'M'"/>
+        </record>
+
+        <record id="process01" model="risk_management.process">
+            <field name="name">Commercial</field>
+            <field name="description">Production of quotes. Order Analysis and Validation</field>
+        </record>
+
+        <record id="process02" model="risk_management.process">
+            <field name="name">outgoing logistics</field>
+            <field name="description">control, packaging and shipping of goods sold.</field>
+        </record>
+
+        <!--Process Data-->
+        <record id="data00" model="risk_management.process_data">
+            <field name="name">Customer quote</field>
+            <field name="int_provider_id" ref="process01"/>
+        </record>
+        <record id="data01" model="risk_management.process_data">
+            <field name="name">Customer order form</field>
+            <field name="int_provider_id" ref="process01"/>
+        </record>
+        <record id="data02" model="risk_management.process_data">
+            <field name="name">Business plan</field>
+            <field name="int_provider_id" ref="process00"/>
+        </record>
+        <record id="data03" model="risk_management.process_data">
+            <field name="name">Marketing plan</field>
+            <field name="int_provider_id" ref="process00"/>
+        </record>
+
     </data>
 </odoo>
