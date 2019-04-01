@@ -43,7 +43,7 @@ class ProcessData(models.Model):
     ]
 
     name = fields.Char(required=True, index=True, translate=True, size=255)
-    ext_provider_id = fields.Many2one('res.partner', string='External provider', ondelete='cascade')
+    ext_provider_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade')
     int_provider_id = fields.Many2one('risk_management.process', string='Internal provider', ondelete='cascade',
                                       )
     consumer_ids = fields.Many2many(comodel_name='risk_management.process',
@@ -52,7 +52,7 @@ class ProcessData(models.Model):
                                     domain="[('id', '!=', int_provider_id)]")
 
     @api.constrains('ext_provider_id', 'int_provider_id')
-    def _only_one_provider(self):
+    def _check_only_one_provider(self):
         """Process data is provided by either an external partner or an internal process"""
         for data in self:
             if data.ext_provider_id and data.int_provider_id:
@@ -62,6 +62,7 @@ class ProcessData(models.Model):
 
     @api.constrains('consumer_ids', 'int_provider_id')
     def _check_provider_not_in_consumers(self):
+        """Data provider should not be a consumer of said data"""
         for data in self:
             if data.int_provider_id and data.int_provider_id in data.consumer_ids:
                 raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
