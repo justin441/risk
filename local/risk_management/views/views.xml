@@ -13,6 +13,8 @@
                         <group>
                             <field name="name"/>
                             <field name="process_type"/>
+                        </group>
+                        <group>
                             <field name="description"/>
                             <field name="responsible_id"/>
                         </group>
@@ -47,6 +49,7 @@
                 <search>
                     <field name="name"/>
                     <field name="description"/>
+                    <!-- TODO: add one or more filter -->
                 </search>
             </field>
         </record>
@@ -87,7 +90,7 @@
         <!--top level menu-->
         <menuitem id="main_risk_management_menu" name="Risk Management"/>
 
-        <!--menu-->
+        <!--menu items-->
         <menuitem id="process_menu" name="Processes" parent="main_risk_management_menu" action="process_list_action"/>
     </data>
 </odoo>
