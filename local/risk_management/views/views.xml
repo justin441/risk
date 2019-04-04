@@ -64,7 +64,7 @@
                         <group>
                             <field name="name"/>
                             <field name="int_provider_id"/>
-                            <field name="ext_provider_id"/>
+                            <field name="ext_provider_cat_id"/>
                         </group>
                         <notebook>
                             <page string="Consumers">
