@@ -11,6 +11,7 @@ class Process(models.Model):
          'UNIQUE(name)',
          'The process name must be unique.')
     ]
+
     name = fields.Char(required=True, index=True, translate=True, size=128)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
                                     required=True)
@@ -24,6 +25,7 @@ class Process(models.Model):
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids)]")
     task_ids = fields.One2many('risk_management.process.task', inverse_name='process_id', string='Tasks')
+    rank = fields.Integer(compute='_compute_rank', string='Distance to clients')
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -45,7 +47,9 @@ class ProcessData(models.Model):
     ]
 
     name = fields.Char(required=True, index=True, translate=True)
-    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade')
+    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade',
+                                          domain=[('parent_id.name', '=', 'Process partner')],
+                                          help='If new, must be a child of `Process partner` category')
     int_provider_id = fields.Many2one('risk_management.process', string='Internal provider', ondelete='cascade',
                                       )
     consumer_ids = fields.Many2many(comodel_name='risk_management.process',
