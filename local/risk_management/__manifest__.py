@@ -24,7 +24,8 @@
         'security/groups.xml',
         'views/views.xml',
         'views/templates.xml',
-        'security/ir.model.access.csv'
+        'security/ir.model.access.csv',
+        'data/process_partner_categories_data.xml'
     ],
     # only loaded in demonstration mode
     'demo': [
