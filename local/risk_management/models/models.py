@@ -25,6 +25,7 @@ class Process(models.Model):
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids)]")
     task_ids = fields.One2many('risk_management.process.task', inverse_name='process_id', string='Tasks')
+    objectives_id = fields.One2many('risk_management.process.objective', inverse_name='process_id', string='Objectives')
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -32,6 +33,24 @@ class Process(models.Model):
             for data in process.output_data_ids:
                 if data in process.input_data_ids:
                     raise exceptions.ValidationError("A process cannot consume its own output")
+
+    @api.multi
+    def get_input_int_providers(self):
+        self.ensure_one()
+        return {data.int_provider_id for data in self.input_data_ids if data.int_provider_id}
+
+    @api.multi
+    def get_input_ext_provider_cats(self):
+        self.ensure_one()
+        return {data.ext_provider_cat_id for data in self.input_data_ids if data.ext_provider_cat_id}
+
+    @api.multi
+    def get_output_clients(self):
+        self.ensure_one()
+        c = set()
+        for data in self.output_data_ids:
+            c.update(data.consumer_ids)
+        return c
 
 
 class ProcessData(models.Model):
@@ -46,10 +65,10 @@ class ProcessData(models.Model):
     ]
 
     name = fields.Char(required=True, index=True, translate=True)
-    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade',
+    ext_provider_cat_id = fields.Many2one('res.partner.category', string='Origin (external)', ondelete='cascade',
                                           domain=[('parent_id.name', '=', 'Process partner')],
                                           help='If new, must be a child of `Process partner` category')
-    int_provider_id = fields.Many2one('risk_management.process', string='Internal provider', ondelete='cascade',
+    int_provider_id = fields.Many2one('risk_management.process', string='Origin (internal)', ondelete='cascade',
                                       )
     consumer_ids = fields.Many2many(comodel_name='risk_management.process',
                                     relation='risk_management_input_ids_consumers_ids_rel',
@@ -81,4 +100,12 @@ class ProcessTask(models.Model):
     description = fields.Text(translate=True)
     owner = fields.Many2one('res.users', ondelete="set null")
     process_id = fields.Many2one('risk_management.process', ondelete='cascade', string="Process", index=True)
+
+
+class ProcessObjective(models.Model):
+    _name = 'risk_management.process.objective'
+    _description = 'An objective'
+
+    description = fields.Char(required=True, translate=True)
+    process_id = fields.Many2one('risk_management.process', ondelete='cascade', string='Process', index=True)
 
