@@ -25,7 +25,6 @@ class Process(models.Model):
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids)]")
     task_ids = fields.One2many('risk_management.process.task', inverse_name='process_id', string='Tasks')
-    rank = fields.Integer(compute='_compute_rank', string='Distance to clients')
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
