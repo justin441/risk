@@ -3,3 +3,4 @@ access_risk_management_process,risk_management.process,model_risk_management_pro
 access_risk_management_process_data,risk_management.process_data,model_risk_management_process_data,,1,0,0,0
 access_risk_management_process_mgr,risk_management.process_mgr,model_risk_management_process,group_managers,1,1,1,1
 access_risk_management_process_data_mgr,risk_management.process_data_mgr,model_risk_management_process_data,group_managers,1,1,1,1
+access_risk_management_task,risk_management.process_task,model_risk_management_process_task,,1,0,0,0
