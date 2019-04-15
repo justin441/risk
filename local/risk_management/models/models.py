@@ -77,7 +77,7 @@ class ProcessData(models.Model):
 
     @api.constrains('ext_provider_cat_id', 'int_provider_id')
     def _check_only_one_provider(self):
-        """Process data is provided by either an external partner or an internal process"""
+        """a process data is provided by either an external partner or an internal process"""
         for data in self:
             if data.ext_provider_cat_id and data.int_provider_id:
                 raise exceptions.ValidationError("A process data cannot have 2 provider")
@@ -95,10 +95,12 @@ class ProcessData(models.Model):
 class ProcessTask(models.Model):
     _name = 'risk_management.process.task'
     _description = 'An activity in a process'
+    _order = 'sequence, name'
 
     name = fields.Char(required=True, translate=True)
     description = fields.Text(translate=True)
     owner = fields.Many2one('res.users', ondelete="set null")
+    sequence = fields.Integer(default=10)
     process_id = fields.Many2one('risk_management.process', ondelete='cascade', string="Process", index=True)
 
 
