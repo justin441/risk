@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from . import models, partner_category
+from . import models, partner_category, risks
