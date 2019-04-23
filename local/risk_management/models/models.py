@@ -5,7 +5,6 @@ from odoo import models, fields, api, exceptions
 
 class BaseProcess(models.AbstractModel):
     _name = 'risk_management.base_process'
-    _description = 'A business process'
 
     name = fields.Char(required=True, index=True, translate=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
@@ -13,12 +12,6 @@ class BaseProcess(models.AbstractModel):
     description = fields.Html(required=True, translate=True, string="Description")
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True)
-    output_data_ids = fields.One2many('risk_management.process_data', inverse_name='int_provider_id',
-                                      string='Output data')
-    input_data_ids = fields.Many2many(comodel_name='risk_management.process_data',
-                                      relation='risk_management_input_ids_consumers_ids_rel',
-                                      column1='input_data_ids', column2='consumer_ids', string="Input data",
-                                      domain="[('id', 'not in', output_data_ids)]")
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -40,9 +33,9 @@ class BaseProcess(models.AbstractModel):
     @api.multi
     def get_output_clients(self):
         self.ensure_one()
-        c = set()
+        c = self.env[self._name]
         for data in self.output_data_ids:
-            c.update(data.consumer_ids)
+            c |= data.consumer_ids
         return c
 
 
@@ -56,41 +49,36 @@ class BusinessProcess(models.Model):
          'The process name must be unique.')
     ]
 
-    business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit',
-                                  default=lambda self: self.env.company)
-    task_ids = fields.One2many('risk_management.process.task', inverse_name='process_id', string='Tasks')
+    business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit', required=True,
+                                  default=lambda self: self.env['res.company']._company_default_get('risk_management'),
+                                  readonly=True)
+    task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
+    output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
+                                      string='Output data')
+    input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
+                                      relation='risk_management_input_ids_consumers_ids_rel',
+                                      column1='input_data_ids', column2='consumer_ids', string="Input data",
+                                      domain="[('id', 'not in', output_data_ids)]")
 
 
-class ProcessData(models.Model):
-    _name = 'risk_management.process_data'
-    _description = 'Process input or output'
+class BaseProcessdata(models.AbstractModel):
+    _name = 'risk_management.base_process_data'
     _sql_constraints = [
         (
             'data_name_unique',
             'UNIQUE(name, int_provider_id, ext_provider_cat_id)',
             'The process data name must be unique within the same process.'
-        )
+        ),
+        ('check_only_one_provider',
+         'CHECK((ext_provider_cat_id IS NOT NULL AND int_provider_id IS NULL) OR'
+         '(ext_provider_cat_id IS NULL and int_provider_id IS NOT NULL))',
+         'A process can only have one provider.'
+         )
     ]
-
     name = fields.Char(required=True, index=True, translate=True)
     ext_provider_cat_id = fields.Many2one('res.partner.category', string='Origin (external)', ondelete='cascade',
                                           domain=[('parent_id.name', '=', 'Process partner')],
                                           help='If new, must be a child of `Process partner` category')
-    int_provider_id = fields.Many2one('risk_management.process', string='Origin (internal)', ondelete='cascade',
-                                      )
-    consumer_ids = fields.Many2many(comodel_name='risk_management.process',
-                                    relation='risk_management_input_ids_consumers_ids_rel',
-                                    column1='consumer_ids', column2='input_data_ids',
-                                    domain="[('id', '!=', int_provider_id)]", string="Consumers")
-
-    @api.constrains('ext_provider_cat_id', 'int_provider_id')
-    def _check_only_one_provider(self):
-        """a process data is provided by either an external partner or an internal process"""
-        for data in self:
-            if data.ext_provider_cat_id and data.int_provider_id:
-                raise exceptions.ValidationError("A process data cannot have 2 provider")
-            elif not data.int_provider_id and not data.ext_provider_cat_id:
-                raise exceptions.ValidationError("A process has to have one provider")
 
     @api.constrains('consumer_ids', 'int_provider_id')
     def _check_provider_not_in_consumers(self):
@@ -100,8 +88,21 @@ class ProcessData(models.Model):
                 raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
 
 
-class ProcessTask(models.Model):
-    _name = 'risk_management.process.task'
+class BusinessProcessData(models.Model):
+    _name = 'risk_management.business_process_data'
+    _description = 'Business Process input or output'
+    _inherit = ['risk_management.base_process_data']
+
+    int_provider_id = fields.Many2one('risk_management.business_process', string='Origin (internal)',
+                                      ondelete='cascade')
+    consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',
+                                    relation='risk_management_input_ids_consumers_ids_rel',
+                                    column1='consumer_ids', column2='input_data_ids',
+                                    domain="[('id', '!=', int_provider_id)]", string="Consumers")
+
+
+class BusinessProcessTask(models.Model):
+    _name = 'risk_management.business_process.task'
     _description = 'An activity in a process'
     _order = 'sequence, name'
 
@@ -109,13 +110,5 @@ class ProcessTask(models.Model):
     description = fields.Text(translate=True)
     owner = fields.Many2one('res.users', ondelete="set null")
     sequence = fields.Integer(default=10)
-    process_id = fields.Many2one('risk_management.process', ondelete='cascade', string="Process", index=True)
-
-
-class ProcessObjective(models.Model):
-    _name = 'risk_management.process.objective'
-    _description = 'An objective'
-
-    description = fields.Char(required=True, translate=True)
-    process_id = fields.Many2one('risk_management.process', ondelete='cascade', string='Process', index=True)
+    process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
 

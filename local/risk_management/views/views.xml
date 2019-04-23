@@ -4,13 +4,14 @@
         <!--views-->
 
         <!--Process form view-->
-        <record model="ir.ui.view" id="process_form_view">
-            <field name="name">process.form</field>
-            <field name="model">risk_management.process</field>
+        <record model="ir.ui.view" id="business_process_form_view">
+            <field name="name">business_process.form</field>
+            <field name="model">risk_management.business_process</field>
             <field name="arch" type="xml">
                 <form string="Process form">
                     <sheet>
                         <group>
+                            <field name="business_id" invisible="1"/>
                             <field name="name"/>
                             <field name="process_type"/>
                         </group>
@@ -31,9 +32,9 @@
             </field>
         </record>
         
-        <record model="ir.ui.view" id="process_list_view">
+        <record model="ir.ui.view" id="business_process_list_view">
             <field name="name">process.tree</field>
-            <field name="model">risk_management.process</field>
+            <field name="model">risk_management.business_process</field>
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
@@ -42,9 +43,9 @@
             </field>
         </record>
         
-        <record model="ir.ui.view" id="process_search_view">
+        <record model="ir.ui.view" id="business_process_search_view">
             <field name="name">process.search</field>
-            <field name="model">risk_management.process</field>
+            <field name="model">risk_management.business_process</field>
             <field name="arch" type="xml">
                 <search>
                     <field name="name"/>
@@ -54,17 +55,37 @@
             </field>
         </record>
 
-        <!--process list view-->
+        <!--process data form view-->
         <record model="ir.ui.view" id="process_data_form">
-            <field name="name">process_data.form</field>
-            <field name="model">risk_management.process_data</field>
+            <field name="name">business_process_data.form</field>
+            <field name="model">risk_management.business_process_data</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="int_provider_id" attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)]}"/>
+                            <field name="ext_provider_cat_id" attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"/>
+                        </group>
+                        <notebook>
+                            <page string="Consumers">
+                                <field name="consumer_ids"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <!-- process data form linked to processes-->
+        <record model="ir.ui.view" id="output_process_data_form">
+            <field name="name">business_process_data.form</field>
+            <field name="model">risk_management.business_process_data</field>
             <field name="arch" type="xml">
                 <form>
                     <sheet>
                         <group>
                             <field name="name"/>
                             <field name="int_provider_id"/>
-                            <field name="ext_provider_cat_id"/>
                         </group>
                         <notebook>
                             <page string="Consumers">
@@ -77,9 +98,9 @@
         </record>
 
         <!--actions-->
-        <record model="ir.actions.act_window" id="process_list_action">
+        <record model="ir.actions.act_window" id="business_process_list_action">
             <field name="name">Processes</field>
-            <field name="res_model">risk_management.process</field>
+            <field name="res_model">risk_management.business_process</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="help" type="html">
@@ -91,6 +112,6 @@
         <menuitem id="main_risk_management_menu" name="Risk Management"/>
 
         <!--menu items-->
-        <menuitem id="process_menu" name="Processes" parent="main_risk_management_menu" action="process_list_action"/>
+        <menuitem id="process_menu" name="Processes" parent="main_risk_management_menu" action="business_process_list_action"/>
     </data>
 </odoo>
