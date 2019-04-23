@@ -3,16 +3,11 @@
 from odoo import models, fields, api, exceptions
 
 
-class Process(models.Model):
-    _name = 'risk_management.process'
+class BaseProcess(models.AbstractModel):
+    _name = 'risk_management.base_process'
     _description = 'A business process'
-    _sql_constraints = [
-        ('process_name_unique',
-         'UNIQUE(name)',
-         'The process name must be unique.')
-    ]
 
-    name = fields.Char(required=True, index=True, translate=True, size=128)
+    name = fields.Char(required=True, index=True, translate=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
                                     required=True)
     description = fields.Html(required=True, translate=True, string="Description")
@@ -24,8 +19,6 @@ class Process(models.Model):
                                       relation='risk_management_input_ids_consumers_ids_rel',
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids)]")
-    task_ids = fields.One2many('risk_management.process.task', inverse_name='process_id', string='Tasks')
-    objectives_id = fields.One2many('risk_management.process.objective', inverse_name='process_id', string='Objectives')
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -51,6 +44,21 @@ class Process(models.Model):
         for data in self.output_data_ids:
             c.update(data.consumer_ids)
         return c
+
+
+class BusinessProcess(models.Model):
+    _name = 'risk_management.business_process'
+    _description = 'A Business process'
+    _inherit = ['risk_management.base_process']
+    _sql_constraints = [
+        ('process_name_unique_for_company',
+         'UNIQUE(name, business_id)',
+         'The process name must be unique.')
+    ]
+
+    business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit',
+                                  default=lambda self: self.env.company)
+    task_ids = fields.One2many('risk_management.process.task', inverse_name='process_id', string='Tasks')
 
 
 class ProcessData(models.Model):
