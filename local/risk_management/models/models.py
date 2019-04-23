@@ -30,12 +30,12 @@ class BaseProcess(models.AbstractModel):
     @api.multi
     def get_input_int_providers(self):
         self.ensure_one()
-        return {data.int_provider_id for data in self.input_data_ids if data.int_provider_id}
+        return self.input_data_ids.mapped('int_provider_id')
 
     @api.multi
     def get_input_ext_provider_cats(self):
         self.ensure_one()
-        return {data.ext_provider_cat_id for data in self.input_data_ids if data.ext_provider_cat_id}
+        return self.input_data_ids.mapped('ext_provider_cat_id')
 
     @api.multi
     def get_output_clients(self):
