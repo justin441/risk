@@ -39,28 +39,6 @@ class BaseProcess(models.AbstractModel):
         return c
 
 
-class BusinessProcess(models.Model):
-    _name = 'risk_management.business_process'
-    _description = 'A Business process'
-    _inherit = ['risk_management.base_process']
-    _sql_constraints = [
-        ('process_name_unique_for_company',
-         'UNIQUE(name, business_id)',
-         'The process name must be unique.')
-    ]
-
-    business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit', required=True,
-                                  default=lambda self: self.env['res.company']._company_default_get('risk_management'),
-                                  readonly=True)
-    task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
-    output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
-                                      string='Output data')
-    input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
-                                      relation='risk_management_input_ids_consumers_ids_rel',
-                                      column1='input_data_ids', column2='consumer_ids', string="Input data",
-                                      domain="[('id', 'not in', output_data_ids)]")
-
-
 class BaseProcessData(models.AbstractModel):
     _name = 'risk_management.base_process_data'
     _sql_constraints = [
@@ -88,6 +66,28 @@ class BaseProcessData(models.AbstractModel):
                 raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
 
 
+class BusinessProcess(models.Model):
+    _name = 'risk_management.business_process'
+    _description = 'A Business process'
+    _inherit = ['risk_management.base_process']
+    _sql_constraints = [
+        ('process_name_unique_for_company',
+         'UNIQUE(name, business_id)',
+         'The process name must be unique.')
+    ]
+
+    business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit', required=True,
+                                  default=lambda self: self.env['res.company']._company_default_get('risk_management'),
+                                  readonly=True)
+    task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
+    output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
+                                      string='Output data')
+    input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
+                                      relation='risk_management_input_ids_consumers_ids_rel',
+                                      column1='input_data_ids', column2='consumer_ids', string="Input data",
+                                      domain="[('id', 'not in', output_data_ids), ('business_id', '=', business_id)]")
+
+
 class BusinessProcessData(models.Model):
     _name = 'risk_management.business_process_data'
     _description = 'Business Process input or output'
@@ -98,7 +98,9 @@ class BusinessProcessData(models.Model):
     consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                     relation='risk_management_input_ids_consumers_ids_rel',
                                     column1='consumer_ids', column2='input_data_ids',
-                                    domain="[('id', '!=', int_provider_id)]", string="Consumers")
+                                    domain="[('id', '!=', int_provider_id),"
+                                           "('business_id','=', int_provider_id.business_id)]",
+                                    string="Consumers")
 
 
 class BusinessProcessTask(models.Model):
@@ -112,3 +114,40 @@ class BusinessProcessTask(models.Model):
     sequence = fields.Integer(default=10)
     process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
 
+
+class ProjectProcessData(models.Model):
+    _name = 'risk_management.project_process_data'
+    _description = 'A project process input or output'
+    _inherit = ['risk_management.base_process_data']
+
+    int_provider_id = fields.Many2one('risk_management.project_process', string='Origin (internal)',
+                                      ondelete='cascade')
+    consumer_ids = fields.Many2many(comodel_name='risk_management.project_process',
+                                    relation='risk_management_project_input_ids_consumers_ids_rel',
+                                    column1='consumer_ids', column2='input_data_ids',
+                                    domain="[('id', '!=', int_provider_id),"
+                                           "('project_id', '=', int_provider_id.project_id)]",
+                                    string="Consumers")
+
+
+class ProjectProcess(models.Model):
+    _name = 'risk_management.project_process'
+    _description = 'A project process'
+    _inherit = ['risk_management.base_process']
+    _sql_constraints = [
+        ('process_name_unique_for_project',
+         'UNIQUE(name, project_id)',
+         'The process name must be unique.')
+    ]
+    project_id = fields.Many2one('project.project', string='Project', ondelete='cascade',
+                                 default=lambda self: self.env.context.get('default_project_id'),
+                                 index=True)
+    task_ids = fields.One2many('project.task', string='Tasks', inverse_name='process_id',
+                               domain="['project_id', '=', project_id]")
+    output_data_ids = fields.One2many('risk_management.project_process_data', inverse_name='int_provider_id',
+                                      string='Output data')
+    input_data_ids = fields.Many2many('risk_management.project_process_data',
+                                      relation='risk_management_project_input_ids_consumers_ids_rel',
+                                      column1='input_data_ids', column2='consumer_ids', string='Input Data',
+                                      domain="[('id', 'not in', output_data_ids), ('project_id', '=', project_id)]"
+                                      )
