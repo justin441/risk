@@ -61,7 +61,7 @@ class BusinessProcess(models.Model):
                                       domain="[('id', 'not in', output_data_ids)]")
 
 
-class BaseProcessdata(models.AbstractModel):
+class BaseProcessData(models.AbstractModel):
     _name = 'risk_management.base_process_data'
     _sql_constraints = [
         (
