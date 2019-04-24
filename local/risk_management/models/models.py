@@ -8,7 +8,7 @@ class BaseProcess(models.AbstractModel):
 
     name = fields.Char(required=True, index=True, translate=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
-                                    required=True)
+                                    required=True, string='Process type')
     description = fields.Html(required=True, translate=True, string="Description")
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True)
@@ -85,7 +85,8 @@ class BusinessProcess(models.Model):
     input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
                                       relation='risk_management_input_ids_consumers_ids_rel',
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
-                                      domain="[('id', 'not in', output_data_ids), ('business_id', '=', business_id)]")
+                                      domain="[('id', 'not in', output_data_ids),"
+                                             "('int_provider_id.business_id', '=', business_id)]")
 
 
 class BusinessProcessData(models.Model):
@@ -149,5 +150,6 @@ class ProjectProcess(models.Model):
     input_data_ids = fields.Many2many('risk_management.project_process_data',
                                       relation='risk_management_project_input_ids_consumers_ids_rel',
                                       column1='input_data_ids', column2='consumer_ids', string='Input Data',
-                                      domain="[('id', 'not in', output_data_ids), ('project_id', '=', project_id)]"
+                                      domain="[('id', 'not in', output_data_ids),"
+                                             "('int_provider_id.project_id', '=', project_id)]"
                                       )
