@@ -23,12 +23,14 @@ class BaseProcess(models.AbstractModel):
     @api.multi
     def get_input_int_providers(self):
         self.ensure_one()
-        return self.input_data_ids.mapped('int_provider_id')
+        int_data = self.input_data_ids.filter('int_provider_id')  # filter out data of external origin
+        return int_data.mapped('int_provider_id')
 
     @api.multi
     def get_input_ext_provider_cats(self):
         self.ensure_one()
-        return self.input_data_ids.mapped('ext_provider_cat_id')
+        ext_data = self.input_data_ids.filter('ext_provider_cat_id')  # filter out data of internal origin
+        return ext_data.mapped('ext_provider_cat_id')
 
     @api.multi
     def get_output_clients(self):
@@ -55,8 +57,9 @@ class BaseProcessData(models.AbstractModel):
     ]
     name = fields.Char(required=True, index=True, translate=True)
     ext_provider_cat_id = fields.Many2one('res.partner.category', string='Origin (external)', ondelete='cascade',
-                                          domain=[('parent_id.name', '=', 'Process partner')],
-                                          help='If new, must be a child of `Process partner` category')
+                                          domain=lambda self: [('id', 'child_of',
+                                                                self.env.ref('risk_management.process_partner').id)],
+                                          help='Must be a child of `Process partner` category')
 
     @api.constrains('consumer_ids', 'int_provider_id')
     def _check_provider_not_in_consumers(self):
@@ -108,6 +111,13 @@ class BusinessProcessTask(models.Model):
     _name = 'risk_management.business_process.task'
     _description = 'An activity in a process'
     _order = 'sequence, name'
+    _sql_constraints = [
+        (
+            'task_name_unique',
+            'UNIQUE(name, process_id)',
+            'A task with the same name already exists in this process.'
+        )
+    ]
 
     name = fields.Char(required=True, translate=True)
     description = fields.Text(translate=True)
