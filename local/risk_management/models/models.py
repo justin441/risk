@@ -33,7 +33,7 @@ class BaseProcess(models.AbstractModel):
         return ext_data.mapped('ext_provider_cat_id')
 
     @api.multi
-    def get_output_clients(self):
+    def get_output_users(self):
         self.ensure_one()
         c = self.env[self._name]
         for data in self.output_data_ids:
@@ -56,6 +56,8 @@ class BaseProcessData(models.AbstractModel):
          )
     ]
     name = fields.Char(required=True, index=True, translate=True)
+    customer_voice = fields.Boolean('Consumer Voice?', default=False,
+                                    help="Does this convey the customer voice?")
     ext_provider_cat_id = fields.Many2one('res.partner.category', string='Origin (external)', ondelete='cascade',
                                           domain=lambda self: [('id', 'child_of',
                                                                 self.env.ref('risk_management.process_partner').id)],
@@ -104,7 +106,7 @@ class BusinessProcessData(models.Model):
                                     column1='consumer_ids', column2='input_data_ids',
                                     domain="[('id', '!=', int_provider_id),"
                                            "('business_id','=', int_provider_id.business_id)]",
-                                    string="Consumers")
+                                    string="Users")
 
 
 class BusinessProcessTask(models.Model):
