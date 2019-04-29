@@ -10,10 +10,19 @@
             <field name="arch" type="xml">
                 <form>
                     <sheet>
-                        <group>
-                            <field name="name"/>
-                            <field name="int_provider_id" attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)]}"/>
-                            <field name="ext_provider_cat_id" attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"/>
+                        <group col="6">
+                            <group colspan="4" col="2">
+                                <field name="name" placeholder="Name"/>
+                            </group>
+                            <group colspan="2" col="2">
+                                <field name="customer_voice"/>
+                            </group>
+                            <group colspan="4" col="2" string="Provider">
+                                <field name="int_provider_id"
+                                       attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)]}"/>
+                                <field name="ext_provider_cat_id"
+                                       attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"/>
+                            </group>
                         </group>
                     </sheet>
                 </form>
@@ -27,6 +36,7 @@
             <field name="arch" type="xml">
                 <tree editable="bottom">
                     <field name="name"/>
+                    <field name="customer_voice"/>
                     <field name="consumer_ids" readonly="1" widget="many2many_tags"/>
                 </tree>
             </field>
@@ -62,10 +72,12 @@
                         </group>
                         <notebook>
                             <page string="Input">
-                                <field name="input_data_ids" context="{'tree_view_ref': 'risk_management.process_data_list'}"/>
+                                <field name="input_data_ids"
+                                       context="{'tree_view_ref': 'risk_management.process_data_list'}"/>
                             </page>
                             <page string="Output">
-                                <field name="output_data_ids" context="{ 'tree_view_ref':'risk_management.process_output_data_list', 'default_int_provider_id': id}"/>
+                                <field name="output_data_ids"
+                                       context="{ 'tree_view_ref':'risk_management.process_output_data_list', 'default_int_provider_id': id}"/>
                             </page>
                         </notebook>
                     </sheet>
@@ -84,7 +96,7 @@
                 </tree>
             </field>
         </record>
-        
+
         <!-- Process search view -->
         <record model="ir.ui.view" id="business_process_search_view">
             <field name="name">process.search</field>
@@ -113,6 +125,7 @@
         <menuitem id="main_risk_management_menu" name="Risk Management"/>
 
         <!--menu items-->
-        <menuitem id="process_menu" name="Processes" parent="main_risk_management_menu" action="business_process_list_action"/>
+        <menuitem id="process_menu" name="Processes" parent="main_risk_management_menu"
+                  action="business_process_list_action"/>
     </data>
 </odoo>
