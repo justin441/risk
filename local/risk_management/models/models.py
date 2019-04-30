@@ -56,9 +56,9 @@ class BaseProcessData(models.AbstractModel):
          )
     ]
     name = fields.Char(required=True, index=True, translate=True)
-    customer_voice = fields.Boolean('Consumer Voice?', default=False,
-                                    help="Does this convey the customer voice?")
-    ext_provider_cat_id = fields.Many2one('res.partner.category', string='Origin (external)', ondelete='cascade',
+    is_customer_voice = fields.Boolean('Consumer Voice?', default=False,
+                                        help="Does this convey the customer voice?")
+    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External proviser', ondelete='cascade',
                                           domain=lambda self: [('id', 'child_of',
                                                                 self.env.ref('risk_management.process_partner').id)],
                                           help='Must be a child of `Process partner` category')
@@ -69,6 +69,13 @@ class BaseProcessData(models.AbstractModel):
         for data in self:
             if data.int_provider_id and data.int_provider_id in data.consumer_ids:
                 raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
+
+
+class BaseProcessMethod(models.AbstractModel):
+    _name = 'risk_management.base_process_method'
+
+    name = fields.Char()
+    content = fields.Html(translate=True)
 
 
 class BusinessProcess(models.Model):
