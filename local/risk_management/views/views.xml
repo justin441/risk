@@ -15,9 +15,9 @@
                                 <field name="name" placeholder="Name"/>
                             </group>
                             <group colspan="2" col="2">
-                                <field name="customer_voice"/>
+                                <field name="is_customer_voice"/>
                             </group>
-                            <group colspan="4" col="2" string="Provider">
+                            <group colspan="4" col="2" string="Origin">
                                 <field name="int_provider_id"
                                        attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)]}"/>
                                 <field name="ext_provider_cat_id"
@@ -36,7 +36,7 @@
             <field name="arch" type="xml">
                 <tree editable="bottom">
                     <field name="name"/>
-                    <field name="customer_voice"/>
+                    <field name="is_customer_voice"/>
                     <field name="consumer_ids" readonly="1" widget="many2many_tags"/>
                 </tree>
             </field>
@@ -125,7 +125,8 @@
         <menuitem id="main_risk_management_menu" name="Risk Management"/>
 
         <!--menu items-->
-        <menuitem id="process_menu" name="Processes" parent="main_risk_management_menu"
+        <menuitem id="config_menu" name="Configurations" parent="main_risk_management_menu"/>
+        <menuitem id="process_menu" name="Processes" parent="config_menu"
                   action="business_process_list_action"/>
     </data>
 </odoo>
