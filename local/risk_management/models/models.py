@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from odoo import models, fields, api, exceptions
+
+_logger = logging.getLogger(__name__)
 
 
 class BaseProcess(models.AbstractModel):
@@ -57,7 +60,7 @@ class BaseProcessData(models.AbstractModel):
     ]
     name = fields.Char(required=True, index=True, translate=True)
     is_customer_voice = fields.Boolean('Consumer Voice?', default=False,
-                                        help="Does this convey the customer voice?")
+                                       help="Does this data relay the customer voice?")
     ext_provider_cat_id = fields.Many2one('res.partner.category', string='External proviser', ondelete='cascade',
                                           domain=lambda self: [('id', 'child_of',
                                                                 self.env.ref('risk_management.process_partner').id)],
@@ -73,8 +76,15 @@ class BaseProcessData(models.AbstractModel):
 
 class BaseProcessMethod(models.AbstractModel):
     _name = 'risk_management.base_process_method'
+    _sql_constraints = [
+        (
+            'method_name_unique',
+            'UNIQUE(name, process_id)',
+            'A procedure with the same name already exist on this process'
+        )
+    ]
 
-    name = fields.Char()
+    name = fields.Char(translate=True, string='Title', required=True)
     content = fields.Html(translate=True)
 
 
@@ -99,6 +109,8 @@ class BusinessProcess(models.Model):
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids),"
                                              "('int_provider_id.business_id', '=', business_id)]")
+    method_ids = fields.One2many('risk_management.business_process.method',
+                                 inverse_name='process_id', string='Procedures')
 
 
 class BusinessProcessData(models.Model):
@@ -135,6 +147,17 @@ class BusinessProcessTask(models.Model):
     process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
 
 
+class BusinessProcessMethod(models.Model):
+    _name = "risk_management.business_process.method"
+    _description = "Rules and policies for the business process"
+    _inherit = ['risk_management.base_process_method']
+    output_ref= fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
+                          domain=[('int_provider_id.process_type', '=', 'M')],
+                          help='Output data reference', required=True)
+    process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
+    author_name = fields.Char('From process', related='output_ref.int_provider_id.name', readonly=True)
+
+
 class ProjectProcessData(models.Model):
     _name = 'risk_management.project_process_data'
     _description = 'A project process input or output'
@@ -147,7 +170,7 @@ class ProjectProcessData(models.Model):
                                     column1='consumer_ids', column2='input_data_ids',
                                     domain="[('id', '!=', int_provider_id),"
                                            "('project_id', '=', int_provider_id.project_id)]",
-                                    string="Consumers")
+                                    string="Users")
 
 
 class ProjectProcess(models.Model):
@@ -172,3 +195,13 @@ class ProjectProcess(models.Model):
                                       domain="[('id', 'not in', output_data_ids),"
                                              "('int_provider_id.project_id', '=', project_id)]"
                                       )
+
+
+class ProjectMethod(BaseProcessMethod):
+    _name = "risk_management.project_process.method"
+    _description = "Rules and policies for the project process"
+    _inherit = ['risk_management.base_process_method']
+    output_ref= fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
+                          domain=[('int_provider_id.process_type', '=', 'M')], help='Output data reference')
+    process_id = fields.Many2one(comodel_name='risk_management.project_process', string='User process')
+    author_name = fields.Char('From process', related='output_ref.int_provider_id.name', readonly=True)
