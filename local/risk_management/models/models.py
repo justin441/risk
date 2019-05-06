@@ -26,7 +26,7 @@ class BaseProcess(models.AbstractModel):
     @api.multi
     def get_input_int_providers(self):
         self.ensure_one()
-        int_data = self.input_data_ids.filter('int_provider_id')  # filter out data of external origin
+        int_data = self.input_data_ids.filter('int_provider_id') # filter out data of external origin
         return int_data.mapped('int_provider_id')
 
     @api.multi
@@ -99,7 +99,8 @@ class BusinessProcess(models.Model):
     ]
 
     business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit', required=True,
-                                  default=lambda self: self.env['res.company']._company_default_get('risk_management'),
+                                  default=lambda self: self.env['res.company']._company_default_get(
+                                      'risk_management.business_process'),
                                   readonly=True)
     task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
     output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
@@ -151,9 +152,9 @@ class BusinessProcessMethod(models.Model):
     _name = "risk_management.business_process.method"
     _description = "Rules and policies for the business process"
     _inherit = ['risk_management.base_process_method']
-    output_ref= fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
-                          domain=[('int_provider_id.process_type', '=', 'M')],
-                          help='Output data reference', required=True)
+    output_ref = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
+                                 domain=[('int_provider_id.process_type', '=', 'M')],
+                                 help='Output data reference', required=True)
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
     author_name = fields.Char('From process', related='output_ref.int_provider_id.name', readonly=True)
 
@@ -201,7 +202,7 @@ class ProjectMethod(BaseProcessMethod):
     _name = "risk_management.project_process.method"
     _description = "Rules and policies for the project process"
     _inherit = ['risk_management.base_process_method']
-    output_ref= fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
-                          domain=[('int_provider_id.process_type', '=', 'M')], help='Output data reference')
+    output_ref = fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
+                                 domain=[('int_provider_id.process_type', '=', 'M')], help='Output data reference')
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='User process')
     author_name = fields.Char('From process', related='output_ref.int_provider_id.name', readonly=True)
