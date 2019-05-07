@@ -22,7 +22,7 @@
     # always loaded
     'data': [
         'data/process_partner_categories_data.xml',
-        'security/groups.xml',
+        'security/risk_security.xml',
         'views/risk_views.xml',
         'views/templates.xml',
         'security/ir.model.access.csv',

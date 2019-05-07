@@ -12,7 +12,7 @@ class BaseProcess(models.AbstractModel):
     name = fields.Char(required=True, index=True, translate=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
                                     required=True, string='Process type')
-    description = fields.Html(required=True, translate=True, string="Description")
+    description = fields.Html(translate=True, string="Description")
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True)
 

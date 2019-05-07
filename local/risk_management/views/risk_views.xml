@@ -169,7 +169,7 @@
         <menuitem id="main_risk_management_menu" name="Risk Management"/>
 
         <!--menu items-->
-        <menuitem id="config_menu" name="Configurations" parent="main_risk_management_menu"/>
+        <menuitem id="config_menu" name="Configuration" parent="main_risk_management_menu" sequence="100" groups="risk_management.group_process_manager"/>
         <menuitem id="process_menu" name="Processes" parent="config_menu"
                   action="business_process_list_action"/>
     </data>
