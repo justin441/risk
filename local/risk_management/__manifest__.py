@@ -23,7 +23,7 @@
     'data': [
         'data/process_partner_categories_data.xml',
         'security/groups.xml',
-        'views/views.xml',
+        'views/risk_views.xml',
         'views/templates.xml',
         'security/ir.model.access.csv',
     ],

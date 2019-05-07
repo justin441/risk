@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!--views-->
-
-        <!--process data form view-->
+        <!-- BUSINESS PROCESS DATA-->
+        <!-- actions-->
+        <!-- views-->
         <record model="ir.ui.view" id="process_data_form">
             <field name="name">business_process_data.form</field>
             <field name="model">risk_management.business_process_data</field>
@@ -29,7 +29,6 @@
             </field>
         </record>
 
-        <!--process data list view' -->
         <record model="ir.ui.view" id="process_output_data_list">
             <field name="name">process_data.tree</field>
             <field name="model">risk_management.business_process_data</field>
@@ -52,17 +51,73 @@
             </field>
         </record>
 
-        <!--Process form view-->
+        <!-- PROJECT PROCESS DATA-->
+        <!-- actions-->
+        <!-- views-->
+
+        <!-- BUSINESS PROCESS TASK-->
+        <!-- actions-->
+        <!-- views-->
+
+        <!-- PROJECT PROCESS TASK-->
+        <!-- actions-->
+        <!-- views-->
+
+        <!-- BUSINESS PROCESS METHOD-->
+        <!-- actions-->
+        <record model="ir.actions.act_window" id="get_methods">
+            <field name="name">Methods</field>
+            <field name="res_model">risk_management.business_process.method</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('process_id', '=', context.get('process_id'))]</field>
+            <field name="context">{'default_process_id': context.get('process_id')}</field>
+        </record>
+        <!-- views-->
+        <record model="ir.ui.view" id="process_method_list">
+            <field name="name">process_method.tree</field>
+            <field name="model">risk_management.business_process.method</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" context="{}"/>
+                </tree>
+            </field>
+        </record>
+        <!-- PROJECT PROCESS METHOD-->
+        <!-- actions-->
+        <!-- views-->
+
+        <!-- BUSINESS PROCESS-->
+        <!-- actions-->
+        <record model="ir.actions.act_window" id="business_process_list_action">
+            <field name="name">Processes</field>
+            <field name="res_model">risk_management.business_process</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('business_id.user_ids', '>', uid)]</field> <!-- TODO: use security to restrict access -->
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">Create your first Process!</p>
+            </field>
+        </record>
+        <!-- views-->
         <record model="ir.ui.view" id="business_process_form_view">
             <field name="name">business_process.form</field>
             <field name="model">risk_management.business_process</field>
             <field name="arch" type="xml">
                 <form string="Process">
                     <sheet string="Process">
-                        <div class="oe_title">
+                        <div class="oe_left oe_title">
                             <h1>
-                                <field name="name" placeholder="Process Name"/>
+                                <field name="name" placeholder="Process name"/>
                             </h1>
+                        </div>
+                        <div class="oe_right oe_button_box" name="buttons">
+                            <button name="%(risk_management.get_methods)d"
+                                    string="Procedures"
+                                    type="action"
+                                    class="btn-primary"
+                                    context="{'process_id': id}">
+
+                            </button>
                         </div>
                         <group>
                             <field name="business_id" invisible="1"/>
@@ -84,8 +139,6 @@
                 </form>
             </field>
         </record>
-
-        <!-- Process list view -->
         <record model="ir.ui.view" id="business_process_list_view">
             <field name="name">process.tree</field>
             <field name="model">risk_management.business_process</field>
@@ -96,8 +149,6 @@
                 </tree>
             </field>
         </record>
-
-        <!-- Process search view -->
         <record model="ir.ui.view" id="business_process_search_view">
             <field name="name">process.search</field>
             <field name="model">risk_management.business_process</field>
@@ -110,16 +161,9 @@
             </field>
         </record>
 
-        <!--actions-->
-        <record model="ir.actions.act_window" id="business_process_list_action">
-            <field name="name">Processes</field>
-            <field name="res_model">risk_management.business_process</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="help" type="html">
-                <p class="oe_view_nocontent_create">Create your first Process!</p>
-            </field>
-        </record>
+        <!-- PROJECT PROCESS-->
+        <!-- actions-->
+        <!-- views-->
 
         <!--top level menu-->
         <menuitem id="main_risk_management_menu" name="Risk Management"/>
