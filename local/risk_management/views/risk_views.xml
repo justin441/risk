@@ -322,13 +322,14 @@
                         </page>
                         <page string="Output" name="output_page">
                             <field name="output_data_ids"
-                                   context="{ 'tree_view_ref':'risk_management.process_output_data_list', 'default_int_provider_id': id}"/>
+                                   context="{ 'tree_view_ref':'risk_management.process_output_data_list', 'default_int_provider_id': active_id}"/>
                         </page>
                     </notebook>
                 </sheet>
             </form>
         </field>
     </record>
+
     <record model="ir.ui.view" id="business_process_list_view">
         <field name="name">process.tree</field>
         <field name="model">risk_management.business_process</field>
@@ -339,6 +340,7 @@
             </tree>
         </field>
     </record>
+
     <record model="ir.ui.view" id="business_process_search_view">
         <field name="name">process.search</field>
         <field name="model">risk_management.business_process</field>
@@ -354,6 +356,7 @@
     </record>
 
     <!-- PROJECT PROCESS-->
+    <!--views-->
     <record model="ir.ui.view" id="project_process_search">
         <field name="name">project_process.search</field>
         <field name="model">risk_management.project_process</field>
@@ -361,46 +364,15 @@
             <search>
                 <field name="name"/>
                 <field name="description"/>
+                <field name="project_id"/>
                 <filter name="Management" string="Management" domain="[('process_type', '=', 'M')]"/>
                 <filter name="Operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
                 <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
             </search>
         </field>
-
-    </record>
-    <!-- actions-->
-    <record model="ir.actions.act_window" id="act_project_project_2_project_process_all">
-        <field name="name">Processes</field>
-        <field name="res_model">risk_management.project_process</field>
-        <field name="view_mode">tree, form</field>
-        <field name="context">
-            {'default_project_id': active_id,
-            'search_default_project_id': [active_id]}
-        </field>
-        <field name="search_view_id" ref="project_process_search"/>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent_create">
-                Here, you can create new process
-            </p>
-        </field>
-    </record>
-    <!-- views-->
-    <record model="ir.ui.view" id="project_form">
-        <field name="name">project.project.form</field>
-        <field name="model">project.project</field>
-        <field name="inherit_id" ref="project.edit_project"/>
-        <field name="arch" type="xml">
-            <xpath expr="//div[@name='button_box']/button[2]" position="after">
-                <button class="oe_stat_button" type="action"
-                        name="%(act_project_project_2_project_process_all)d" icon="fa-refresh">
-                    <field string="Processes" name="process_count" widget="statinfo"/>
-                </button>
-            </xpath>
-        </field>
     </record>
 
     <record model="ir.ui.view" id="project_process_form">
-        <field name="name">project_process.form</field>
         <field name="model">risk_management.project_process</field>
         <field name="inherit_id" ref="business_process_form_view"/>
         <field name="arch" type="xml">
@@ -415,7 +387,7 @@
                 <attribute name="context" eval="{'tree_view_ref': 'risk_management.project_process_data_list'}"/>
             </field>
             <field name="output_data_ids" position="attributes">
-                <attribute name="context" eval="{'tree_view_ref':'risk_management.project_process_output_data_list', 'default_int_provider_id': id}"/>
+                <attribute name="context" eval="{'tree_view_ref':'risk_management.project_process_output_data_list', 'default_int_provider_id': active_id}"/>
             </field>
         </field>
     </record>
@@ -430,7 +402,43 @@
             </tree>
         </field>
     </record>
+    <!-- project actions-->
+    <record model="ir.actions.act_window" id="act_project_project_2_project_process_all">
+        <field name="name">Processes</field>
+        <field name="res_model">risk_management.project_process</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">
+            {'default_project_id': active_id,
+            'search_default_project_id': [active_id]}
+        </field>
+        <field name="search_view_id" ref="project_process_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new process
+            </p>
+        </field>
+    </record>
 
+    <record model="ir.actions.act_window.view" id="action_project_process_all_form">
+        <field name="act_window_id" ref="act_project_project_2_project_process_all"/>
+        <field name="view_id" ref="project_process_form"/>
+        <field name="view_mode">form</field>
+        <field name="sequence">10</field>
+    </record>
+    <!-- project views-->
+    <record model="ir.ui.view" id="project_form">
+        <field name="name">project.project.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']/button[2]" position="after">
+                <button class="oe_stat_button" type="action"
+                        name="%(act_project_project_2_project_process_all)d" icon="fa-refresh">
+                    <field string="Processes" name="process_count" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
 
     <!--top level menu-->
     <menuitem id="main_risk_management_menu" name="Risk Management"/>
