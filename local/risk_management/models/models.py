@@ -15,6 +15,7 @@ class BaseProcess(models.AbstractModel):
     description = fields.Html(translate=True, string="Description")
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True)
+    method_count = fields.Integer(compute='_compute_method_count', string="Methods")
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -26,7 +27,7 @@ class BaseProcess(models.AbstractModel):
     @api.multi
     def get_input_int_providers(self):
         self.ensure_one()
-        int_data = self.input_data_ids.filter('int_provider_id') # filter out data of external origin
+        int_data = self.input_data_ids.filter('int_provider_id')  # filter out data of external origin
         return int_data.mapped('int_provider_id')
 
     @api.multi
@@ -111,7 +112,18 @@ class BusinessProcess(models.Model):
                                       domain="[('id', 'not in', output_data_ids),"
                                              "('int_provider_id.business_id', '=', business_id)]")
     method_ids = fields.One2many('risk_management.business_process.method',
-                                 inverse_name='process_id', string='Procedures')
+                                 inverse_name='process_id', string='Methods')
+    task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
+
+    @api.depends('task_ids')
+    def _compute_task_count(self):
+        for rec in self:
+            rec.task_count = len(rec.task_ids)
+
+    @api.depends('method_ids')
+    def _compute_method_count(self):
+        for rec in self:
+            rec.method_count = len(rec.method_ids)
 
 
 class BusinessProcessData(models.Model):
@@ -143,7 +155,7 @@ class BusinessProcessTask(models.Model):
 
     name = fields.Char(required=True, translate=True)
     description = fields.Text(translate=True)
-    owner = fields.Many2one('res.users', ondelete="set null")
+    owner_id = fields.Many2one('res.users', ondelete="set null")
     sequence = fields.Integer(default=10)
     process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
 
@@ -152,11 +164,11 @@ class BusinessProcessMethod(models.Model):
     _name = "risk_management.business_process.method"
     _description = "Rules and policies for the business process"
     _inherit = ['risk_management.base_process_method']
-    output_ref = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
-                                 domain=[('int_provider_id.process_type', '=', 'M')],
-                                 help='Output data reference', required=True)
+    output_ref_id = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
+                                    domain=[('int_provider_id.process_type', '=', 'M')],
+                                    help='Output data reference')
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
-    author_name = fields.Char('From process', related='output_ref.int_provider_id.name', readonly=True)
+    author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)
 
 
 class ProjectProcessData(models.Model):
@@ -183,11 +195,25 @@ class ProjectProcess(models.Model):
          'UNIQUE(name, project_id)',
          'The process name must be unique.')
     ]
+
+    @api.depends('task_ids')
+    def _compute_task_count(self):
+        for rec in self:
+            rec.task_count = len(rec.task_ids)
+
+    @api.depends('method_ids')
+    def _compute_method_count(self):
+        for rec in self:
+            rec.method_count = len(rec.method_ids)
+
     project_id = fields.Many2one('project.project', string='Project', ondelete='cascade',
                                  default=lambda self: self.env.context.get('default_project_id'),
                                  index=True)
     task_ids = fields.One2many('project.task', string='Tasks', inverse_name='process_id',
-                               domain="['project_id', '=', project_id]")
+                               domain="[('project_id', '=', project_id), '|', "
+                                      "('stage_id.fold', '=', False), "
+                                      "('stage_id', '=', False)]")
+    method_ids = fields.One2many('risk_management.project_process.method', string='Methods', inverse_name='process_id')
     output_data_ids = fields.One2many('risk_management.project_process_data', inverse_name='int_provider_id',
                                       string='Output data')
     input_data_ids = fields.Many2many('risk_management.project_process_data',
@@ -196,13 +222,15 @@ class ProjectProcess(models.Model):
                                       domain="[('id', 'not in', output_data_ids),"
                                              "('int_provider_id.project_id', '=', project_id)]"
                                       )
+    task_count = fields.Integer(string='Tasks', compute="_compute_task_count")
+    method_count = fields.Integer(string='Method', compute="_compute_method_count")
 
 
 class ProjectMethod(BaseProcessMethod):
     _name = "risk_management.project_process.method"
     _description = "Rules and policies for the project process"
     _inherit = ['risk_management.base_process_method']
-    output_ref = fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
-                                 domain=[('int_provider_id.process_type', '=', 'M')], help='Output data reference')
+    output_ref_id = fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
+                                    domain=[('int_provider_id.process_type', '=', 'M')], help='Output data reference')
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='User process')
-    author_name = fields.Char('From process', related='output_ref.int_provider_id.name', readonly=True)
+    author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)

@@ -1,176 +1,443 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <!-- BUSINESS PROCESS DATA-->
-        <!-- actions-->
-        <!-- views-->
-        <record model="ir.ui.view" id="process_data_form">
-            <field name="name">business_process_data.form</field>
-            <field name="model">risk_management.business_process_data</field>
-            <field name="arch" type="xml">
-                <form>
-                    <sheet>
-                        <group col="6">
-                            <group colspan="4" col="2">
-                                <field name="name" placeholder="Name"/>
-                            </group>
-                            <group colspan="2" col="2">
-                                <field name="is_customer_voice"/>
-                            </group>
-                            <group colspan="4" col="2" string="Origin">
-                                <field name="int_provider_id"
-                                       attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)]}"/>
-                                <field name="ext_provider_cat_id"
-                                       attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"/>
-                            </group>
+    <!-- BUSINESS PROCESS DATA-->
+    <!-- actions-->
+    <!-- views-->
+    <record model="ir.ui.view" id="process_data_form">
+        <field name="name">business_process_data.form</field>
+        <field name="model">risk_management.business_process_data</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="6">
+                        <group colspan="4" col="2">
+                            <field name="name" placeholder="Name"/>
                         </group>
-                    </sheet>
-                </form>
-            </field>
-        </record>
-
-        <record model="ir.ui.view" id="process_output_data_list">
-            <field name="name">process_data.tree</field>
-            <field name="model">risk_management.business_process_data</field>
-            <field name="arch" type="xml">
-                <tree editable="bottom">
-                    <field name="name"/>
-                    <field name="is_customer_voice"/>
-                    <field name="consumer_ids" readonly="1" widget="many2many_tags"/>
-                </tree>
-            </field>
-        </record>
-
-        <record model="ir.ui.view" id="process_data_list">
-            <field name="name">process_data.tree</field>
-            <field name="model">risk_management.business_process_data</field>
-            <field name="arch" type="xml">
-                <tree>
-                    <field name="name" context="{'form_view_ref':'risk_management.process_data_form'}"/>
-                </tree>
-            </field>
-        </record>
-
-        <!-- PROJECT PROCESS DATA-->
-        <!-- actions-->
-        <!-- views-->
-
-        <!-- BUSINESS PROCESS TASK-->
-        <!-- actions-->
-        <!-- views-->
-
-        <!-- PROJECT PROCESS TASK-->
-        <!-- actions-->
-        <!-- views-->
-
-        <!-- BUSINESS PROCESS METHOD-->
-        <!-- actions-->
-        <record model="ir.actions.act_window" id="get_methods">
-            <field name="name">Methods</field>
-            <field name="res_model">risk_management.business_process.method</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[('process_id', '=', context.get('process_id'))]</field>
-            <field name="context">{'default_process_id': context.get('process_id')}</field>
-        </record>
-        <!-- views-->
-        <record model="ir.ui.view" id="process_method_list">
-            <field name="name">process_method.tree</field>
-            <field name="model">risk_management.business_process.method</field>
-            <field name="arch" type="xml">
-                <tree>
-                    <field name="name" context="{}"/>
-                </tree>
-            </field>
-        </record>
-        <!-- PROJECT PROCESS METHOD-->
-        <!-- actions-->
-        <!-- views-->
-
-        <!-- BUSINESS PROCESS-->
-        <!-- actions-->
-        <record model="ir.actions.act_window" id="business_process_list_action">
-            <field name="name">Processes</field>
-            <field name="res_model">risk_management.business_process</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[('business_id.user_ids', '>', uid)]</field> <!-- TODO: use security to restrict access -->
-            <field name="help" type="html">
-                <p class="oe_view_nocontent_create">Create your first Process!</p>
-            </field>
-        </record>
-        <!-- views-->
-        <record model="ir.ui.view" id="business_process_form_view">
-            <field name="name">business_process.form</field>
-            <field name="model">risk_management.business_process</field>
-            <field name="arch" type="xml">
-                <form string="Process">
-                    <sheet string="Process">
-                        <div class="oe_left oe_title">
-                            <h1>
-                                <field name="name" placeholder="Process name"/>
-                            </h1>
-                        </div>
-                        <div class="oe_right oe_button_box" name="buttons">
-                            <button name="%(risk_management.get_methods)d"
-                                    string="Procedures"
-                                    type="action"
-                                    class="btn-primary"
-                                    context="{'process_id': id}">
-
-                            </button>
-                        </div>
-                        <group>
-                            <field name="business_id" invisible="1"/>
-                            <field name="process_type"/>
-                            <field name="description"/>
-                            <field name="responsible_id"/>
+                        <group colspan="2" col="2">
+                            <field name="is_customer_voice"/>
                         </group>
-                        <notebook>
-                            <page string="Input">
-                                <field name="input_data_ids"
-                                       context="{'tree_view_ref': 'risk_management.process_data_list'}"/>
-                            </page>
-                            <page string="Output">
-                                <field name="output_data_ids"
-                                       context="{ 'tree_view_ref':'risk_management.process_output_data_list', 'default_int_provider_id': id}"/>
-                            </page>
-                        </notebook>
-                    </sheet>
-                </form>
-            </field>
-        </record>
-        <record model="ir.ui.view" id="business_process_list_view">
-            <field name="name">process.tree</field>
-            <field name="model">risk_management.business_process</field>
-            <field name="arch" type="xml">
-                <tree>
-                    <field name="name"/>
-                    <field name="responsible_id"/>
-                </tree>
-            </field>
-        </record>
-        <record model="ir.ui.view" id="business_process_search_view">
-            <field name="name">process.search</field>
-            <field name="model">risk_management.business_process</field>
-            <field name="arch" type="xml">
-                <search>
-                    <field name="name"/>
-                    <field name="description"/>
-                    <!-- TODO: add one or more filter -->
-                </search>
-            </field>
-        </record>
+                        <group colspan="4" col="2">
+                            <field name="int_provider_id"
+                                   attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)],}"/>
+                            <field name="ext_provider_cat_id"
+                                   attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-        <!-- PROJECT PROCESS-->
-        <!-- actions-->
-        <!-- views-->
+    <record model="ir.ui.view" id="process_output_data_list">
+        <field name="name">process_data.tree</field>
+        <field name="model">risk_management.business_process_data</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="name"/>
+                <field name="is_customer_voice"/>
+                <field name="consumer_ids" readonly="1" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
 
-        <!--top level menu-->
-        <menuitem id="main_risk_management_menu" name="Risk Management"/>
+    <record model="ir.ui.view" id="process_data_list">
+        <field name="name">process_data.tree</field>
+        <field name="model">risk_management.business_process_data</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" context="{'form_view_ref':'risk_management.process_data_form'}"/>
+                <field name="is_customer_voice"/>
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="process_data_search">
+        <field name="name">process_data.search</field>
+        <field name="model">risk_management.business_process_data</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="int_provider_id" string="Internal"/>
+                <field name="ext_provider_cat_id" string="External"/>
+                <filter name="int_provider" string="Internal" domain="[('int_provider_id', '!=', False)]"/>
+                <filter name="ext_provider" string="External" domain="[('ext_provider_cat_id', '!=', False)]"/>
+                <filter name="client_voice" string="Customer Voice" domain="[('is_customer_voice', '=', True)]"/>
+            </search>
+        </field>
+    </record>
 
-        <!--menu items-->
-        <menuitem id="config_menu" name="Configuration" parent="main_risk_management_menu" sequence="100" groups="risk_management.group_process_manager"/>
-        <menuitem id="process_menu" name="Processes" parent="config_menu"
-                  action="business_process_list_action"/>
-    </data>
+    <!-- PROJECT PROCESS DATA-->
+    <!-- actions-->
+    <!-- views-->
+    <record model="ir.ui.view" id="project_process_data_form">
+        <field name="name">project_process_data.form</field>
+        <field name="model">risk_management.project_process_data</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="6">
+                        <group colspan="4" col="2">
+                            <field name="name" placeholder="Name"/>
+                        </group>
+                        <group colspan="2" col="2">
+                            <field name="is_customer_voice"/>
+                        </group>
+                        <group colspan="4" col="2">
+                            <field name="int_provider_id"
+                                   attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)],}"/>
+                            <field name="ext_provider_cat_id"
+                                   attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="project_process_output_data_list">
+        <field name="name">project_process_data.tree</field>
+        <field name="model">risk_management.project_process_data</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="name"/>
+                <field name="is_customer_voice"/>
+                <field name="consumer_ids" readonly="1" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="project_process_data_list">
+        <field name="name">project_process_data2.tree</field>
+        <field name="model">risk_management.project_process_data</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" context="{'form_view_ref':'risk_management.project_process_data_form'}"/>
+                <field name="is_customer_voice"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="project_process_data_search">
+        <field name="name">project_process_data.search</field>
+        <field name="model">risk_management.project_process_data</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="int_provider_id" string="Internal"/>
+                <field name="ext_provider_cat_id" string="External"/>
+                <filter name="int_provider" string="Internal" domain="[('int_provider_id', '!=', False)]"/>
+                <filter name="ext_provider" string="External" domain="[('ext_provider_cat_id', '!=', False)]"/>
+                <filter name="client_voice" string="Customer Voice" domain="[('is_customer_voice', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+
+
+    <!-- BUSINESS PROCESS TASK-->
+
+    <!-- views-->
+    <record model="ir.ui.view" id="process_task_all">
+        <field name="name">process_task.tree</field>
+        <field name="model">risk_management.business_process.task</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="process_task_search">
+        <field name="name">process_task.search</field>
+        <field name="model">risk_management.business_process.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Tasks"/>
+                <field name="owner_id"/>
+                <field name="description"/>
+                <field name="process_id"/>
+                <filter name="my_tasks" string="My tasks"
+                        domain="['|', ('owner_id', '=', uid), ('process_id.responsible_id', '=', uid)]"/>
+                <filter string="Unassigned" name="unassigned" domain="[('owner_id', '=', False)]"/>
+                <!-- TODO: add `group_by`-->
+            </search>
+        </field>
+    </record>
+
+    <!-- actions-->
+    <record model="ir.actions.act_window" id="act_business_process_2_process_task_all">
+        <field name="name">Tasks</field>
+        <field name="res_model">risk_management.business_process.task</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'default_process_id': active_id,
+            'search_default_process_id': [active_id],
+            }
+        </field>
+        <field name="search_view_id" ref="process_task_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new tasks
+            </p>
+        </field>
+    </record>
+
+
+    <!-- BUSINESS PROCESS METHOD-->
+    <!-- views-->
+    <record model="ir.ui.view" id="process_method_all">
+        <field name="name">process_method.tree</field>
+        <field name="model">risk_management.business_process.method</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="process_method_search">
+        <field name="name">process_method.search</field>
+        <field name="model">risk_management.business_process.method</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Methods"/>
+                <field name="output_ref_id"/>
+                <field name="process_id" string="Process"/>
+                <field name="author_name"/>
+                <filter name="my_methods" string="My Methods" domain="[('process_id.responsible_id', '=', uid)]"/>
+                <!-- TODO: add `group_by`-->
+            </search>
+        </field>
+    </record>
+
+    <!-- actions-->
+    <record model="ir.actions.act_window" id="act_business_process_2_process_method_all">
+        <field name="name">Methods</field>
+        <field name="res_model">risk_management.business_process.method</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'default_process_id': active_id, 'search_default_process_id': [active_id],
+            }
+        </field>
+        <field name="search_view_id" ref="process_method_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new process methods
+            </p>
+        </field>
+    </record>
+
+    <!-- PROJECT PROCESS METHOD-->
+    <!-- views-->
+    <record model="ir.ui.view" id="project_process_method_all">
+        <field name="name">project_process_method.tree</field>
+        <field name="model">risk_management.project_process.method</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="project_process_method_search">
+        <field name="name">project_process_method.search</field>
+        <field name="model">risk_management.project_process.method</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Methods"/>
+                <field name="output_ref_id"/>
+                <field name="process_id" string="Process"/>
+                <field name="author_name"/>
+                <filter name="my_methods" string="My Methods" domain="[('process_id.responsible_id', '=', uid)]"/>
+                <!-- TODO: add `group_by`-->
+            </search>
+        </field>
+    </record>
+
+    <!-- actions-->
+    <record model="ir.actions.act_window" id="act_project_process_2_process_method_all">
+        <field name="name">Methods</field>
+        <field name="res_model">risk_management.project_process.method</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'default_process_id': active_id, 'search_default_process_id': [active_id],
+            }
+        </field>
+        <field name="search_view_id" ref="project_process_method_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new process methods
+            </p>
+        </field>
+    </record>
+
+    <!-- BUSINESS PROCESS-->
+    <!-- actions-->
+    <record model="ir.actions.act_window" id="business_process_list_action">
+        <field name="name">Processes</field>
+        <field name="res_model">risk_management.business_process</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">Create your first Process!</p>
+        </field>
+    </record>
+    <!-- views-->
+    <record model="ir.ui.view" id="business_process_form_view">
+        <field name="name">business_process.form</field>
+        <field name="model">risk_management.business_process</field>
+        <field name="arch" type="xml">
+            <form string="Process">
+                <sheet string="Process">
+                    <div class="oe_left oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Process name"/>
+                        </h1>
+                    </div>
+                    <div class="oe_right oe_button_box" name="buttons">
+                        <button name="%(risk_management.act_business_process_2_process_method_all)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-files-o">
+                            <field string="Rules and policies" name="method_count" widget="statinfo"/>
+
+                        </button>
+                        <button name="%(risk_management.act_business_process_2_process_task_all)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-tasks">
+                            <field string="Task" name="task_count" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group>
+                        <field name="business_id" invisible="1"/>
+                        <field name="process_type"/>
+                        <field name="responsible_id"/>
+                    </group>
+                    <notebook>
+                        <page name="description_page" string="Description">
+                            <field name="description" type="html"/>
+                            <div class="oe_clear"/>
+                        </page>
+                        <page string="Input" name="input_page">
+                            <field name="input_data_ids"
+                                   context="{'tree_view_ref': 'risk_management.process_data_list'}"/>
+                        </page>
+                        <page string="Output" name="output_page">
+                            <field name="output_data_ids"
+                                   context="{ 'tree_view_ref':'risk_management.process_output_data_list', 'default_int_provider_id': id}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="business_process_list_view">
+        <field name="name">process.tree</field>
+        <field name="model">risk_management.business_process</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="responsible_id"/>
+            </tree>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="business_process_search_view">
+        <field name="name">process.search</field>
+        <field name="model">risk_management.business_process</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="description"/>
+                <filter name="Management" string="Management" domain="[('process_type', '=', 'M')]"/>
+                <filter name="Operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
+                <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- PROJECT PROCESS-->
+    <record model="ir.ui.view" id="project_process_search">
+        <field name="name">project_process.search</field>
+        <field name="model">risk_management.project_process</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="description"/>
+                <filter name="Management" string="Management" domain="[('process_type', '=', 'M')]"/>
+                <filter name="Operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
+                <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
+            </search>
+        </field>
+
+    </record>
+    <!-- actions-->
+    <record model="ir.actions.act_window" id="act_project_project_2_project_process_all">
+        <field name="name">Processes</field>
+        <field name="res_model">risk_management.project_process</field>
+        <field name="view_mode">tree, form</field>
+        <field name="context">
+            {'default_project_id': active_id,
+            'search_default_project_id': [active_id]}
+        </field>
+        <field name="search_view_id" ref="project_process_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new process
+            </p>
+        </field>
+    </record>
+    <!-- views-->
+    <record model="ir.ui.view" id="project_form">
+        <field name="name">project.project.form</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']/button[2]" position="after">
+                <button class="oe_stat_button" type="action"
+                        name="%(act_project_project_2_project_process_all)d" icon="fa-refresh">
+                    <field string="Processes" name="process_count" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="project_process_form">
+        <field name="name">project_process.form</field>
+        <field name="model">risk_management.project_process</field>
+        <field name="inherit_id" ref="business_process_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='buttons']/button[1]" position="attributes">
+                <attribute name="name" eval="%(risk_management.act_project_process_2_process_method_all)d"/>
+            </xpath>
+            <xpath expr="//div[@name='buttons']/button[2]" position="replace"/>
+            <field name="business_id" position="replace">
+                <field name="project_id"/>
+            </field>
+            <field name="input_data_ids" position="attributes">
+                <attribute name="context" eval="{'tree_view_ref': 'risk_management.project_process_data_list'}"/>
+            </field>
+            <field name="output_data_ids" position="attributes">
+                <attribute name="context" eval="{'tree_view_ref':'risk_management.project_process_output_data_list', 'default_int_provider_id': id}"/>
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="project_process_all">
+        <field name="name">project_process.tree</field>
+        <field name="model">risk_management.project_process</field>
+       <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="responsible_id"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <!--top level menu-->
+    <menuitem id="main_risk_management_menu" name="Risk Management"/>
+
+    <!--menu items-->
+    <menuitem id="config_menu" name="Configuration" parent="main_risk_management_menu" sequence="100"
+              groups="risk_management.group_process_manager"/>
+    <menuitem id="process_menu" name="Processes" parent="config_menu"
+              action="business_process_list_action"/>
 </odoo>

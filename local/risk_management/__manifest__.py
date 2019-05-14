@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Risk management",
+    'name': "Risk Management",
 
     'summary': """
     Risk management, Activity, Process
