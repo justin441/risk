@@ -132,7 +132,6 @@
     </record>
 
 
-
     <!-- BUSINESS PROCESS TASK-->
 
     <!-- views-->
@@ -376,8 +375,14 @@
         <field name="model">risk_management.project_process</field>
         <field name="inherit_id" ref="business_process_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='buttons']/button[1]" position="attributes">
-                <attribute name="name" eval="%(risk_management.act_project_process_2_process_method_all)d"/>
+            <xpath expr="//div[@name='buttons']/button[1]" position="replace">
+                <button name="%(risk_management.act_project_process_2_process_method_all)d"
+                        type="action"
+                        class="oe_stat_button"
+                        icon="fa-files-o">
+                    <field string="Rules and policies" name="method_count" widget="statinfo"/>
+
+                </button>
             </xpath>
             <xpath expr="//div[@name='buttons']/button[2]" position="replace"/>
             <field name="business_id" position="replace">
@@ -387,7 +392,8 @@
                 <attribute name="context" eval="{'tree_view_ref': 'risk_management.project_process_data_list'}"/>
             </field>
             <field name="output_data_ids" position="attributes">
-                <attribute name="context" eval="{'tree_view_ref':'risk_management.project_process_output_data_list', 'default_int_provider_id': active_id}"/>
+                <attribute name="context"
+                           eval="{'tree_view_ref':'risk_management.project_process_output_data_list', 'default_int_provider_id': active_id}"/>
             </field>
         </field>
     </record>
@@ -395,7 +401,7 @@
     <record model="ir.ui.view" id="project_process_all">
         <field name="name">project_process.tree</field>
         <field name="model">risk_management.project_process</field>
-       <field name="arch" type="xml">
+        <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
                 <field name="responsible_id"/>
@@ -419,12 +425,20 @@
         </field>
     </record>
 
+    <record model="ir.actions.act_window.view" id="action_project_process_all_list">
+        <field name="act_window_id" ref="act_project_project_2_project_process_all"/>
+        <field name="view_id" ref="project_process_all"/>
+        <field name="view_mode">tree</field>
+        <field name="sequence">10</field>
+    </record>
+
     <record model="ir.actions.act_window.view" id="action_project_process_all_form">
         <field name="act_window_id" ref="act_project_project_2_project_process_all"/>
         <field name="view_id" ref="project_process_form"/>
         <field name="view_mode">form</field>
-        <field name="sequence">10</field>
+        <field name="sequence">20</field>
     </record>
+
     <!-- project views-->
     <record model="ir.ui.view" id="project_form">
         <field name="name">project.project.form</field>

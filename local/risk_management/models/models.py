@@ -226,7 +226,7 @@ class ProjectProcess(models.Model):
     method_count = fields.Integer(string='Method', compute="_compute_method_count")
 
 
-class ProjectMethod(BaseProcessMethod):
+class ProjectMethod(models.Model):
     _name = "risk_management.project_process.method"
     _description = "Rules and policies for the project process"
     _inherit = ['risk_management.base_process_method']
