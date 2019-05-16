@@ -137,7 +137,7 @@ class BusinessProcessData(models.Model):
                                     relation='risk_management_input_ids_consumers_ids_rel',
                                     column1='consumer_ids', column2='input_data_ids',
                                     domain="[('id', '!=', int_provider_id),"
-                                           "('business_id','=', int_provider_id.business_id)]",
+                                           "('business_id', '=', int_provider_id.business_id)]",
                                     string="Users")
 
 
@@ -164,10 +164,11 @@ class BusinessProcessMethod(models.Model):
     _name = "risk_management.business_process.method"
     _description = "Rules and policies for the business process"
     _inherit = ['risk_management.base_process_method']
-    output_ref_id = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
-                                    domain=[('int_provider_id.process_type', '=', 'M')],
-                                    help='Output data reference')
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
+    output_ref_id = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
+                                    domain="[('int_provider_id.project_id', '=', process_id.project_id),"
+                                           "('int_provider_id.process_type', '=', 'M')]",
+                                    help='Output data reference')
     author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)
 
 
@@ -196,23 +197,12 @@ class ProjectProcess(models.Model):
          'The process name must be unique.')
     ]
 
-    @api.depends('task_ids')
-    def _compute_task_count(self):
-        for rec in self:
-            rec.task_count = len(rec.task_ids)
-
-    @api.depends('method_ids')
-    def _compute_method_count(self):
-        for rec in self:
-            rec.method_count = len(rec.method_ids)
-
     project_id = fields.Many2one('project.project', string='Project', ondelete='cascade',
                                  default=lambda self: self.env.context.get('default_project_id'),
                                  index=True)
     task_ids = fields.One2many('project.task', string='Tasks', inverse_name='process_id',
-                               domain="[('project_id', '=', project_id), '|', "
-                                      "('stage_id.fold', '=', False), "
-                                      "('stage_id', '=', False)]")
+                               domain=lambda self: [('project_id', '=', self.project_id.id), '|',
+                                                    ('stage_id.fold', '=', False), ('stage_id', '=', False)])
     method_ids = fields.One2many('risk_management.project_process.method', string='Methods', inverse_name='process_id')
     output_data_ids = fields.One2many('risk_management.project_process_data', inverse_name='int_provider_id',
                                       string='Output data')
@@ -225,12 +215,23 @@ class ProjectProcess(models.Model):
     task_count = fields.Integer(string='Tasks', compute="_compute_task_count")
     method_count = fields.Integer(string='Method', compute="_compute_method_count")
 
+    @api.depends('task_ids')
+    def _compute_task_count(self):
+        for rec in self:
+            rec.task_count = len(rec.task_ids)
+
+    @api.depends('method_ids')
+    def _compute_method_count(self):
+        for rec in self:
+            rec.method_count = len(rec.method_ids)
+
 
 class ProjectMethod(models.Model):
     _name = "risk_management.project_process.method"
     _description = "Rules and policies for the project process"
     _inherit = ['risk_management.base_process_method']
-    output_ref_id = fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
-                                    domain=[('int_provider_id.process_type', '=', 'M')], help='Output data reference')
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='User process')
+    output_ref_id = fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
+                                    domain="[('int_provider_id.process_type', '=', 'M')]",
+                                    help='Output data reference')
     author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)

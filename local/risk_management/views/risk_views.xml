@@ -224,9 +224,9 @@
                         </h1>
                     </div>
                     <group>
-                        <field name="process_id"/>
-                        <field name="output_ref_id" class="oe_edit_only"/>
-                        <field name="author_name" string="Origin" class="oe_read_only"/>
+                        <field name="process_id" context="{'form_view_ref': 'risk_management.business_process_form_view'}"/>
+                        <field name="output_ref_id"/>
+                        <field name="author_name" string="Origin"/>
                     </group>
                     <notebook>
                         <page name="content_page" string="Details">
@@ -309,9 +309,9 @@
                         </h1>
                     </div>
                     <group>
-                        <field name="process_id"/>
-                        <field name="output_ref_id" class="oe_edit_only"/>
-                        <field name="author_name" string="Origin" class="oe_read_only"/>
+                        <field name="process_id" context="{'form_view_ref': 'risk_management.project_process_form'}"/>
+                        <field name="output_ref_id"/>
+                        <field name="author_name" string="Origin"/>
                     </group>
                     <notebook>
                         <page name="content_page" string="Details">
@@ -451,9 +451,10 @@
                 <field name="name"/>
                 <field name="description"/>
                 <field name="project_id"/>
-                <filter name="Management" string="Management" domain="[('process_type', '=', 'M')]"/>
-                <filter name="Operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
-                <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
+                <filter name="management" string="Management" domain="[('process_type', '=', 'M')]"/>
+                <filter name="operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
+                <filter name="support" string="Support" domain="[('process_type', '=', 'S')]"/>
+                <filter name="my_processes" string="My processes" domain="['|', ('project_id.user_id', '=', uid), ('responsible_id', '=', uid)]"/>
             </search>
         </field>
     </record>
@@ -512,6 +513,24 @@
         </field>
     </record>
 
+    <record model="ir.actions.act_window" id="act_project_process_list">
+        <field name="name">Processes</field>
+        <field name="res_model">risk_management.project_process</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                                      (0, 0, {'view_mode': 'tree', 'view_id': ref('project_process_all')}),
+                                      (0, 0, {'view_mode': 'form', 'view_id': ref('project_process_form')})]"
+        />
+        <field name="context">
+            {'search_default_my_processes':1}
+        </field>
+        <field name="search_view_id" ref="project_process_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new process
+            </p>
+        </field>
+    </record>
+
     <record model="ir.actions.act_window.view" id="action_project_process_all_list">
         <field name="act_window_id" ref="act_project_project_2_project_process_all"/>
         <field name="view_id" ref="project_process_all"/>
@@ -542,12 +561,14 @@
     </record>
 
     <!--top level menu-->
-    <menuitem id="main_risk_management_menu" name="Risks"/>
+    <menuitem id="main_menu_risk_management" name="Risks"/>
 
     <!--menu items-->
 
-    <menuitem id="config_menu" name="Configuration" parent="main_risk_management_menu" sequence="100"
+    <menuitem id="config_menu" name="Configuration" parent="main_menu_risk_management" sequence="100"
               groups="risk_management.group_process_manager"/>
-    <menuitem id="process_menu" name="Processes" parent="config_menu"
+    <menuitem id="menu_business_process_list" name="Processes" parent="config_menu"
               action="business_process_list_action"/>
+    <menuitem id="menu_project_process_list" name="Processes" parent="project.menu_project_config"
+              action="act_project_process_list" groups="project.group_project_manager" sequence="99"/>
 </odoo>
