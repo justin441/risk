@@ -382,7 +382,7 @@
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-files-o">
-                            <field string="Rules and policies" name="method_count" widget="statinfo"/>
+                            <field string="Procedures" name="method_count" widget="statinfo"/>
 
                         </button>
                         <button name="%(risk_management.act_business_process_2_process_task_all)d"
@@ -468,7 +468,7 @@
                         type="action"
                         class="oe_stat_button"
                         icon="fa-files-o">
-                    <field string="Rules and policies" name="method_count" widget="statinfo"/>
+                    <field string="Procedures" name="method_count" widget="statinfo"/>
 
                 </button>
             </xpath>
