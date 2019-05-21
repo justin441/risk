@@ -33,12 +33,8 @@ Thank you for understanding!
 
 Further information
 ===================
-Demo: http://runbot.it-projects.info/demo/{REPO_NAME}/{BRANCH}
+
 HTML Description:
-Usage instructions: `<doc/index.rst>`_
+Usage instructions: `<doc/Index.rst>`_
 Changelog: `<doc/changelog.rst>`_
-Notifications on updates: `via Atom <https://github.com/it-projects-llc/{REPO_NAME}/
-˓→commits/{BRANCH}/{TECHNICAL_NAME}.atom>`_, `by Email <https://blogtrottr.com/?
-˓→subscribe=https://github.com/it-projects-llc/{REPO_NAME}/commits/{BRANCH}/
-˓→{TECHNICAL_NAME}.atom>`_
-Tested on Odoo {VERSION} {ODOO_COMMIT_SHA_TO_BE_UPDATED}
+Tested on Odoo 11.0
