@@ -359,12 +359,42 @@
     <record model="ir.actions.act_window" id="business_process_list_action">
         <field name="name">Processes</field>
         <field name="res_model">risk_management.business_process</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,kanban</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">Create your first Process!</p>
         </field>
     </record>
     <!-- views-->
+    <record model="ir.ui.view" id="business_process_kanban_view">
+        <field name="name">process.kanban</field>
+        <field name="model">risk_management.business_process</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="responsible_id" string="Process Manager"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_content oe_kanban_global_click o_kanban_get_form">
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <strong><field name="name" string="Process Name"/></strong>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-8">
+                                        <field name="business_id" string="Company"/>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <div class="oe_kanban_bottom_right">
+                                            <img t-att-src="kanban_image('res.users', 'image_small', record.responsible_id.raw_value)" t-att-title="record.responsible_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
     <record model="ir.ui.view" id="business_process_form_view">
         <field name="name">business_process.form</field>
         <field name="model">risk_management.business_process</field>
@@ -437,6 +467,10 @@
                 <filter name="Management" string="Management" domain="[('process_type', '=', 'M')]"/>
                 <filter name="Operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
                 <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Type" name="Type" context="{'group_by':'process_type'}"/>
+                    <filter string="Manager" name="Responsible" context="{'group_by':'responsible_id'}"/>
+                </group>
             </search>
         </field>
     </record>
