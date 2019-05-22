@@ -163,8 +163,6 @@
         </field>
     </record>
 
-    record
-
     <!-- actions-->
     <record model="ir.actions.act_window" id="act_business_process_2_process_task_all">
         <field name="name">Tasks</field>
@@ -182,7 +180,6 @@
             </p>
         </field>
     </record>
-
 
     <!-- BUSINESS PROCESS METHOD-->
     <!-- views-->
@@ -593,6 +590,30 @@
             </xpath>
         </field>
     </record>
+
+     <!-- PROJECT TASK -->
+    <!-- views -->
+
+    <record id="view_task_form2" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <field name="project_id" position="after">
+                <field name="process_id" domain="[('project_id', '=', project_id)]" context="{'form_view_ref': 'risk_management.project_process_form'}" />
+            </field>
+        </field>
+    </record>
+
+     <record id="view_task_search_form" model="ir.ui.view">
+         <field name="model">project.task</field>
+         <field name="inherit_id" ref="project.view_task_search_form"/>
+         <field name="arch" type="xml">
+            <xpath expr="//filter[@name='project']" position="after">
+                <filter string="Process" name="process" context="{'group_by':'process_id'}"/>
+            </xpath>
+        </field>
+     </record>
+     <!-- TODO: form view to edit process in kanban view -->
 
     <!--top level menu-->
     <menuitem id="main_menu_risk_management" name="Risks"/>
