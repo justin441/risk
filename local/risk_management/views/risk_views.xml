@@ -672,7 +672,7 @@
          <field name="inherit_id" ref="project.view_task_kanban"/>
          <field name="arch" type="xml">
              <kanban position="attributes">
-                <attribute name="group_edit">false</attribute> <!-- TODO: This is a hack. the `Edit Stage` menu is not loading the right form view -->
+                <attribute name="group_edit">false</attribute> <!-- FIXME: This is a hack. the `Edit Stage` menu is not loading the right form view -->
             </kanban>
              <field name="stage_id" position="after">
                 <field name="process_id" context="{'form_view_ref': 'risk_management.project_process_form'}"/>
