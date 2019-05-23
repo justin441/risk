@@ -39,5 +39,9 @@
             <field name="int_provider_id" ref="process00"/>
         </record>
 
+        <!-- TODO: add processes of all 3 types -->
+        <!-- TODO: add demo data for project process using examples from PMBOK -->
+
+
     </data>
 </odoo>
