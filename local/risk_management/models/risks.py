@@ -5,11 +5,11 @@ class RiskClass(models.Model):
     _name = 'risk_management.risk_class'
 
     name = fields.Char(translate=True)
-    risk_ids = fields.One2many(comodel_name='risk_management.risk', inverse_name='risk_class_id', string='Risks')
+    risk_info_ids = fields.One2many(comodel_name='risk_management.risk_info', inverse_name='risk_class_id', string='Risks')
 
 
-class Risk(models.Model):
-    _name = 'risk_management.risk'
+class RiskInfo(models.Model):
+    _name = 'risk_management.risk_info'
 
     risk_class_id = fields.Many2one(comodel_name='risk_management.risk_class', string='Category')
     short_name = fields.Char(translate=True)
@@ -21,8 +21,8 @@ class Risk(models.Model):
     note = fields.Text(translate=True, string='Note')
 
 
-class RiskCriteria(models.Model):
-    _name ='risk_management.risk_criteria'
+class BaseRiskCriteria(models.AbstractModel):
+    _name ='risk_management.base_risk_criteria'
 
     DETECTABILTY_SELECTION = (
         (1, 'Continuous'),
@@ -45,7 +45,7 @@ class RiskCriteria(models.Model):
         (4, 'Very High'),
         (5, 'Maximal')
 
-    )
+    ) 
     detectability = fields.Selection(selection=DETECTABILTY_SELECTION, string='Detectability', default=2,
                                      help='What is the ability of the company to detect'
                                      ' a failure if it were to occur?')
@@ -76,5 +76,38 @@ class RiskCriteria(models.Model):
             detectability_opp = opp_detectability_selection.get(rec.detectability)
             rec.value_opportunity = rec.detectability * detectability_opp * rec.severity
 
+
+class BusinessRiskCriteria(models.Model):
+    _name = 'risk_management.business_risk_criteria'
+
+    business_risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk')
+
+
+class ProjectRiskCriteria(models.Model):
+    _name = 'risk_management.project_risk_criteria'
+
+    project_risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk')
     
 
+class BaseRiskIdentification(models.Model):
+    _name = 'risk_management.base_risk_identification'
+
+    risk_info_id = fields.Many2one(comodel_name='risk_management.risk_info', string='Risk')
+    risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T')
+    review_date = fields.Date(default='_compute_default_review_date', string="Review on")
+
+
+class BusinessRisk(models.Model):
+    _name = 'risk_management.business_risk'
+
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process')
+    threshold_criteria = fields.One2many(comodel_name='risk_management.business_risk_criteria', inverse_name='business_risk_id')
+    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
+
+
+class ProjectRisk(models.Model):
+    _name = 'risk_management.project_risk'
+
+    project_process_id = fields.Many2one(comodel_name='risk_management.project_process')
+    threshold_criteria = fields.One2many(comodel_name='risk_management.project_risk_criteria', inverse_name='project_risk_id')
+    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
