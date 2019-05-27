@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 class BaseProcess(models.AbstractModel):
     _name = 'risk_management.base_process'
 
-    name = fields.Char(required=True, index=True, translate=True)
+    name = fields.Char(required=True, index=True, translate=True, copy=False)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
                                     required=True, string='Process type')
     description = fields.Html(translate=True, string="Description")
@@ -44,6 +44,9 @@ class BaseProcess(models.AbstractModel):
             c |= data.consumer_ids
         return c
 
+    # TODO: add a sequence fields
+    # TODO: _order = 'sequence asc'
+
 
 class BaseProcessData(models.AbstractModel):
     _name = 'risk_management.base_process_data'
@@ -59,7 +62,7 @@ class BaseProcessData(models.AbstractModel):
          'A process can only have one provider.'
          )
     ]
-    name = fields.Char(required=True, index=True, translate=True)
+    name = fields.Char(required=True, index=True, translate=True, copy=False)
     is_customer_voice = fields.Boolean('Consumer Voice?', default=False,
                                        help="Does this data relay the customer voice?")
     ext_provider_cat_id = fields.Many2one('res.partner.category', string='External proviser', ondelete='cascade',
@@ -85,7 +88,7 @@ class BaseProcessMethod(models.AbstractModel):
         )
     ]
 
-    name = fields.Char(translate=True, string='Title', required=True)
+    name = fields.Char(translate=True, string='Title', required=True, copy=False)
     content = fields.Html(translate=True)
 
 
@@ -102,7 +105,7 @@ class BusinessProcess(models.Model):
     business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit', required=True,
                                   default=lambda self: self.env['res.company']._company_default_get(
                                       'risk_management.business_process'),
-                                  readonly=True)
+                                  readonly=True, copy=False)
     task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
     output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
                                       string='Output data')
@@ -185,6 +188,7 @@ class ProjectProcessData(models.Model):
                                     domain="[('id', '!=', int_provider_id),"
                                            "('project_id', '=', int_provider_id.project_id)]",
                                     string="Users")
+
 
 
 class ProjectProcess(models.Model):
