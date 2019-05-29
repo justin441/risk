@@ -8,13 +8,14 @@ _logger = logging.getLogger(__name__)
 
 class BaseProcess(models.AbstractModel):
     _name = 'risk_management.base_process'
+    _inherit = ['mail.thread']
 
-    name = fields.Char(required=True, index=True, translate=True, copy=False)
+    name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
-                                    required=True, string='Process type')
+                                    required=True, string='Process type', track_visibility='onchange')
     description = fields.Html(translate=True, string="Description")
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
-                                     default=lambda self: self.env.user, index=True)
+                                     default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
 
     @api.constrains('input_data_ids', 'id')
