@@ -3,6 +3,9 @@ import datetime
 from odoo import models, fields, api, exceptions
 
 
+REPORT_OBSOLETE_AFTER_DAYS = 30
+
+
 class RiskCategory(models.Model):
     _name = 'risk_management.risk.category'
     _description = 'Risk Category'
@@ -111,7 +114,7 @@ class BaseRiskIdentification(models.AbstractModel):
         if not self.report_date:
             return False
         report_date = fields.Date.from_string(self.report_date)
-        default_review_date = report_date + datetime.timedelta(days=60)
+        default_review_date = report_date + datetime.timedelta(days=REPORT_OBSOLETE_AFTER_DAYS)
         return fields.Date.to_string(default_review_date)
 
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
@@ -119,6 +122,7 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk')
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
+    level_value = fields.Integer(compute='_compute_level_value', string='Risk Level', store=True)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported_by', default=lambda self: self.env.user)
     review_date = fields.Date(default=_compute_default_review_date, string="Review on")
     report_date = fields.Date(string='Reported On', default=fields.Date.today)
@@ -158,7 +162,15 @@ class BusinessRisk(models.Model):
     _description = 'Business risk'
     _inherit = ['risk_management.base_identification']
 
-    business_process_id = fields.Many2one(comodel_name='risk_management.business_process')
+    process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Process')
+    evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
+
+    @api.depends('evaluation_ids')
+    def _compute_level_value(self):
+        for rec in self:
+            if not rec.evaluation_ids:
+                rec.level_value = False
+            latest_evaluation = rec.evaluation_ids.sorted()
 
 
 class ProjectRisk(models.Model):
@@ -166,5 +178,33 @@ class ProjectRisk(models.Model):
     _description = 'Project risk'
     _inherit = ['risk_management.base_identification']
 
+    process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Process')
+    evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
+
+
+class BaseEvaluation(models.AbstractModel):
+    _name = 'risk_management.base_evaluation'
+    _inherit = ['risk_management.base_criteria']
+    _order = 'date desc'
+
+    date = fields.Date(string='Estimated On', default=lambda self: self.create_date)
+
+
+class BusinessRiskEvaluation(models.Model):
+    _name = 'risk_management.business_risk.evaluation'
+    _description = 'Business risk evaluation'
+    _inherit = ['risk_management.base_evaluation']
+
+    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk')
+    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id')
+
+
+class ProjectRiskEvaluation(models.Model):
+    _name = 'risk_management.project_risk.evaluation'
+    _description = 'Project risk evaluation'
+    _inherit = ['risk_management.base_evaluation']
+
     project_process_id = fields.Many2one(comodel_name='risk_management.project_process')
+
+
 
