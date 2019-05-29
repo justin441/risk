@@ -124,7 +124,7 @@
         </field>
     </record>
 
-     <!-- BUSINESS PROCESS METHOD-->
+    <!-- BUSINESS PROCESS METHOD-->
     <!-- views-->
     <record model="ir.ui.view" id="process_method_all">
         <field name="name">process_method.tree</field>
@@ -164,7 +164,8 @@
                         </h1>
                     </div>
                     <group>
-                        <field name="process_id" context="{'form_view_ref': 'risk_management.business_process_form_view'}"/>
+                        <field name="process_id"
+                               context="{'form_view_ref': 'risk_management.business_process_form_view'}"/>
                         <field name="output_ref_id"/>
                         <field name="author_name" string="Origin"/>
                     </group>
@@ -230,22 +231,26 @@
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_content oe_kanban_global_click o_kanban_get_form">
-                                <div class="row">
-                                    <div class="col-xs-12">
-                                        <strong><field name="name" string="Process Name"/></strong>
-                                    </div>
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <strong>
+                                        <field name="name" string="Process Name"/>
+                                    </strong>
                                 </div>
-                                <div class="row">
-                                    <div class="col-xs-8">
-                                        <field name="business_id" string="Company"/>
-                                    </div>
-                                    <div class="col-xs-4">
-                                        <div class="oe_kanban_bottom_right">
-                                            <img t-att-src="kanban_image('res.users', 'image_small', record.responsible_id.raw_value)" t-att-title="record.responsible_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>
-                                        </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-8">
+                                    <field name="business_id" string="Company"/>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="oe_kanban_bottom_right">
+                                        <img t-att-src="kanban_image('res.users', 'image_small', record.responsible_id.raw_value)"
+                                             t-att-title="record.responsible_id.value" width="24" height="24"
+                                             class="oe_kanban_avatar pull-right"/>
                                     </div>
                                 </div>
                             </div>
+                        </div>
                     </t>
                 </templates>
             </kanban>
@@ -298,6 +303,10 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
@@ -335,8 +344,7 @@
               action="business_process_list_action"/>
 
 
-
-<!-- =============================  PROJECT ================================= -->
+    <!-- =============================  PROJECT ================================= -->
 
     <!-- PROJECT PROCESS DATA-->
     <!-- views-->
@@ -501,7 +509,8 @@
                 <filter name="management" string="Management" domain="[('process_type', '=', 'M')]"/>
                 <filter name="operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
                 <filter name="support" string="Support" domain="[('process_type', '=', 'S')]"/>
-                <filter name="my_processes" string="My processes" domain="['|', ('project_id.user_id', '=', uid), ('responsible_id', '=', uid)]"/>
+                <filter name="my_processes" string="My processes"
+                        domain="['|', ('project_id.user_id', '=', uid), ('responsible_id', '=', uid)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Type" name="Type" context="{'group_by':'process_type'}"/>
                     <filter string="project" name="project" context="{'group_by':'project_id'}"/>
@@ -520,22 +529,26 @@
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_content oe_kanban_global_click o_kanban_get_form">
-                                <div class="row">
-                                    <div class="col-xs-12">
-                                        <strong><field name="name" string="Process Name"/></strong>
-                                    </div>
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <strong>
+                                        <field name="name" string="Process Name"/>
+                                    </strong>
                                 </div>
-                                <div class="row">
-                                    <div class="col-xs-8">
-                                        <field name="project_id" string="Project"/>
-                                    </div>
-                                    <div class="col-xs-4">
-                                        <div class="oe_kanban_bottom_right">
-                                            <img t-att-src="kanban_image('res.users', 'image_small', record.responsible_id.raw_value)" t-att-title="record.responsible_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>
-                                        </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-8">
+                                    <field name="project_id" string="Project"/>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="oe_kanban_bottom_right">
+                                        <img t-att-src="kanban_image('res.users', 'image_small', record.responsible_id.raw_value)"
+                                             t-att-title="record.responsible_id.value" width="24" height="24"
+                                             class="oe_kanban_avatar pull-right"/>
                                     </div>
                                 </div>
                             </div>
+                        </div>
                     </t>
                 </templates>
             </kanban>
@@ -649,15 +662,16 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <field name="project_id" position="after">
-                <field name="process_id" domain="[('project_id', '=', project_id)]" context="{'form_view_ref': 'risk_management.project_process_form'}" />
+                <field name="process_id" domain="[('project_id', '=', project_id)]"
+                       context="{'form_view_ref': 'risk_management.project_process_form'}"/>
             </field>
         </field>
     </record>
 
-     <record id="view_task_search_form" model="ir.ui.view">
-         <field name="model">project.task</field>
-         <field name="inherit_id" ref="project.view_task_search_form"/>
-         <field name="arch" type="xml">
+    <record id="view_task_search_form" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form"/>
+        <field name="arch" type="xml">
             <xpath expr="//filter[@name='project']" position="after">
                 <filter string="Process" name="process" context="{'group_by':'process_id'}"/>
             </xpath>
@@ -665,19 +679,20 @@
                 <field name="process_id" domain="[('project_id', '=', project_id)]"/>
             </field>
         </field>
-     </record>
+    </record>
 
-     <record model="ir.ui.view" id="view_task_kanban">
-         <field name="model">project.task</field>
-         <field name="inherit_id" ref="project.view_task_kanban"/>
-         <field name="arch" type="xml">
-             <kanban position="attributes">
-                <attribute name="group_edit">false</attribute> <!-- FIXME: This is a hack. the `Edit Stage` menu is not loading the right form view -->
+    <record model="ir.ui.view" id="view_task_kanban">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <kanban position="attributes">
+                <attribute name="group_edit">false
+                </attribute> <!-- FIXME: This is a hack. the `Edit Stage` menu is not loading the right form view -->
             </kanban>
-             <field name="stage_id" position="after">
+            <field name="stage_id" position="after">
                 <field name="process_id" context="{'form_view_ref': 'risk_management.project_process_form'}"/>
             </field>
-         </field>
-     </record>
+        </field>
+    </record>
 
 </odoo>
