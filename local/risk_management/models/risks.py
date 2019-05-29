@@ -2,8 +2,10 @@ import datetime
 
 from odoo import models, fields, api, exceptions
 
-
 REPORT_OBSOLETE_AFTER_DAYS = 30
+
+
+# -------------------------------------- Risk identification ----------------------------------
 
 
 class RiskCategory(models.Model):
@@ -83,27 +85,29 @@ class BaseRiskCriteria(models.AbstractModel):
                                 help='If a failure were to occur, what effect would that failure '
                                      'have on company assets?')
     comment = fields.Html(string='Comments', translate=True)
+    value_threat = fields.Integer(compute='_compute_value_threat')
+    value_opportunity = fields.Integer(compute='_compute_value_opportunity')
 
-    @api.multi
+    @api.depends('detectability', 'occurrence', 'severity')
     def _compute_value_threat(self):
         """
        if the risk is a threat, return the product of the scores,
        """
-        self.ensure_one()
-        return self.detectability * self.occurrence * self.severity
+        for rec in self:
+            rec.value_threat = rec.detectability * rec.occurrence * rec.severity
 
-    @api.multi
+    @api.depends('detectability', 'occurrence', 'severity')
     def _compute_value_opportunity(self):
         """
         if the risk is an opportunity, invert the value of self.detectability before calculating the product of
         the scores; ie a `continuous` capacity to detect an opportunity corresponds to 5. This is the contrary of the
         threat case where the greater the ability to detect the threat occurrence the less the risk factor
         """
-        self.ensure_one()
         opp_detectability_selection = dict((x, y) for x, y in zip(range(1, len(self.DETECTABILTY_SELECTION) + 1),
-                                                                      range(len(self.DETECTABILTY_SELECTION), 0, -1)))
-        detectability_opp = opp_detectability_selection.get(self.detectability)
-        self.value_opportunity = self.detectability * detectability_opp * self.severity
+                                                                  range(len(self.DETECTABILTY_SELECTION), 0, -1)))
+        for rec in self:
+            detectability_opp = opp_detectability_selection.get(rec.detectability)
+            rec.value_opportunity = self.detectability * detectability_opp * rec.severity
 
 
 class BaseRiskIdentification(models.AbstractModel):
@@ -120,26 +124,27 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True)
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk')
-    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
-    threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
-    level_value = fields.Integer(compute='_compute_level_value', string='Risk Level', store=True)
-    reported_by = fields.Many2one(comodel_name='res.users', string='Reported_by', default=lambda self: self.env.user)
-    review_date = fields.Date(default=_compute_default_review_date, string="Review on")
     report_date = fields.Date(string='Reported On', default=fields.Date.today)
+    reported_by = fields.Many2one(comodel_name='res.users', string='Reported_by', default=lambda self: self.env.user)
+    threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
+    latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True)
+    review_date = fields.Date(default=_compute_default_review_date, string="Review on")
+    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
     active = fields.Boolean(compute='_compute_active')
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
         for rec in self:
             if rec.risk_type == 'T':
-                rec.threshold_value = rec._compute_value_threat()
+                rec.threshold_value = rec.value_threat
             elif rec.risk_type == 'O':
-                rec.threshold_value = rec._compute_value_opportunity()
+                rec.threshold_value = rec.value_opportunity
 
     @api.depends('review_date')
     def _compute_active(self):
         for rec in self:
-            if rec.review_date and fields.Date.today() < rec.review_date:
+            if rec.review_date and fields.Date.from_string(fields.Date.today()) < fields.Date.from_string(
+                    rec.review_date):
                 rec.active = True
             else:
                 rec.active = False
@@ -156,6 +161,18 @@ class BaseRiskIdentification(models.AbstractModel):
             if rec.report_date and rec.create_date < rec.report_date:
                 raise exceptions.ValidationError('Report date must prior to or same as create date')
 
+    @api.depends('evaluation_ids')
+    def _compute_latest_level_value(self):
+        for rec in self:
+            if not rec.active or not rec.evaluation_ids:
+                rec.latest_level_value = False
+            # get the latest evaluation
+            latest_evaluation = rec.evaluation_ids.sorted()[0]
+            if rec.risk_type == 'T':
+                rec.latest_level_value = latest_evaluation.value_threat
+            elif rec.risk_type == 'O':
+                rec.latest_level_value = latest_evaluation.value_opportunity
+
 
 class BusinessRisk(models.Model):
     _name = 'risk_management.business_risk'
@@ -165,13 +182,6 @@ class BusinessRisk(models.Model):
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
 
-    @api.depends('evaluation_ids')
-    def _compute_level_value(self):
-        for rec in self:
-            if not rec.evaluation_ids:
-                rec.level_value = False
-            latest_evaluation = rec.evaluation_ids.sorted()
-
 
 class ProjectRisk(models.Model):
     _name = 'risk_management.project_risk'
@@ -179,7 +189,10 @@ class ProjectRisk(models.Model):
     _inherit = ['risk_management.base_identification']
 
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Process')
-    evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
+    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id')
+
+
+# -------------------------------------- Risk evaluation ----------------------------------
 
 
 class BaseEvaluation(models.AbstractModel):
@@ -196,7 +209,6 @@ class BusinessRiskEvaluation(models.Model):
     _inherit = ['risk_management.base_evaluation']
 
     risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk')
-    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id')
 
 
 class ProjectRiskEvaluation(models.Model):
@@ -204,7 +216,6 @@ class ProjectRiskEvaluation(models.Model):
     _description = 'Project risk evaluation'
     _inherit = ['risk_management.base_evaluation']
 
-    project_process_id = fields.Many2one(comodel_name='risk_management.project_process')
+    risk_id = fields.Many2one(comodel_name='risk_management.project_process')
 
-
-
+# -------------------------------------- Risk Treatment ----------------------------------
