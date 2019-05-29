@@ -181,6 +181,24 @@ class BusinessRisk(models.Model):
 
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
+    treatment_ids = fields.One2many(comodel_name='project.project', inverse_name='risk_id')
+    treatment_id = fields.Many2one(comodel_name='project.project', compute='_compute_treatment',
+                                   inverse='_inverse_treatment')
+
+    @api.depends('treatment_ids')
+    def _compute_treatment(self):
+        for rec in self:
+            if rec.treatment_ids:
+                rec.treatment_id = rec.treatment_ids[0]
+
+    @api.multi
+    def _inverse_treatment(self):
+        for rec in self:
+            if rec.treatment_ids:
+                # delete previous reference
+                treatment = self.env['project.project'].browse(rec.treatment_ids[0].id)
+                treatment.risk_id = False
+            rec.treatment_id.risk_id = rec
 
 
 class ProjectRisk(models.Model):
@@ -217,5 +235,3 @@ class ProjectRiskEvaluation(models.Model):
     _inherit = ['risk_management.base_evaluation']
 
     risk_id = fields.Many2one(comodel_name='risk_management.project_process')
-
-# -------------------------------------- Risk Treatment ----------------------------------
