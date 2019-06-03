@@ -191,7 +191,6 @@ class ProjectProcessData(models.Model):
                                     string="Users")
 
 
-
 class ProjectProcess(models.Model):
     _name = 'risk_management.project_process'
     _description = 'A project process'
