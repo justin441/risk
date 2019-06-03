@@ -11,7 +11,6 @@ class Project(models.Model):
 
     process_ids = fields.One2many('risk_management.project_process', string="Process", inverse_name='project_id')
     process_count = fields.Integer(compute="_compute_count_process")
-    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', ondelete='restrict')
 
 
 class Task(models.Model):
