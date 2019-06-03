@@ -2,7 +2,7 @@ import datetime
 
 from odoo import models, fields, api, exceptions
 
-REPORT_OBSOLETE_AFTER_DAYS = 30
+REPORT_MAX_AGE = 30
 
 
 # -------------------------------------- Risk identification ----------------------------------
@@ -23,6 +23,12 @@ class RiskCategory(models.Model):
     name = fields.Char(translate=True)
     risk_info_ids = fields.One2many(comodel_name='risk_management.risk.info', inverse_name='risk_category_id',
                                     string='Risks')
+    risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
+
+    @api.multi
+    def _compute_risk_count(self):
+        for rec in self:
+            rec.risk_count = len(rec.risk_info_ids)
 
 
 class RiskInfo(models.Model):
@@ -38,7 +44,7 @@ class RiskInfo(models.Model):
 
     risk_category_id = fields.Many2one(comodel_name='risk_management.risk.category', string='Category',
                                        ondelete='restrict')
-    subcategory = fields.Char(translate=True)
+    subcategory = fields.Char(translate=True, string='Sub-category')
     name = fields.Char(translate=True, index=True, copy=False)
     description = fields.Html(translate=True, string='Description')
     cause = fields.Html(Translate=True, string='Cause')
@@ -49,6 +55,18 @@ class RiskInfo(models.Model):
                                         string='Occurrence(Business)')
     project_risk_ids = fields.One2many(comodel_name='risk_management.project_risk', inverse_name='risk_info_id',
                                        string='Occurrence (Projects)')
+    business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
+    project_occurrences = fields.Integer(string="Occurrences in Projects", compute="_compute_project_occurrences")
+
+    @api.multi
+    def _compute_business_occurrences(self):
+        for rec in self:
+            rec.business_occurrences = len(rec.business_risk_ids)
+
+    @api.multi
+    def _compute_project_occurrences(self):
+        for rec in self:
+            rec.project_occurrences = len(rec.project_risk_ids)
 
 
 class BaseRiskCriteria(models.AbstractModel):
@@ -118,7 +136,7 @@ class BaseRiskIdentification(models.AbstractModel):
         if not self.report_date:
             return False
         report_date = fields.Date.from_string(self.report_date)
-        default_review_date = report_date + datetime.timedelta(days=REPORT_OBSOLETE_AFTER_DAYS)
+        default_review_date = report_date + datetime.timedelta(days=REPORT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
@@ -130,7 +148,7 @@ class BaseRiskIdentification(models.AbstractModel):
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True)
     review_date = fields.Date(default=_compute_default_review_date, string="Review on")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
-    active = fields.Boolean(compute='_compute_active')
+    active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: search active field
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -181,8 +199,8 @@ class BusinessRisk(models.Model):
 
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
-    treatment_ids = fields.One2many(comodel_name='project.project', inverse_name='risk_id')
-    treatment_id = fields.Many2one(comodel_name='project.project', compute='_compute_treatment',
+    treatment_ids = fields.One2many(comodel_name='risk_management.business_risk.treatment', inverse_name='risk_id')
+    treatment_id = fields.Many2one(comodel_name='risk_management.business_risk.treatment', compute='_compute_treatment',
                                    inverse='_inverse_treatment')
 
     @api.depends('treatment_ids')
@@ -226,7 +244,7 @@ class BusinessRiskEvaluation(models.Model):
     _description = 'Business risk evaluation'
     _inherit = ['risk_management.base_evaluation']
 
-    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk')
+    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk', required=True)
 
 
 class ProjectRiskEvaluation(models.Model):
@@ -234,4 +252,56 @@ class ProjectRiskEvaluation(models.Model):
     _description = 'Project risk evaluation'
     _inherit = ['risk_management.base_evaluation']
 
-    risk_id = fields.Many2one(comodel_name='risk_management.project_process')
+    risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', required=True)
+
+
+# -------------------------------------- Risk Treatment ----------------------------------
+
+
+class BusinessRiskTreatment(models.Model):
+    _name = 'risk_management.business_risk.treatment'
+    _description = 'Business risk treatment'
+    _inherit = ['project.project']
+
+    def _get_default_risk(self):
+        default_risk_id = self.env.context.get('default_risk_id')
+        if default_risk_id:
+            return default_risk_id.exists()
+        else:
+            return False
+
+    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk',
+                              default=_get_default_risk, required=True)
+    name = fields.Char(compute='_compute_name', store=True)
+
+    @api.depends('risk_id')
+    def _compute_name(self):
+        for rec in self:
+            rec.name = "%s: Treatment" % self.risk_id.risk_info_id.name
+
+
+class ProjectRiskTreatmentTask(models.Model):
+    _name = 'risk_management.project_risk.treatment_task'
+    _inherit = ['project.task']
+
+    def _get_default_risk(self):
+        default_risk_id = self.env.context.get('default_risk_id')
+        if default_risk_id:
+            return default_risk_id.exists()
+        else:
+            return False
+
+    risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', default=_get_default_risk,
+                              required=True)
+    project_id = fields.Many2one('project.project', string='Project', index=True, track_visibility='onchange',
+                                 change_default=True, compute='_compute_project_id', store=True, default=False)
+
+    @api.depends('risk_id')
+    def _compute_project_id(self):
+        for rec in self:
+            if rec.risk_id:
+                rec.project_id = rec.risk_id.process_id.project_id
+            else:
+                rec.project_id = False
+
+
