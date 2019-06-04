@@ -11,6 +11,7 @@ REPORT_MAX_AGE = 30
 class RiskCategory(models.Model):
     _name = 'risk_management.risk.category'
     _description = 'Risk Category'
+    _order = 'name asc'
 
     _sql_constraints = [
         (
@@ -20,7 +21,7 @@ class RiskCategory(models.Model):
         )
     ]
 
-    name = fields.Char(translate=True)
+    name = fields.Char(translate=True, required=True)
     risk_info_ids = fields.One2many(comodel_name='risk_management.risk.info', inverse_name='risk_category_id',
                                     string='Risks')
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
@@ -45,12 +46,12 @@ class RiskInfo(models.Model):
     risk_category_id = fields.Many2one(comodel_name='risk_management.risk.category', string='Category',
                                        ondelete='restrict')
     subcategory = fields.Char(translate=True, string='Sub-category')
-    name = fields.Char(translate=True, index=True, copy=False)
-    description = fields.Html(translate=True, string='Description')
-    cause = fields.Html(Translate=True, string='Cause')
-    consequence = fields.Html(translate=True, )
-    control = fields.Text(translate=True, string='Control / Monitoring')
-    note = fields.Text(translate=True, string='Note')
+    name = fields.Char(translate=True, index=True, copy=False, required=True)
+    description = fields.Html(translate=True, string='Description', required=True)
+    cause = fields.Html(Translate=True, string='Cause', index=True)
+    consequence = fields.Html(translate=True, string='Consequence', index=True)
+    control = fields.Text(translate=True, string='Monitoring', groups='risk_management.group_risk_manager')
+    action = fields.Text(translate=True, string='Hedging policy', groups='risk_management.group_risk_manager')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
     project_risk_ids = fields.One2many(comodel_name='risk_management.project_risk', inverse_name='risk_info_id',
@@ -133,19 +134,28 @@ class BaseRiskIdentification(models.AbstractModel):
     _inherit = ['risk_management.base_criteria']
 
     def _compute_default_review_date(self):
-        if not self.report_date:
+        if not self.last_evaluate_date:
             return False
-        report_date = fields.Date.from_string(self.report_date)
-        default_review_date = report_date + datetime.timedelta(days=REPORT_MAX_AGE)
+        last_evaluate_date = fields.Date.from_string(self.last_evaluate_date)
+
+        default_review_date = last_evaluate_date + datetime.timedelta(days=REPORT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True)
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk')
+    risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True)
+    risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)
+    risk_info_description = fields.Html('Description', related='risk_info_id.description', readonly=True)
+    risk_info_cause = fields.Html('Cause', related='risk_info_id.cause', readonly=True)
+    risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
+    risk_info_control = fields.Text('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
+    risk_info_action = fields.Text('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
     report_date = fields.Date(string='Reported On', default=fields.Date.today)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported_by', default=lambda self: self.env.user)
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True)
+    last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date')
     review_date = fields.Date(default=_compute_default_review_date, string="Review on")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
     active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: search active field
@@ -157,6 +167,14 @@ class BaseRiskIdentification(models.AbstractModel):
                 rec.threshold_value = rec.value_threat
             elif rec.risk_type == 'O':
                 rec.threshold_value = rec.value_opportunity
+
+    @api.depends('evaluation_ids')
+    def _compute_last_evaluate_date(self):
+        for rec in self:
+            if not rec.evaluation_ids:
+                rec.last_evaluate_date = False
+            last_evaluation = rec.evaluation_ids.sorted()[0]
+            rec.last_evaluate_date = last_evaluation.create_date
 
     @api.depends('review_date')
     def _compute_active(self):

@@ -773,16 +773,16 @@
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-hashtag">
-                            <field string="Project occurrences" name="project_occurrences" widget="statinfo"/>
+                            <field string="Occurrences in Projects" name="project_occurrences" widget="statinfo"/>
                         </button>
                     </div>
-                    <group>
+                    <group name="classification" string="Classification">
                         <field name="risk_category_id"/>
                         <field name="subcategory"/>
                     </group>
                     <group name="help" string="Help">
                         <field name="control"/>
-                        <field name="note"/>
+                        <field name="action"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">

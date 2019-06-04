@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <data>
+        <record id="risk_cat_1" model="risk_management.risk.category" >
+            <field name="name">Geopolitical risks</field>
+        </record>
+        <record id="risk_cat_2" model="risk_management.risk.category" >
+            <field name="name">Economic risks</field>
+        </record>
+        <record id="risk_cat_3" model="risk_management.risk.category" >
+            <field name="name">Strategic risks</field>
+        </record>
+        <record id="risk_cat_4" model="risk_management.risk.category" >
+            <field name="name">Financial risks</field>
+        </record>
+        <record id="risk_cat_5" model="risk_management.risk.category" >
+            <field name="name">Operational risks</field>
+        </record>
+        <record id="risk_cat_6" model="risk_management.risk.category" >
+            <field name="name">Industrial risks</field>
+        </record>
+        <record id="risk_cat_7" model="risk_management.risk.category" >
+            <field name="name">Legal risks</field>
+        </record>
+        <record id="risk_cat_8" model="risk_management.risk.category" >
+            <field name="name">IT risks</field>
+        </record>
+        <record id="risk_cat_9" model="risk_management.risk.category" >
+            <field name="name">Human resource risks</field>
+        </record>
+        <record id="risk_cat_10" model="risk_management.risk.category" >
+            <field name="name">Reputational risks</field>
+        </record>
+        <record id="risk_cat_11" model="risk_management.risk.category" >
+            <field name="name">Knowledge Management risks</field>
+        </record>
+        <record id="risk_cat_12" model="risk_management.risk.category" >
+            <field name="name">Integrity risks</field>
+        </record>
+        <record id="risk_cat_13" model="risk_management.risk.category" >
+            <field name="name">Uncategorized risks(Environmental, Overquality, Governance...)</field>
+        </record>
+
+    </data>
+</odoo>
