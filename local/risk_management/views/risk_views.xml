@@ -757,10 +757,10 @@
             <form>
                 <sheet>
                     <div class="oe_left oe_title">
-                        <label for="name" class="oe_edit_only"/>
-                        <h1>
-                            <field name="name"/>
-                        </h1>
+                        <label for="name" class="oe_edit_only" />
+                        <h3>
+                            <field name="name" widget="text"/>
+                        </h3>
                     </div>
                     <div class="oe_right oe_button_box" name="buttons">
                         <button name=""
@@ -780,10 +780,6 @@
                         <field name="risk_category_id"/>
                         <field name="subcategory"/>
                     </group>
-                    <group name="help" string="Help">
-                        <field name="control"/>
-                        <field name="action"/>
-                    </group>
                     <notebook>
                         <page name="description_page" string="Description">
                             <field name="description" type="html"/>
@@ -797,6 +793,12 @@
                             <field name="consequence" type="html"/>
                             <div class="oe_clear"/>
                         </page>
+                        <page name="help" string="Help">
+                            <label for="control"/>
+                        <field name="control"/>
+                            <label for="action"/>
+                        <field name="action"/>
+                    </page>
                     </notebook>
 
                 </sheet>
@@ -805,7 +807,7 @@
     </record>
 
     <record id="view_risk_category_list" model="ir.ui.view">
-        <field name="name">risk_category.form</field>
+        <field name="name">risk_category.list</field>
         <field name="model">risk_management.risk.category</field>
         <field name="arch" type="xml">
             <tree>
@@ -842,5 +844,48 @@
 
     <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
     <menuitem id="menu_risk_category" parent="config_menu" sequence="10" action="act_risk_category_list"/>
+
+
+    <!-- BUSINESS RISKS -->
+
+    <record id="view_business_risk_search" model="ir.ui.view">
+        <field name="name">business_risk.search</field>
+        <field name="model">risk_management.business_risk</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="risk_info_id"/>
+                <field name="risk_info_description"/>
+                <field name="risk_info_cause"/>
+                <field name="risk_info_consequence"/>
+                <filter name="threats" string="Thread" domain="['risk_type', '=', 'T']"/>
+                <filter name="opportunities" string="Opportunities" domain="['risk_type', '=', 'O']"/>
+                <group expand="0" string="Group By">
+                    <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_business_risk_register">
+        <field name="name">Risk Register</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_business_risk_list" model="ir.ui.view">
+        <field name="name">business_risk.list</field>
+        <field name="model">risk_management.business_risk</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="risk_info_id"/>
+                <field name="report_date"/>
+                <field name="review_date"/>
+                <field name="threshold_value"/>
+                <field name="latest_level_value"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="risk_register" name="Risk Register" parent="risk_menu" action="act_business_risk_register"/>
 
 </odoo>

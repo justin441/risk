@@ -137,7 +137,6 @@ class BaseRiskIdentification(models.AbstractModel):
         if not self.last_evaluate_date:
             return False
         last_evaluate_date = fields.Date.from_string(self.last_evaluate_date)
-
         default_review_date = last_evaluate_date + datetime.timedelta(days=REPORT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
@@ -152,13 +151,13 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_info_control = fields.Text('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
     risk_info_action = fields.Text('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
     report_date = fields.Date(string='Reported On', default=fields.Date.today)
-    reported_by = fields.Many2one(comodel_name='res.users', string='Reported_by', default=lambda self: self.env.user)
+    reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True)
     last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date')
     review_date = fields.Date(default=_compute_default_review_date, string="Review on")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
-    active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: search active field
+    active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: inverse active field
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -209,11 +208,30 @@ class BaseRiskIdentification(models.AbstractModel):
             elif rec.risk_type == 'O':
                 rec.latest_level_value = latest_evaluation.value_opportunity
 
+    @api.multi
+    def update_info(self, report_date=None, reporter=None):
+        self.ensure_one()
+        if self.active:
+            return
+        report_date = report_date or fields.Date.today()
+        reporter = reporter or self.env.user
+        review_date = fields.Date.from_string(report_date) + datetime.timedelta(REPORT_MAX_AGE)
+        self.sudo().write({'review_date': fields.Date.to_string(review_date),
+                           'report_date': report_date,
+                           'reported_by': reporter})
+
 
 class BusinessRisk(models.Model):
     _name = 'risk_management.business_risk'
     _description = 'Business risk'
     _inherit = ['risk_management.base_identification']
+    _sql_constraints = [
+        (
+            'unique_risk_process',
+            'UNIQUE(risk_info_id, process_id, risk_type)',
+            'This risk has already been reported.'
+        )
+    ]
 
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
@@ -243,7 +261,10 @@ class ProjectRisk(models.Model):
     _inherit = ['risk_management.base_identification']
 
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Process')
-    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id')
+    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id',
+                                     string='Evaluations')
+    treatment_ids = fields.One2many(comodel_name='risk_management.project_risk.treatment_task', inverse_name='risk_id',
+                                    string='Treatment tasks')
 
 
 # -------------------------------------- Risk evaluation ----------------------------------
@@ -273,7 +294,7 @@ class ProjectRiskEvaluation(models.Model):
     risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', required=True)
 
 
-# -------------------------------------- Risk Treatment ----------------------------------
+# -------------------------------------- Risk Treatment -----------------------------------
 
 
 class BusinessRiskTreatment(models.Model):
@@ -323,3 +344,51 @@ class ProjectRiskTreatmentTask(models.Model):
                 rec.project_id = False
 
 
+# -------------------------------------- Wizards -------------------------------------------
+
+class BaseRiskWizard(models.AbstractModel):
+    _name = 'risk_management.base_risk_wizard'
+
+    risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
+                                 require=True)
+    risk_info_id = fields.Many2one('risk_management.risk.info', string='Name', required=True)
+    risk_info_description = fields.Html(string='Description', readonly=True)
+    risk_info_cause = fields.Html(string='Cause', readonly=True)
+    risk_info_consequence = fields.Html(string='Consequence', readonly=True)
+    report_date = fields.Date(string='Reported On', default=fields.Date.today)
+    reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
+
+    @api.multi
+    def record_risk(self):
+        business_risk = self.env['risk_management.business_risk']
+        for wizard in self:
+            risk_type = wizard.risk_type
+            risk_info = wizard.risk_info_id
+            process_id = wizard.process_id
+            report_date = wizard.report_date
+            reporter = wizard.reported_by
+            # Search the database for an old risk report with the same type, the same infos and on the same process as
+            # this one.
+            old_report = business_risk.search([('risk_type', '=', risk_type),
+                                               ('risk_info_id', '=', risk_info),
+                                               ('process_id', '=', process_id),
+                                               ('active', '=', False)])
+            if old_report:
+                # old report is inactive
+                old_report.update_info(report_date=report_date, reporter=reporter)
+            else:
+                business_risk.create({
+                    'risk_type': risk_type,
+                    'risk_info': risk_info,
+                    'process_id': process_id,
+                    'report_date': report_date,
+                    'reported_by': reporter
+                })
+
+
+
+class BusinessRiskWizard(models.TransientModel):
+    _name = 'risk_management.business_risk.wizard'
+    _inherit = ['risk_management.base_risk_wizard']
+
+    process_id = fields.Many2one('risk_management.business_process', string='Process')
