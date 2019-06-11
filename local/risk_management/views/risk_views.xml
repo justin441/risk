@@ -757,7 +757,7 @@
             <form>
                 <sheet>
                     <div class="oe_left oe_title">
-                        <label for="name" class="oe_edit_only" />
+                        <label for="name" class="oe_edit_only"/>
                         <h3>
                             <field name="name" widget="text"/>
                         </h3>
@@ -795,10 +795,10 @@
                         </page>
                         <page name="help" string="Help">
                             <label for="control"/>
-                        <field name="control"/>
+                            <field name="control"/>
                             <label for="action"/>
-                        <field name="action"/>
-                    </page>
+                            <field name="action"/>
+                        </page>
                     </notebook>
 
                 </sheet>
@@ -886,6 +886,52 @@
         </field>
     </record>
 
-    <menuitem id="risk_register" name="Risk Register" parent="risk_menu" action="act_business_risk_register"/>
+    <record id="view_business_risk_wizard" model="ir.ui.view">
+        <field name="name">Risk Report Wizard Form</field>
+        <field name="model">risk_management.business_risk.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Report a risk">
+                <sheet>
+                    <group string="Ref.">
+                        <group>
+                            <field name="process_id"/>
+                            <field name="risk_type"/>
+                        </group>
+                        <group>
+                            <field name="reported_by"/>
+                            <field name="report_date"/>
+                        </group>
+                    </group>
+                    <group string="Details">
+                            <field name="risk_info_id" string="Search risk"/>
+                            <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                            <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                            <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="record_risk"
+                            string="Submit"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="act_record_risk_wizard" model="ir.actions.act_window">
+        <field name="name">Report Business Risk</field>
+        <field name="res_model">risk_management.business_risk.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_risk_register" name="Risk Register" parent="risk_menu" action="act_business_risk_register"/>
+    <menuitem id="menu_wizard_report_business_risk" parent="risk_menu" action="act_record_risk_wizard" sequence="30"/>
 
 </odoo>

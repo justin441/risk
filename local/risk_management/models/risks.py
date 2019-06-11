@@ -1,9 +1,9 @@
 import datetime
+import uuid
 
 from odoo import models, fields, api, exceptions
 
 REPORT_MAX_AGE = 30
-
 
 # -------------------------------------- Risk identification ----------------------------------
 
@@ -73,36 +73,33 @@ class RiskInfo(models.Model):
 class BaseRiskCriteria(models.AbstractModel):
     _name = 'risk_management.base_criteria'
 
-    DETECTABILITY_SELECTION = (
-        (1, 'Continuous'),
-        (2, 'High'),
-        (3, 'Average'),
-        (4, 'Low'),
-        (5, 'Minimal')
-    )
-    OCCURRENCE_SELECTION = (
-        (1, 'Almost impossible'),
-        (2, 'Unlikely'),
-        (3, 'Probable'),
-        (4, 'Very probable'),
-        (5, 'Almost certain')
-    )
-    SEVERITY_SELECTION = (
-        (1, 'Low'),
-        (2, 'Average'),
-        (3, 'High'),
-        (4, 'Very High'),
-        (5, 'Maximal')
+    @api.model
+    def _get_detectability(self):
+        levels = ['Continuous', 'High', 'Average', 'Low', 'Minimal']
+        scores = [str(x) for x in range(1, 6)]
+        return list(zip(scores, levels))
 
-    )
-    detectability = fields.Selection(selection=DETECTABILITY_SELECTION, string='Detectability', default=2,
+    @api.model
+    def _get_occurrence(self):
+        levels = ['Almost impossible', 'Unlikely', 'Probable', 'Very probable', 'Almost certain']
+        scores = [str(x) for x in range(1, 6)]
+        return list(zip(scores, levels))
+
+    @api.model
+    def _get_severity(self):
+        levels = ['Low', 'Average', 'High', 'Very High', 'Maximal']
+        scores = [str(x) for x in range(1, 6)]
+        return list(zip(scores, levels))
+
+    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='2', required=True,
                                      help='What is the ability of the company to detect'
-                                          ' a failure if it were to occur?')
-    occurrence = fields.Selection(selection=OCCURRENCE_SELECTION, default=2, string='Occurrence',
-                                  help='How likely is it for a particular failure to occur?')
-    severity = fields.Selection(selection=SEVERITY_SELECTION, default=2, string='Severity',
-                                help='If a failure were to occur, what effect would that failure '
-                                     'have on company assets?')
+                                          ' this failure (or gain) if it were to occur?')
+    occurrence = fields.Selection(selection=_get_occurrence, default='2', string='Occurrence', required=True,
+                                  help='How likely is it for this failure (or gain) to occur?')
+    severity = fields.Selection(selection=_get_severity, default='2', string='Severity', required=True,
+                                help='If this failure (or gain) were to occur, what is the level of the impact it '
+                                     'would have on company assets?')
+
     comment = fields.Html(string='Comments', translate=True)
     value_threat = fields.Integer(compute='_compute_value_threat')
     value_opportunity = fields.Integer(compute='_compute_value_opportunity')
@@ -110,10 +107,13 @@ class BaseRiskCriteria(models.AbstractModel):
     @api.depends('detectability', 'occurrence', 'severity')
     def _compute_value_threat(self):
         """
-       if the risk is a threat, return the product of the scores,
+       if the risk is a threat, return the product of the criteria score,
        """
         for rec in self:
-            rec.value_threat = rec.detectability * rec.occurrence * rec.severity
+            if rec.severity and rec.detectability and rec.occurrence:
+                rec.value_threat = int(rec.detectability) * int(rec.occurrence) * int(rec.severity)
+            else:
+                rec.value_threat = False
 
     @api.depends('detectability', 'occurrence', 'severity')
     def _compute_value_opportunity(self):
@@ -122,11 +122,14 @@ class BaseRiskCriteria(models.AbstractModel):
         the scores; ie a `continuous` capacity to detect an opportunity corresponds to 5. This is the contrary of the
         threat case where the greater the ability to detect the threat occurrence the less the risk factor
         """
-        opp_detectability_selection = dict((x, y) for x, y in zip(range(1, len(self.DETECTABILTY_SELECTION) + 1),
-                                                                  range(len(self.DETECTABILTY_SELECTION), 0, -1)))
+        inv_detectability_score = [str(x) for x in range(1, 6)]
+        opp_detectability_selection = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
         for rec in self:
-            detectability_opp = opp_detectability_selection.get(rec.detectability)
-            rec.value_opportunity = self.detectability * detectability_opp * rec.severity
+            if rec.detectability and rec.occurrence and rec.severity:
+                detectability_opp = opp_detectability_selection.get(rec.detectability)
+                rec.value_opportunity = int(rec.detectability) * detectability_opp * int(rec.severity)
+            else:
+                rec.value_opportunity = False
 
 
 class BaseRiskIdentification(models.AbstractModel):
@@ -140,6 +143,8 @@ class BaseRiskIdentification(models.AbstractModel):
         default_review_date = last_evaluate_date + datetime.timedelta(days=REPORT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
+    uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
+    name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True)
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True)
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk')
@@ -158,6 +163,11 @@ class BaseRiskIdentification(models.AbstractModel):
     review_date = fields.Date(default=_compute_default_review_date, string="Review on")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
     active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: inverse active field
+
+    @api.depends('uuid')
+    def _compute_name(self):
+        for rec in self:
+            rec.name = 'risk #%s' % rec.uuid[:10]
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -202,19 +212,21 @@ class BaseRiskIdentification(models.AbstractModel):
             if not rec.active or not rec.evaluation_ids:
                 rec.latest_level_value = False
             # get the latest evaluation
-            latest_evaluation = rec.evaluation_ids.sorted()[0]
-            if rec.risk_type == 'T':
-                rec.latest_level_value = latest_evaluation.value_threat
-            elif rec.risk_type == 'O':
-                rec.latest_level_value = latest_evaluation.value_opportunity
+            else:
+                latest_evaluation = rec.evaluation_ids.sorted()[0]
+                if rec.risk_type == 'T':
+                    rec.latest_level_value = latest_evaluation.value_threat
+                elif rec.risk_type == 'O':
+                    rec.latest_level_value = latest_evaluation.value_opportunity
 
     @api.multi
-    def update_info(self, report_date=None, reporter=None):
+    def update_id_info(self, report_date=None, reporter=None):
+        """Reactivate an old risk when it's re-reported"""
         self.ensure_one()
         if self.active:
             return
         report_date = report_date or fields.Date.today()
-        reporter = reporter or self.env.user
+        reporter = reporter or self.env.user.id
         review_date = fields.Date.from_string(report_date) + datetime.timedelta(REPORT_MAX_AGE)
         self.sudo().write({'review_date': fields.Date.to_string(review_date),
                            'report_date': report_date,
@@ -352,9 +364,9 @@ class BaseRiskWizard(models.AbstractModel):
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True)
     risk_info_id = fields.Many2one('risk_management.risk.info', string='Name', required=True)
-    risk_info_description = fields.Html(string='Description', readonly=True)
-    risk_info_cause = fields.Html(string='Cause', readonly=True)
-    risk_info_consequence = fields.Html(string='Consequence', readonly=True)
+    risk_info_description = fields.Html(string='Description', readonly=True, related='risk_info_id.description')
+    risk_info_cause = fields.Html(string='Cause', readonly=True, related='risk_info_id.cause')
+    risk_info_consequence = fields.Html(string='Consequence', readonly=True, related='risk_info_id.consequence')
     report_date = fields.Date(string='Reported On', default=fields.Date.today)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
 
@@ -363,10 +375,10 @@ class BaseRiskWizard(models.AbstractModel):
         business_risk = self.env['risk_management.business_risk']
         for wizard in self:
             risk_type = wizard.risk_type
-            risk_info = wizard.risk_info_id
-            process_id = wizard.process_id
+            risk_info = wizard.risk_info_id.id
+            process_id = wizard.process_id.id
             report_date = wizard.report_date
-            reporter = wizard.reported_by
+            reporter = wizard.reported_by.id
             # Search the database for an old risk report with the same type, the same infos and on the same process as
             # this one.
             old_report = business_risk.search([('risk_type', '=', risk_type),
@@ -375,16 +387,15 @@ class BaseRiskWizard(models.AbstractModel):
                                                ('active', '=', False)])
             if old_report:
                 # old report is inactive
-                old_report.update_info(report_date=report_date, reporter=reporter)
+                old_report.update_id_info(report_date=report_date, reporter=reporter)
             else:
                 business_risk.create({
                     'risk_type': risk_type,
-                    'risk_info': risk_info,
+                    'risk_info_id': risk_info,
                     'process_id': process_id,
                     'report_date': report_date,
                     'reported_by': reporter
                 })
-
 
 
 class BusinessRiskWizard(models.TransientModel):
@@ -392,3 +403,10 @@ class BusinessRiskWizard(models.TransientModel):
     _inherit = ['risk_management.base_risk_wizard']
 
     process_id = fields.Many2one('risk_management.business_process', string='Process')
+
+
+class ProjectRiskWizard(models.TransientModel):
+    _name = 'risk_management.project_risk.wizard'
+    _inherit = ['risk_management.base_risk_wizard']
+
+    process_id = fields.Many2one('risk_management.project_process', string='Process')
