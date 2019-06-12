@@ -104,8 +104,7 @@ class BusinessProcess(models.Model):
     ]
 
     business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit', required=True,
-                                  default=lambda self: self.env['res.company']._company_default_get(
-                                      'risk_management.business_process'),
+                                  default=lambda self: self.env.user.company_id,
                                   readonly=True, copy=False)
     task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
     output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
