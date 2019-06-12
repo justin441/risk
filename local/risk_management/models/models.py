@@ -118,6 +118,8 @@ class BusinessProcess(models.Model):
     method_ids = fields.One2many('risk_management.business_process.method',
                                  inverse_name='process_id', string='Methods')
     task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
+    risk_ids = fields.One2many('risk_management.business_risk', inverse_name='process_id', string='Identified risks')
+    risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
 
     @api.depends('task_ids')
     def _compute_task_count(self):
@@ -128,6 +130,11 @@ class BusinessProcess(models.Model):
     def _compute_method_count(self):
         for rec in self:
             rec.method_count = len(rec.method_ids)
+
+    @api.depends('risk_ids')
+    def _compute_risk_count(self):
+        for rec in self:
+            rec.risk_count = len(rec.risk_ids)
 
 
 class BusinessProcessData(models.Model):
@@ -218,6 +225,8 @@ class ProjectProcess(models.Model):
                                       )
     task_count = fields.Integer(string='Tasks', compute="_compute_task_count")
     method_count = fields.Integer(string='Method', compute="_compute_method_count")
+    risk_ids = fields.One2many('risk_management.project_risk', inverse_name='process_id', string='Identified risks')
+    risk_count = fields.Integer(compute='_compute_risk_count', string='Risk')
 
     @api.depends('task_ids')
     def _compute_task_count(self):
@@ -228,6 +237,11 @@ class ProjectProcess(models.Model):
     def _compute_method_count(self):
         for rec in self:
             rec.method_count = len(rec.method_ids)
+
+    @api.depends('risk_ids')
+    def _compute_risk_count(self):
+        for rec in self:
+            rec.risk_count = len(rec.risk_ids)
 
 
 class ProjectMethod(models.Model):

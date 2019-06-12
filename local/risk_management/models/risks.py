@@ -118,15 +118,15 @@ class BaseRiskCriteria(models.AbstractModel):
     @api.depends('detectability', 'occurrence', 'severity')
     def _compute_value_opportunity(self):
         """
-        if the risk is an opportunity, invert the value of self.detectability before calculating the product of
+        if the risk is an opportunity, invert the value of self.detectability before computing the product of
         the scores; ie a `continuous` capacity to detect an opportunity corresponds to 5. This is the contrary of the
         threat case where the greater the ability to detect the threat occurrence the less the risk factor
         """
         inv_detectability_score = [str(x) for x in range(1, 6)]
-        opp_detectability_selection = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
+        opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
         for rec in self:
             if rec.detectability and rec.occurrence and rec.severity:
-                detectability_opp = opp_detectability_selection.get(rec.detectability)
+                detectability_opp = opp_detectability_dict.get(rec.detectability)
                 rec.value_opportunity = int(rec.detectability) * detectability_opp * int(rec.severity)
             else:
                 rec.value_opportunity = False
