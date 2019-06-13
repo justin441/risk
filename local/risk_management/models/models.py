@@ -9,6 +9,7 @@ _logger = logging.getLogger(__name__)
 class BaseProcess(models.AbstractModel):
     _name = 'risk_management.base_process'
     _inherit = ['mail.thread']
+    _order = 'sequence asc'
 
     name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
@@ -17,6 +18,7 @@ class BaseProcess(models.AbstractModel):
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
+    sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank')
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -28,13 +30,13 @@ class BaseProcess(models.AbstractModel):
     @api.multi
     def get_input_int_providers(self):
         self.ensure_one()
-        int_data = self.input_data_ids.filter('int_provider_id')  # filter out data of external origin
+        int_data = self.input_data_ids.filtered('int_provider_id')  # filter out data of external origin
         return int_data.mapped('int_provider_id')
 
     @api.multi
     def get_input_ext_provider_cats(self):
         self.ensure_one()
-        ext_data = self.input_data_ids.filter('ext_provider_cat_id')  # filter out data of internal origin
+        ext_data = self.input_data_ids.filtered('ext_provider_cat_id')  # filter out data of internal origin
         return ext_data.mapped('ext_provider_cat_id')
 
     @api.multi
@@ -44,9 +46,6 @@ class BaseProcess(models.AbstractModel):
         for data in self.output_data_ids:
             c |= data.consumer_ids
         return c
-
-    # TODO: add a sequence fields
-    # TODO: _order = 'sequence asc'
 
 
 class BaseProcessData(models.AbstractModel):
@@ -134,6 +133,53 @@ class BusinessProcess(models.Model):
     def _compute_risk_count(self):
         for rec in self:
             rec.risk_count = len(rec.risk_ids)
+
+    @api.depends("process_type", 'input_data_ids', 'output_data_ids')
+    def _compute_sequence(self):
+        """
+        The sequence of a process depends on its type: operations come first and are order according to their proximity
+        to external clients; then management processes and finally support processes.
+        :return: int
+        """
+
+        for rec in self:
+            operational_processes = rec.env['risk_management.business_process'].search([
+                ('business_id', '=', rec.business_id.id),
+                ('process_type', '=', 'O')])
+            management_processes = rec.env['risk_management.business_process'].search([
+                ('business_id', '=', rec.business_id.id),
+                ('process_type', '=', 'M')])
+            default_seq = 10
+            if rec.process_type == "O":
+                if rec.get_input_ext_provider_cats().exists():
+                    rec.sequence = default_seq
+                else:
+                    if rec.get_input_int_providers().exists():
+                        operational_providers = rec.get_input_int_providers().filtered(
+                            lambda record: record.process_type == 'O')
+                        rec.sequence = default_seq + sum([record.sequence for record in operational_providers])
+                    else:
+                        rec.sequence = default_seq
+            elif rec.process_type == "M":
+                default = max([record.sequence for record in operational_processes]) + default_seq
+                if rec.get_input_int_providers().exists():
+                    mgt_providers = rec.get_input_int_providers().filtered(
+                        lambda record: record.process_type == 'M'
+                    )
+                    rec.sequence = default + sum(
+                        [record.sequence for record in mgt_providers])
+                else:
+                    rec.sequence = default
+            elif rec.process_type == "S":
+                default = max([record.sequence for record in management_processes]) + default_seq
+                if rec.get_input_int_providers().exists():
+                    support_providers = rec.get_input_int_providers().filtered(
+                        lambda record: record.process_type == 'S'
+                    )
+                    rec.sequence = default + sum(
+                        [record.sequence for record in support_providers])
+                else:
+                    rec.sequence = default
 
 
 class BusinessProcessData(models.Model):
@@ -241,6 +287,53 @@ class ProjectProcess(models.Model):
     def _compute_risk_count(self):
         for rec in self:
             rec.risk_count = len(rec.risk_ids)
+
+    @api.depends("process_type", 'input_data_ids', 'output_data_ids')
+    def _compute_sequence(self):
+        """
+        The sequence of a process depends on its type: operations come first and are order according to their proximity
+        to external clients; then management processes and finally support processes
+        :return: int
+        """
+
+        for rec in self:
+            operational_processes = rec.env['risk_management.business_process'].search([
+                ('project_id', '=', rec.project_id.id),
+                ('process_type', '=', 'O')])
+            management_processes = rec.env['risk_management.business_process'].search([
+                ('project_id', '=', rec.project_id.id),
+                ('process_type', '=', 'M')])
+            default_seq = 10
+            if rec.process_type == "O":
+                if rec.get_input_ext_provider_cats().exists():
+                    rec.sequence = default_seq
+                else:
+                    if rec.get_input_int_providers().exists():
+                        operational_providers = rec.get_input_int_providers().filtered(
+                            lambda record: record.process_type == 'O')
+                        rec.sequence = default_seq + sum([record.sequence for record in operational_providers])
+                    else:
+                        rec.sequence = default_seq
+            elif rec.process_type == "M":
+                default = max([record.sequence for record in operational_processes]) + default_seq
+                if rec.get_input_int_providers().exists():
+                    mgt_providers = rec.get_input_int_providers().filtered(
+                        lambda record: record.process_type == 'M'
+                    )
+                    rec.sequence = default + sum(
+                        [record.sequence for record in mgt_providers])
+                else:
+                    rec.sequence = default
+            elif rec.process_type == "S":
+                default = max([record.sequence for record in management_processes]) + default_seq
+                if rec.get_input_int_providers().exists():
+                    support_providers = rec.get_input_int_providers().filtered(
+                        lambda record: record.process_type == 'S'
+                    )
+                    rec.sequence = default + sum(
+                        [record.sequence for record in support_providers])
+                else:
+                    rec.sequence = default
 
 
 class ProjectMethod(models.Model):

@@ -287,6 +287,7 @@
                         <field name="business_id" invisible="1"/> <!-- FIXME multi-company -->
                         <field name="process_type"/>
                         <field name="responsible_id"/>
+                        <field name="sequence"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">
@@ -876,7 +877,7 @@
         <field name="name">business_risk.list</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree create="false">
                 <field name="risk_info_id"/>
                 <field name="report_date"/>
                 <field name="review_date"/>
@@ -903,7 +904,7 @@
                         </group>
                     </group>
                     <group string="Details">
-                            <field name="risk_info_id" string="Search risk"/>
+                            <field name="risk_info_id" string="Risk Name" class="oe_no_button"/>
                             <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
                             <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
                             <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
