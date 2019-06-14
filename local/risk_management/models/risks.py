@@ -137,6 +137,7 @@ class BaseRiskIdentification(models.AbstractModel):
     _inherit = ['risk_management.base_criteria']
 
     def _compute_default_review_date(self):
+        """By default the review date is REPORT_MAX_AGE days from the latest evaluation of the risk"""
         if not self.last_evaluate_date:
             return False
         last_evaluate_date = fields.Date.from_string(self.last_evaluate_date)
@@ -160,14 +161,15 @@ class BaseRiskIdentification(models.AbstractModel):
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True)
     last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date')
-    review_date = fields.Date(default=_compute_default_review_date, string="Review on")
-    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Risk Owner', index=True)
+    review_date = fields.Date(default=_compute_default_review_date, string="Review Date")
+    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True)
     active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: inverse active field
+    status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')])
 
     @api.depends('uuid')
     def _compute_name(self):
         for rec in self:
-            rec.name = 'risk #%s' % rec.uuid[:10]
+            rec.name = 'risk #%s' % rec.uuid[:8]
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -231,6 +233,17 @@ class BaseRiskIdentification(models.AbstractModel):
         self.sudo().write({'review_date': fields.Date.to_string(review_date),
                            'report_date': report_date,
                            'reported_by': reporter})
+
+    @api.multi
+    def _compute_is_acceptable(self):
+        for rec in self:
+            if rec.active and rec.latest_level_value and rec.threshold_value:
+                if rec.latest_level_value <= rec.threshold_value:
+                    rec.status = 'A'
+                else:
+                    rec.status = 'N'
+            else:
+                rec.status = 'U'
 
 
 class BusinessRisk(models.Model):

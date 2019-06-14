@@ -287,7 +287,6 @@
                         <field name="business_id" invisible="1"/> <!-- FIXME multi-company -->
                         <field name="process_type"/>
                         <field name="responsible_id"/>
-                        <field name="sequence"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">
@@ -871,19 +870,77 @@
         <field name="name">Risk Register</field>
         <field name="res_model">risk_management.business_risk</field>
         <field name="view_mode">tree,form</field>
+        <field name="context" eval="{'active_test': False}"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent">
+                There is no risk in this risk register at the moment
+            </p>
+        </field>
     </record>
 
     <record id="view_business_risk_list" model="ir.ui.view">
         <field name="name">business_risk.list</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
-            <tree create="false">
+            <tree create="false" decoration-muted="active==False"
+                  decoration-warning="active==True and status=='U'" decoration-danger="status=='N'"
+                  decoration-bf="status=='N'" decoration-success="status=='A'"
+            >
                 <field name="risk_info_id"/>
                 <field name="report_date"/>
+                <field name="status" invisible="1"/>
+                <field name="active" invisible="1"/>
+                <field name="process_id"/>
                 <field name="review_date"/>
                 <field name="threshold_value"/>
                 <field name="latest_level_value"/>
             </tree>
+        </field>
+    </record>
+
+    <record id="view_business_risk_edit" model="ir.ui.view">
+        <field name="name">business_risk.edit_form</field>
+        <field name="model">risk_management.business_risk</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <sheet>
+                    <div class="oe_left oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group col="12">
+                        <group colspan="6" col="2">
+                            <field name="risk_info_id" class="oe_read_only" nolabel="true"/>
+                            <field name="risk_info_category"/>
+                            <field name="process_id" class="oe_read_only" nolabel="true"/>
+                        </group>
+                        <group colspan="6" col="2">
+                            <field name="risk_type"/>
+                            <field name="reported_by" class="oe_read_only"/>
+                            <field name="report_date" class="oe_read_only"/>
+                            <field name="review_date"/>
+                            <field name="owner"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="info_page" string="Info">
+                            <field name="risk_info_subcategory"/>
+                            <field name="risk_info_description"/>
+                            <field name="risk_info_cause"/>
+                            <field name="risk_info_consequence"/>
+                        </page>
+                        <page name="evaluation_page" string="Evaluation">
+                            <field name="threshold_value"/>
+                            <field name="latest_level_value"/>
+                        </page>
+                        <page name="help_page" string="Treatment guides">
+                            <field name="risk_info_control"/>
+                            <field name="risk_info_action"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
         </field>
     </record>
 
@@ -904,10 +961,10 @@
                         </group>
                     </group>
                     <group string="Details">
-                            <field name="risk_info_id" string="Risk Name" class="oe_no_button"/>
-                            <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                            <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                            <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                        <field name="risk_info_id" string="Risk Name" class="oe_no_button"/>
+                        <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                        <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                        <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
                     </group>
                 </sheet>
                 <footer>
@@ -926,7 +983,7 @@
     </record>
 
     <record id="act_record_risk_wizard" model="ir.actions.act_window">
-        <field name="name">Report Business Risk</field>
+        <field name="name">New Business Risk</field>
         <field name="res_model">risk_management.business_risk.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>

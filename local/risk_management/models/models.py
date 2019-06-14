@@ -18,7 +18,7 @@ class BaseProcess(models.AbstractModel):
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
-    sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank')
+    sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True)
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -134,7 +134,7 @@ class BusinessProcess(models.Model):
         for rec in self:
             rec.risk_count = len(rec.risk_ids)
 
-    @api.depends("process_type", 'input_data_ids', 'output_data_ids')
+    @api.depends("process_type", 'input_data_ids')
     def _compute_sequence(self):
         """
         The sequence of a process depends on its type: operations come first and are order according to their proximity
@@ -161,7 +161,9 @@ class BusinessProcess(models.Model):
                     else:
                         rec.sequence = default_seq
             elif rec.process_type == "M":
-                default = max([record.sequence for record in operational_processes]) + default_seq
+                default = default_seq
+                if operational_processes.exists():
+                    default += max([record.sequence for record in operational_processes])
                 if rec.get_input_int_providers().exists():
                     mgt_providers = rec.get_input_int_providers().filtered(
                         lambda record: record.process_type == 'M'
@@ -171,7 +173,9 @@ class BusinessProcess(models.Model):
                 else:
                     rec.sequence = default
             elif rec.process_type == "S":
-                default = max([record.sequence for record in management_processes]) + default_seq
+                default = default_seq
+                if management_processes.exists():
+                    default += max([record.sequence for record in management_processes])
                 if rec.get_input_int_providers().exists():
                     support_providers = rec.get_input_int_providers().filtered(
                         lambda record: record.process_type == 'S'
@@ -297,10 +301,10 @@ class ProjectProcess(models.Model):
         """
 
         for rec in self:
-            operational_processes = rec.env['risk_management.business_process'].search([
+            operational_processes = rec.env['risk_management.project_process'].search([
                 ('project_id', '=', rec.project_id.id),
                 ('process_type', '=', 'O')])
-            management_processes = rec.env['risk_management.business_process'].search([
+            management_processes = rec.env['risk_management.project_process'].search([
                 ('project_id', '=', rec.project_id.id),
                 ('process_type', '=', 'M')])
             default_seq = 10
@@ -315,7 +319,10 @@ class ProjectProcess(models.Model):
                     else:
                         rec.sequence = default_seq
             elif rec.process_type == "M":
-                default = max([record.sequence for record in operational_processes]) + default_seq
+                if operational_processes.exists():
+                    default = max([record.sequence for record in operational_processes]) + default_seq
+                else:
+                    default = default_seq
                 if rec.get_input_int_providers().exists():
                     mgt_providers = rec.get_input_int_providers().filtered(
                         lambda record: record.process_type == 'M'
