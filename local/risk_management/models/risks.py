@@ -3,7 +3,9 @@ import uuid
 
 from odoo import models, fields, api, exceptions
 
-REPORT_MAX_AGE = 30
+RISK_REPORT_DEFAULT_MAX_AGE = 90
+RISK_EVALUATION_DEFAULT_MAX_AGE = 30
+
 
 # -------------------------------------- Risk identification ----------------------------------
 
@@ -137,11 +139,11 @@ class BaseRiskIdentification(models.AbstractModel):
     _inherit = ['risk_management.base_criteria']
 
     def _compute_default_review_date(self):
-        """By default the review date is REPORT_MAX_AGE days from the latest evaluation of the risk"""
+        """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days from the latest evaluation of the risk"""
         if not self.last_evaluate_date:
             return False
         last_evaluate_date = fields.Date.from_string(self.last_evaluate_date)
-        default_review_date = last_evaluate_date + datetime.timedelta(days=REPORT_MAX_AGE)
+        default_review_date = last_evaluate_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
@@ -182,7 +184,7 @@ class BaseRiskIdentification(models.AbstractModel):
     @api.depends('evaluation_ids')
     def _compute_last_evaluate_date(self):
         for rec in self:
-            if not rec.evaluation_ids:
+            if not rec.evaluation_ids.exits():
                 rec.last_evaluate_date = False
             last_evaluation = rec.evaluation_ids.sorted()[0]
             rec.last_evaluate_date = last_evaluation.create_date
@@ -211,12 +213,14 @@ class BaseRiskIdentification(models.AbstractModel):
     @api.depends('evaluation_ids')
     def _compute_latest_level_value(self):
         for rec in self:
-            if not rec.active or not rec.evaluation_ids:
+            if not rec.evaluation_ids.exits():
                 rec.latest_level_value = False
-            # get the latest evaluation
             else:
+                # get the latest evaluation
                 latest_evaluation = rec.evaluation_ids.sorted()[0]
-                if rec.risk_type == 'T':
+                if latest_evaluation.is_obsolete:
+                    rec.latest_level_value = False
+                elif rec.risk_type == 'T':
                     rec.latest_level_value = latest_evaluation.value_threat
                 elif rec.risk_type == 'O':
                     rec.latest_level_value = latest_evaluation.value_opportunity
@@ -229,7 +233,7 @@ class BaseRiskIdentification(models.AbstractModel):
             return
         report_date = report_date or fields.Date.today()
         reporter = reporter or self.env.user.id
-        review_date = fields.Date.from_string(report_date) + datetime.timedelta(REPORT_MAX_AGE)
+        review_date = fields.Date.from_string(report_date) + datetime.timedelta(RISK_REPORT_DEFAULT_MAX_AGE)
         self.sudo().write({'review_date': fields.Date.to_string(review_date),
                            'report_date': report_date,
                            'reported_by': reporter})
@@ -267,7 +271,7 @@ class BusinessRisk(models.Model):
     @api.depends('treatment_ids')
     def _compute_treatment(self):
         for rec in self:
-            if rec.treatment_ids:
+            if rec.latest_level_value and rec.treatment_ids:
                 rec.treatment_id = rec.treatment_ids[0]
 
     @api.multi
@@ -300,7 +304,23 @@ class BaseEvaluation(models.AbstractModel):
     _inherit = ['risk_management.base_criteria']
     _order = 'date desc'
 
-    date = fields.Date(string='Estimated On', default=lambda self: self.create_date)
+    def _compute_default_review_date(self):
+        date = fields.Date.from_string(self.date)
+        default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
+        return fields.Date.to_string(default_review_date)
+
+    date = fields.Date(string='Evaluated On', default=lambda self: self.create_date)
+    review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
+    is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')  # TODO: search method
+
+    @api.depends('review_date')
+    def _compute_is_obsolete(self):
+        for rec in self:
+            if rec.review_date:
+                review_date = fields.Date.from_string(rec.review_date)
+                rec.is_obsolete = review_date < fields.Date.from_string(fields.Date.today())
+            else:
+                rec.is_obsolete = False
 
 
 class BusinessRiskEvaluation(models.Model):
@@ -341,7 +361,7 @@ class BusinessRiskTreatment(models.Model):
     @api.depends('risk_id')
     def _compute_name(self):
         for rec in self:
-            rec.name = "%s: Treatment" % self.risk_id.risk_info_id.name
+            rec.name = "%s: Treatment" % self.risk_id.name
 
 
 class ProjectRiskTreatmentTask(models.Model):
@@ -385,7 +405,7 @@ class BaseRiskWizard(models.AbstractModel):
 
     @api.multi
     def record_risk(self):
-        business_risk = self.env['risk_management.business_risk']
+        business_risk = self.env[self.risk_model]
         for wizard in self:
             risk_type = wizard.risk_type
             risk_info = wizard.risk_info_id.id
@@ -416,6 +436,7 @@ class BusinessRiskWizard(models.TransientModel):
     _inherit = ['risk_management.base_risk_wizard']
 
     process_id = fields.Many2one('risk_management.business_process', string='Process')
+    risk_model = fields.Char(default='risk_management.business_risk', readonly=True)
 
 
 class ProjectRiskWizard(models.TransientModel):
@@ -423,3 +444,4 @@ class ProjectRiskWizard(models.TransientModel):
     _inherit = ['risk_management.base_risk_wizard']
 
     process_id = fields.Many2one('risk_management.project_process', string='Process')
+    risk_model = fields.Char(default='risk_management.project_risk', readonly=True)
