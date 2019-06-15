@@ -904,39 +904,81 @@
         <field name="arch" type="xml">
             <form create="false">
                 <sheet>
-                    <div class="oe_left oe_title">
+                    <div class="oe_title">
                         <h1>
                             <field name="name"/>
                         </h1>
+
+                        <div name="info_id" class="oe_readonly">
+                            <div>
+                                <label for="risk_info_id" class="oe_inline" string="Risk Name :"/>
+                                <field name="risk_info_id" class="oe_inline oe_input_align"/>
+                            </div>
+                            <div>
+                                <label for="process_id" class="oe_inline" string="Impacted Process :"/>
+                                <field name="process_id" class="oe_inline oe_input_align"/>
+                            </div>
+                        </div>
+
                     </div>
                     <group col="12">
                         <group colspan="6" col="2">
-                            <field name="risk_info_id" class="oe_read_only" nolabel="true"/>
+
                             <field name="risk_info_category"/>
-                            <field name="process_id" class="oe_read_only" nolabel="true"/>
+                            <field name="risk_info_subcategory"/>
+                            <label for="threshold_value"/>
+                            <button name=""
+                                    type=""
+                                    icon=""
+                            >
+                                <field name="threshold_value" string="Risk Threshold"/>
+                            </button>
+                            <label for="latest_level_value"/>
+                            <button name=""
+                                    type=""
+                                    icon=""
+                            >
+                                <field name="latest_level_value" string="Risk Level"/>
+                            </button>
                         </group>
                         <group colspan="6" col="2">
                             <field name="risk_type"/>
-                            <field name="reported_by" class="oe_read_only"/>
-                            <field name="report_date" class="oe_read_only"/>
-                            <field name="review_date"/>
+                            <label for="reported_by" class="oe_read_only"/>
+                            <field name="reported_by" class="oe_read_only" nolabel="1"/>
+                            <label for="report_date" class="oe_read_only"/>
+                            <field name="report_date" class="oe_read_only" nolabel="1"/>
+                            <label for="review_date" class="oe_edit_only"/>
+                            <field name="review_date" class="oe_edit_only" nolabel="1"/>
                             <field name="owner"/>
                         </group>
                     </group>
                     <notebook>
                         <page name="info_page" string="Info">
-                            <field name="risk_info_subcategory"/>
-                            <field name="risk_info_description"/>
-                            <field name="risk_info_cause"/>
-                            <field name="risk_info_consequence"/>
-                        </page>
-                        <page name="evaluation_page" string="Evaluation">
-                            <field name="threshold_value"/>
-                            <field name="latest_level_value"/>
+
+                            <group>
+                                <field name="risk_info_description"/>
+
+
+                                <field name="risk_info_cause"/>
+
+
+                                <field name="risk_info_consequence"/>
+                            </group>
                         </page>
                         <page name="help_page" string="Treatment guides">
-                            <field name="risk_info_control"/>
-                            <field name="risk_info_action"/>
+                            <group>
+                                <button
+                                        name=""
+                                        type=""
+                                        string="Edit..."
+                                        class="btn-primary oe_right oe_link"
+                                >
+                                </button>
+                            </group>
+                            <group>
+                                <field name="risk_info_control"/>
+                                <field name="risk_info_action"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>

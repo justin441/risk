@@ -139,11 +139,11 @@ class BaseRiskIdentification(models.AbstractModel):
     _inherit = ['risk_management.base_criteria']
 
     def _compute_default_review_date(self):
-        """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days from the latest evaluation of the risk"""
-        if not self.last_evaluate_date:
+        """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days from the report date"""
+        if not self.report_date:
             return False
-        last_evaluate_date = fields.Date.from_string(self.last_evaluate_date)
-        default_review_date = last_evaluate_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
+        report_date = fields.Date.from_string(self.report_date)
+        default_review_date = report_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
@@ -166,7 +166,10 @@ class BaseRiskIdentification(models.AbstractModel):
     review_date = fields.Date(default=_compute_default_review_date, string="Review Date")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True)
     active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: inverse active field
-    status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')])
+    status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
+                              compute='_compute_is_acceptable', string='Status')
+    mgt_stage = fields.Selection([('I', 'Identification'), ('E', 'Evaluation'), ('T', 'Treatment')],
+                                 compute='_compute_stage')
 
     @api.depends('uuid')
     def _compute_name(self):
@@ -208,7 +211,7 @@ class BaseRiskIdentification(models.AbstractModel):
     def _check_report_date_post_create_date(self):
         for rec in self:
             if rec.report_date and rec.create_date < rec.report_date:
-                raise exceptions.ValidationError('Report date must prior to or same as create date')
+                raise exceptions.ValidationError('Report date must post or same as create date')
 
     @api.depends('evaluation_ids')
     def _compute_latest_level_value(self):
@@ -231,12 +234,12 @@ class BaseRiskIdentification(models.AbstractModel):
         self.ensure_one()
         if self.active:
             return
-        report_date = report_date or fields.Date.today()
-        reporter = reporter or self.env.user.id
-        review_date = fields.Date.from_string(report_date) + datetime.timedelta(RISK_REPORT_DEFAULT_MAX_AGE)
+        new_report_date = report_date or fields.Date.today()
+        new_reporter = reporter or self.env.user.id
+        review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         self.sudo().write({'review_date': fields.Date.to_string(review_date),
-                           'report_date': report_date,
-                           'reported_by': reporter})
+                           'report_date': new_report_date,
+                           'reported_by': new_reporter})
 
     @api.multi
     def _compute_is_acceptable(self):
@@ -283,6 +286,18 @@ class BusinessRisk(models.Model):
                 treatment.risk_id = False
             rec.treatment_id.risk_id = rec
 
+    @api.depends('latest_level_value', 'treatment_id')
+    def compute_stage(self):
+        for rec in self:
+            if rec.active and not rec.latest_level_value:
+                rec.mgt_stage = 'I'
+            elif rec.lates_level_value and not rec.treatment_id:
+                rec.mgt_stage = 'E'
+            elif rec.treatment_id:
+                rec.mgt_stage = 'T'
+            else:
+                rec.mgt_stage = False
+
 
 class ProjectRisk(models.Model):
     _name = 'risk_management.project_risk'
@@ -294,6 +309,18 @@ class ProjectRisk(models.Model):
                                      string='Evaluations')
     treatment_ids = fields.One2many(comodel_name='risk_management.project_risk.treatment_task', inverse_name='risk_id',
                                     string='Treatment tasks')
+
+    @api.depends('latest_level_value', 'treatment_id')
+    def compute_stage(self):
+        for rec in self:
+            if rec.active and not rec.latest_level_value:
+                rec.mgt_stage = 'I'
+            elif rec.lates_level_value and not rec.treatment_ids:
+                rec.mgt_stage = 'E'
+            elif rec.treatment_id:
+                rec.mgt_stage = 'T'
+            else:
+                rec.mgt_stage = False
 
 
 # -------------------------------------- Risk evaluation ----------------------------------
