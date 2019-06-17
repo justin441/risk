@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from odoo import models, fields, api, exceptions
+from odoo import models, fields, api, exceptions, _
 
 RISK_REPORT_DEFAULT_MAX_AGE = 90
 RISK_EVALUATION_DEFAULT_MAX_AGE = 30
@@ -74,6 +74,7 @@ class RiskInfo(models.Model):
 
 class BaseRiskCriteria(models.AbstractModel):
     _name = 'risk_management.base_criteria'
+    _order = 'report_date desc'
 
     @api.model
     def _get_detectability(self):
@@ -93,12 +94,12 @@ class BaseRiskCriteria(models.AbstractModel):
         scores = [str(x) for x in range(1, 6)]
         return list(zip(scores, levels))
 
-    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='2', required=True,
+    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='3', required=True,
                                      help='What is the ability of the company to detect'
                                           ' this failure (or gain) if it were to occur?')
-    occurrence = fields.Selection(selection=_get_occurrence, default='2', string='Occurrence', required=True,
+    occurrence = fields.Selection(selection=_get_occurrence, default='3', string='Occurrence', required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
-    severity = fields.Selection(selection=_get_severity, default='2', string='Severity', required=True,
+    severity = fields.Selection(selection=_get_severity, default='3', string='Severity', required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
 
@@ -137,13 +138,13 @@ class BaseRiskCriteria(models.AbstractModel):
 class BaseRiskIdentification(models.AbstractModel):
     _name = 'risk_management.base_identification'
     _inherit = ['risk_management.base_criteria']
+    _order = 'report_date desc'
 
     def _compute_default_review_date(self):
+
         """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days from the report date"""
-        if not self.report_date:
-            return False
-        report_date = fields.Date.from_string(self.report_date)
-        default_review_date = report_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
+        create_date = fields.Date.from_string(self.report_date or fields.Date.today())
+        default_review_date = create_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
@@ -158,16 +159,16 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
     risk_info_control = fields.Text('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
     risk_info_action = fields.Text('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
-    report_date = fields.Date(string='Reported On', default=fields.Date.today)
+    report_date = fields.Date(string='Reported On', default=lambda self: fields.Date.context_today(self))
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True)
     last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date')
     review_date = fields.Date(default=_compute_default_review_date, string="Review Date")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True)
-    active = fields.Boolean(compute='_compute_active', store=True)  # FIXME: inverse active field
+    active = fields.Boolean(compute='_compute_active', inverse='_inverse_active', search='_search_active')
     status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
-                              compute='_compute_is_acceptable', string='Status')
+                              compute='_compute_acceptable', string='Status', search='_search_acceptable')
     mgt_stage = fields.Selection([('I', 'Identification'), ('E', 'Evaluation'), ('T', 'Treatment')],
                                  compute='_compute_stage')
 
@@ -187,19 +188,42 @@ class BaseRiskIdentification(models.AbstractModel):
     @api.depends('evaluation_ids')
     def _compute_last_evaluate_date(self):
         for rec in self:
-            if not rec.evaluation_ids.exits():
+            if not rec.evaluation_ids:
                 rec.last_evaluate_date = False
-            last_evaluation = rec.evaluation_ids.sorted()[0]
-            rec.last_evaluate_date = last_evaluation.create_date
+            else:
+                last_evaluation = rec.evaluation_ids.sorted()[0]
+                rec.last_evaluate_date = last_evaluation.create_date
 
     @api.depends('review_date')
     def _compute_active(self):
         for rec in self:
-            if rec.review_date and fields.Date.from_string(fields.Date.today()) < fields.Date.from_string(
+            if rec.review_date and fields.Date.from_string(fields.Date.context_today(self)) < fields.Date.from_string(
                     rec.review_date):
                 rec.active = True
             else:
                 rec.active = False
+
+    def _inverse_active(self):
+        for rec in self.filtered('report_date'):
+            rec.review_date = fields.Date.context_today(self)
+
+    @api.multi
+    def _search_active(self, operator, value):
+        recs = self.with_context(active_test=False)  # active_test=False prevent infinite loop in the search function
+        today = fields.Date.context_today(self)
+        if operator not in ('=', '!=') or value not in (True, False):
+            recs = recs.search([])
+        elif value:
+            if operator == '=':
+                recs = recs.search([('review_date', '>', today)])
+            elif operator == '!=':
+                recs = recs.search([('review_date', '<=', today)])
+        else:
+            if operator == '=':
+                recs = recs.search([('review_date', '<=', today)])
+            elif operator == '!=':
+                recs = recs.search([('review_date', '>', today)])
+        return [('id', 'in', [rec.id for rec in recs])]
 
     @api.constrains('report_date', 'review_date')
     def _check_review_after_report(self):
@@ -216,7 +240,7 @@ class BaseRiskIdentification(models.AbstractModel):
     @api.depends('evaluation_ids')
     def _compute_latest_level_value(self):
         for rec in self:
-            if not rec.evaluation_ids.exits():
+            if not rec.evaluation_ids.exists():
                 rec.latest_level_value = False
             else:
                 # get the latest evaluation
@@ -234,7 +258,7 @@ class BaseRiskIdentification(models.AbstractModel):
         self.ensure_one()
         if self.active:
             return
-        new_report_date = report_date or fields.Date.today()
+        new_report_date = report_date or fields.Date.context_today(self)
         new_reporter = reporter or self.env.user.id
         review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         self.sudo().write({'review_date': fields.Date.to_string(review_date),
@@ -242,7 +266,15 @@ class BaseRiskIdentification(models.AbstractModel):
                            'reported_by': new_reporter})
 
     @api.multi
-    def _compute_is_acceptable(self):
+    def toggle_active(self):
+        for rec in self:
+            if rec.active:
+                rec._inverse_active()
+            else:
+                rec.update_id_info()
+
+    @api.multi
+    def _compute_acceptable(self):
         for rec in self:
             if rec.active and rec.latest_level_value and rec.threshold_value:
                 if rec.latest_level_value <= rec.threshold_value:
@@ -251,6 +283,10 @@ class BaseRiskIdentification(models.AbstractModel):
                     rec.status = 'N'
             else:
                 rec.status = 'U'
+
+    def _search_acceptable(self, operator, value):
+        pass
+
 
 
 class BusinessRisk(models.Model):
@@ -456,7 +492,8 @@ class BaseRiskWizard(models.AbstractModel):
                     'report_date': report_date,
                     'reported_by': reporter
                 })
-
+        # return self.env.ref('risk_management.act_business_risk_register')
+        # TODO: reload the list view upon recording the risk
 
 class BusinessRiskWizard(models.TransientModel):
     _name = 'risk_management.business_risk.wizard'
