@@ -885,7 +885,7 @@
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
             <tree create="false" decoration-muted="active==False"
-                  decoration-warning="active==True and status=='U'" decoration-danger="status=='N'"
+                  decoration-info="active==True and status=='U'" decoration-danger="status=='N'"
                   decoration-bf="status=='N'" decoration-success="status=='A'"
             >
                 <field name="risk_info_id"/>
@@ -895,7 +895,7 @@
                 <field name="process_id"/>
                 <field name="review_date"/>
                 <field name="threshold_value"/>
-                <field name="latest_level_value"/>
+                <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', 0)] }"/>
             </tree>
         </field>
     </record>

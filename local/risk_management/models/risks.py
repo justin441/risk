@@ -368,11 +368,11 @@ class BaseEvaluation(models.AbstractModel):
     _order = 'date desc'
 
     def _compute_default_review_date(self):
-        date = fields.Date.from_string(self.date)
+        date = fields.Date.from_string(fields.Date.today())
         default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
-    date = fields.Date(string='Evaluated On', default=lambda self: self.create_date)
+    date = fields.Date(string='Evaluated On', default=lambda self: fields.Date.today())
     review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')  # TODO: search method
 
@@ -492,8 +492,12 @@ class BaseRiskWizard(models.AbstractModel):
                     'report_date': report_date,
                     'reported_by': reporter
                 })
-        # return self.env.ref('risk_management.act_business_risk_register')
+        return {
+            'type': 'ir.actions.client', 'tag': 'reload',
+            'params': self.env.ref('risk_management.view_business_risk_list')
+        }
         # TODO: reload the list view upon recording the risk
+
 
 class BusinessRiskWizard(models.TransientModel):
     _name = 'risk_management.business_risk.wizard'
