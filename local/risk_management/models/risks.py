@@ -52,8 +52,8 @@ class RiskInfo(models.Model):
     description = fields.Html(translate=True, string='Description', required=True)
     cause = fields.Html(Translate=True, string='Cause', index=True)
     consequence = fields.Html(translate=True, string='Consequence', index=True)
-    control = fields.Text(translate=True, string='Monitoring', groups='risk_management.group_risk_manager')
-    action = fields.Text(translate=True, string='Hedging policy', groups='risk_management.group_risk_manager')
+    control = fields.Text(translate=True, string='Steering / Monitoring', groups='risk_management.group_risk_manager')
+    action = fields.Text(translate=True, string='Action / Hedging policy', groups='risk_management.group_risk_manager')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
     project_risk_ids = fields.One2many(comodel_name='risk_management.project_risk', inverse_name='risk_info_id',
@@ -459,7 +459,7 @@ class BaseRiskWizard(models.AbstractModel):
 
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True)
-    risk_info_id = fields.Many2one('risk_management.risk.info', string='Name', required=True)
+    risk_info_id = fields.Many2one('risk_management.risk.info', string='Name', required=True, ondelete='cascade')
     risk_info_description = fields.Html(string='Description', readonly=True, related='risk_info_id.description')
     risk_info_cause = fields.Html(string='Cause', readonly=True, related='risk_info_id.cause')
     risk_info_consequence = fields.Html(string='Consequence', readonly=True, related='risk_info_id.consequence')
@@ -468,7 +468,7 @@ class BaseRiskWizard(models.AbstractModel):
 
     @api.multi
     def record_risk(self):
-        business_risk = self.env[self.risk_model]
+        risk_model = self.env[self.risk_model]
         for wizard in self:
             risk_type = wizard.risk_type
             risk_info = wizard.risk_info_id.id
@@ -477,7 +477,7 @@ class BaseRiskWizard(models.AbstractModel):
             reporter = wizard.reported_by.id
             # Search the database for an old risk report with the same type, the same infos and on the same process as
             # this one.
-            old_report = business_risk.search([('risk_type', '=', risk_type),
+            old_report = risk_model.search([('risk_type', '=', risk_type),
                                                ('risk_info_id', '=', risk_info),
                                                ('process_id', '=', process_id),
                                                ('active', '=', False)])
@@ -485,25 +485,137 @@ class BaseRiskWizard(models.AbstractModel):
                 # old report is inactive
                 old_report.update_id_info(report_date=report_date, reporter=reporter)
             else:
-                business_risk.create({
+                risk_model.create({
                     'risk_type': risk_type,
                     'risk_info_id': risk_info,
                     'process_id': process_id,
                     'report_date': report_date,
                     'reported_by': reporter
                 })
+        # reload business risks list
         return {
             'type': 'ir.actions.client', 'tag': 'reload',
             'params': self.env.ref('risk_management.view_business_risk_list')
         }
-        # TODO: reload the list view upon recording the risk
+
+
+class BaseEvaluationWizard(models.AbstractModel):
+    _name = 'risk_management.base_eval_wizard'
+
+    @api.model
+    def _get_detectability(self):
+        levels = ['Continuous', 'High', 'Average', 'Low', 'Minimal']
+        scores = [str(x) for x in range(1, 6)]
+        return list(zip(scores, levels))
+
+    @api.model
+    def _get_occurrence(self):
+        levels = ['Almost impossible', 'Unlikely', 'Probable', 'Very probable', 'Almost certain']
+        scores = [str(x) for x in range(1, 6)]
+        return list(zip(scores, levels))
+
+    @api.model
+    def _get_severity(self):
+        levels = ['Low', 'Average', 'High', 'Very High', 'Maximal']
+        scores = [str(x) for x in range(1, 6)]
+        return list(zip(scores, levels))
+
+    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='3', required=True,
+                                     help='What is the ability of the company to detect'
+                                          ' this failure (or gain) if it were to occur?')
+    occurrence = fields.Selection(selection=_get_occurrence, default='3', string='Occurrence', required=True,
+                                  help='How likely is it for this failure (or gain) to occur?')
+    severity = fields.Selection(selection=_get_severity, default='3', string='Severity', required=True,
+                                help='If this failure (or gain) were to occur, what is the level of the impact it '
+                                     'would have on company assets?')
+    comment = fields.Html(string='Comments', translate=True)
+
+    @api.multi
+    def set_value(self):
+        for wizard in self:
+            detectability = wizard.detectability
+            occurrence = wizard.occurrence
+            severity = wizard.severity
+            comment = wizard.comment
+            self.risk_id.write({
+                'detectability': detectability,
+                'occurrence': occurrence,
+                'severity': severity,
+                'comment': comment
+            })
+
+
+class BaseRiskLevelWizard(models.AbstractModel):
+    _name = 'risk_management.base_risk_level_wizard'
+    _inherit = ['risk_management.base_eval_wizard']
+
+    def _compute_default_review_date(self):
+        date = fields.Date.from_string(fields.Date.today())
+        default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
+        return fields.Date.to_string(default_review_date)
+
+    date = fields.Date(string='Evaluated On', default=lambda self: fields.Date.today())
+
+    review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
+
+    @api.multi
+    def set_value(self):
+        eval_risk_model = self.env[self.eval_risk_model]
+        for wizard in self:
+            date = wizard.date
+            review_date = wizard.review_date
+            detectability = wizard.detectability
+            occurrence = wizard.occurrence
+            severity = wizard.severity
+            comment = wizard.comment
+            risk_id = self.risk_id.id
+            eval_risk_model.create({
+                'date': date,
+                'review_date': review_date,
+                'detectability': detectability,
+                'occurrence': occurrence,
+                'severity': severity,
+                'comment': comment,
+                'risk_id': risk_id
+            })
+
+
+class BusinessRiskThresholdWizard(models.TransientModel):
+    _name = 'risk_management.business_risk.set_threshold_wizard'
+    _inherit = ['risk_management.base_eval_wizard']
+
+    risk_id = fields.Many2one('risk_management.business_risk', string='Business Risk', required=True,
+                              ondelete='cascade')
+
+
+class ProjectRiskThresholdWizard(models.TransientModel):
+    _name = 'risk_management.project_risk.set_threshold_wizard'
+    _inherit = ['risk_management.base_eval_wizard']
+
+    risk_id = fields.Many2one('risk_management.project_risk', string='Project Risk', required=True,
+                              ondelete='cascade')
+
+
+class BusinessRiskEvalWizard(models.TransientModel):
+    _name = 'risk_management.business_risk.eval_wizard'
+    _inherit = ['risk_management.base_risk_level_wizard']
+
+    risk_id = fields.Many2one('risk_management.business_risk', string='Business Risk', required=True,
+                              ondelete='cascade')
+
+
+class ProjectRiskEvalWizard(models.TransientModel):
+    _name = 'risk_management.project_risk.eval_wizard'
+
+    risk_id = fields.Many2one('risk_management.project_risk', string='Project Risk', required=True,
+                              ondelete='cascade')
 
 
 class BusinessRiskWizard(models.TransientModel):
     _name = 'risk_management.business_risk.wizard'
     _inherit = ['risk_management.base_risk_wizard']
 
-    process_id = fields.Many2one('risk_management.business_process', string='Process')
+    process_id = fields.Many2one('risk_management.business_process', string='Process', ondelete='cascade')
     risk_model = fields.Char(default='risk_management.business_risk', readonly=True)
 
 
@@ -511,5 +623,5 @@ class ProjectRiskWizard(models.TransientModel):
     _name = 'risk_management.project_risk.wizard'
     _inherit = ['risk_management.base_risk_wizard']
 
-    process_id = fields.Many2one('risk_management.project_process', string='Process')
+    process_id = fields.Many2one('risk_management.project_process', string='Process', ondelete='cascade')
     risk_model = fields.Char(default='risk_management.project_risk', readonly=True)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-    <data>
+<odoo >
+    <data noupdate="1">
         <record id="risk_cat_1" model="risk_management.risk.category" >
             <field name="name">Geopolitical risks</field>
         </record>
@@ -40,6 +40,5 @@
         <record id="risk_cat_13" model="risk_management.risk.category" >
             <field name="name">Uncategorized risks(Environmental, Overquality, Governance...)</field>
         </record>
-
     </data>
 </odoo>

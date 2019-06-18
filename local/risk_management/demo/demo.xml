@@ -42,6 +42,138 @@
         <!-- TODO: add processes of all 3 types -->
         <!-- TODO: add demo data for project process using examples from PMBOK -->
 
+        <!-- risk infos -->
+        <record id="risk_info_1" model="risk_management.risk.info">
+            <field name="risk_category_id" ref="risk_management.risk_cat_1"/>
+            <field name="subcategory">Country Risk</field>
+            <field name="name">Political instability (risk of war, terrorism, local conflict, attacks ...)</field>
+            <field name="description" type="html">
+                <p>Risk of loss of business or profitability outside the company's natural boundary, due to geopolitical instability in the area of presence.</p>
+            </field>
+            <field name="cause" type="html">
+                <p>War, terrorism, local conflict, bombing.</p>
+            </field>
+            <field name="consequence" type="html">
+                <ul>
+                    <li>Issues related to the safety of people and property. </li>
+                    <li>Loss of turnover and/or profitability. </li>
+                    <li>Economic and financial losses.</li>
+                    <li>Reputational risk; risk of business failure.</li>
+                </ul>
+            </field>
+            <field name="control">
+               Monitor all geopolitical indicators available, from multiple sources (Ministries, Banks, International Institutions).
+                Monitor local and regional situation, implement micromanagement on site.
+            </field>
+            <field name="action">
+                In-depth knowledge of the country concerned and its associated risks.
+                Mastering the geopolitical issues of the geographical area of exposure.
+                Reduction of the presence, repositioning of critical processes, exit of the zone,
+                Avoidance strategy, reduction strategy.
+            </field>
+        </record>
+        <record id="risk_info_2" model="risk_management.risk.info">
+            <field name="risk_category_id" ref="risk_management.risk_cat_2"/>
+            <field name="subcategory">Cyclical risk</field>
+            <field name="name">Unfavorable economic climate impacting the dynamics of the company's activity: inflation, slowdown, GDP decline, unemployment</field>
+            <field name="description" type="html">
+                <p>Deteriorating economic conditions for carrying out business activities</p>
+            </field>
+            <field name="cause" type="html">
+                <ul>
+                    <li>Economic crisis of local, regional, national or global impact;</li>
+                    <li>unemployment, decline in purchasing power B2B or B2C;</li>
+                    <li>deterioration of public accounts, over-indebtedness, economic failure of a branch of activity.</li>
+                </ul>
+                <p>
+                </p>
+            </field>
+            <field name="consequence" type="html">
+                <ul>
+                    <li>Loss of turnover, loss of business opportunities, loss of relative or absolute market shares.</li>
+                    <li>Loss business development opportunity.</li>
+                    <li>customer insolvency.</li>
+                </ul>
+            </field>
+            <field name="control">
+                Growth rate of the turnover. Turnover rate of the offer. Failure rate on launching new offers. Fine management
+                of the company's activity levels (production, storage and consumption cycles)
+            </field>
+            <field name="action">
+                Adaptability and flexibility of the strategic and production model of the company: reactivity of the supply
+                the evolution of the demand, adaptation of the structure of production and cost of the offer; risk reduction
+                strategy to be favored.
+            </field>
+        </record>
+        <record id="risk_info_3" model="risk_management.risk.info">
+            <field name="risk_category_id" ref="risk_management.risk_cat_3"/>
+            <field name="subcategory">Strategic model</field>
+            <field name="name">
+                Poor identification or poor definition of the strategic segments of the strategic business model
+            </field>
+            <field name="description" type="html">
+                <p>
+                    Incorrect determination of the strategic business model segments to which the commercial offer is deployed.
+                </p>
+            </field>
+            <field name="cause" type="html">
+                <ul>
+                    <li>Bad knowledge of the market.</li>
+                    <li>Bad segmentation of customers / prospects database.</li>
+                    <li>Mismatch between Commercial offers and market demand.</li>
+                </ul>
+            </field>
+            <field name="consequence" type="html">
+                <ul>
+                    <li>Inability to market the produced offers on the desired customer segments;</li>
+                    <li>Loss of sales, deterioration of the company's economic conditions.</li>
+                </ul>
+            </field>
+            <field name="control">
+                Success rate of the marketing of the offer by strategic segment.
+                Number of strategic segments.
+                Dimensioning and validated consistency of the strategic business model
+            </field>
+            <field name="action">
+                Precise analysis of target market, anticipated segments, and customer profiles making up each strategic segment.
+                Precise identification of the specific needs of each client and consistency of the offer that is intended for them.
+                Risk circumvention or reduction strategy.
+            </field>
+        </record>
+        <record id="risk_info_4" model="risk_management.risk.info">
+            <field name="risk_category_id" ref="risk_management.risk_cat_4"/>
+            <field name="subcategory">Cash flow</field>
+            <field name="name">Company cashflow shortage</field>
+            <field name="description" type="html">
+                <p>
+                    Inability of the company to meet its financial commitments, for lack of liquid cash.
+                </p>
+            </field>
+            <field name="cause" type="html">
+                <ul>
+                    <li>Poorly controlled need in working capital</li>
+                    <li>Structural inadequacy of the upper part of the company's balance sheet</li>
+                    <li>Lack of appropriate cash flow forecast</li>
+                    <li>Significant delay in a customer payment</li>
+                    <li>unavailability of suitable short-term financing solutions.</li>
+                </ul>
+            </field>
+            <field name="consequence" type="html">
+                <p>
+                    Unpaid bills, cash-flow difficulties, which may lead to a situation of cessation of payments leading to the opening
+                    of a bankruptcy or liquidation procedure.
+                </p>
+            </field>
+            <field name="control">
+                Daily situation of the current cash position; cash flow forecasts; number of days and amounts of anticipated overruns;
+                rate and degree of use of short-term financing schemes
+            </field>
+            <field name="action">
+                Development of a precise forecast of cash flow; absolute control of the need in working capital; implementation
+                of short term financing solutions (overdraft, factoring, discount); reinforcement of equity; setting up an
+                appropriate debt for long-term financing; current account contributions.
+            </field>
+        </record>
 
     </data>
 </odoo>
