@@ -164,14 +164,10 @@
                     of a bankruptcy or liquidation procedure.
                 </p>
             </field>
-            <field name="control">
-                Daily situation of the current cash position; cash flow forecasts; number of days and amounts of anticipated overruns;
-                rate and degree of use of short-term financing schemes
+            <field name="control">Daily situation of the current cash position; cash flow forecasts; number of days and amounts of anticipated overruns; rate and degree of use of short-term financing schemes
             </field>
             <field name="action">
-                Development of a precise forecast of cash flow; absolute control of the need in working capital; implementation
-                of short term financing solutions (overdraft, factoring, discount); reinforcement of equity; setting up an
-                appropriate debt for long-term financing; current account contributions.
+                Development of a precise forecast of cash flow; absolute control of the need in working capital; implementation of short term financing solutions (overdraft, factoring, discount); reinforcement of equity; setting up an appropriate debt for long-term financing; current account contributions.
             </field>
         </record>
 

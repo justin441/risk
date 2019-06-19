@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from odoo import models, fields, api, exceptions, _
+from odoo import models, fields, api, exceptions
 
 RISK_REPORT_DEFAULT_MAX_AGE = 90
 RISK_EVALUATION_DEFAULT_MAX_AGE = 30
@@ -170,7 +170,7 @@ class BaseRiskIdentification(models.AbstractModel):
     status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                               compute='_compute_acceptable', string='Status', search='_search_acceptable')
     mgt_stage = fields.Selection([('I', 'Identification'), ('E', 'Evaluation'), ('T', 'Treatment')],
-                                 compute='_compute_stage')
+                                 compute='_compute_stage', store=True)
 
     @api.depends('uuid')
     def _compute_name(self):
@@ -209,9 +209,10 @@ class BaseRiskIdentification(models.AbstractModel):
 
     @api.multi
     def _search_active(self, operator, value):
-        recs = self.with_context(active_test=False)  # active_test=False prevent infinite loop in the search function
+        # active_test=False in context prevent infinite loop in the search function
+        recs = self.with_context(active_test=False)
         today = fields.Date.context_today(self)
-        if operator not in ('=', '!=') or value not in (True, False):
+        if operator not in ('=', '!=') or value not in (1, 0):
             recs = recs.search([])
         elif value:
             if operator == '=':
@@ -273,7 +274,7 @@ class BaseRiskIdentification(models.AbstractModel):
             else:
                 rec.update_id_info()
 
-    @api.multi
+    @api.depends('active', 'latest_level_value', 'threshold_value')
     def _compute_acceptable(self):
         for rec in self:
             if rec.active and rec.latest_level_value and rec.threshold_value:
@@ -285,8 +286,39 @@ class BaseRiskIdentification(models.AbstractModel):
                 rec.status = 'U'
 
     def _search_acceptable(self, operator, value):
-        pass
+        recs = self.with_context(active_test=False)
 
+        def acceptable(rec):
+            # is the risk acceptable?
+            return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value <= rec.threshold_value
+
+        def unacceptable(rec):
+            # is the risk unacceptable?
+            return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value > rec.threshold_value
+
+        def unknown_status(rec):
+            # is the risk status unknown?
+            return not rec.active or not rec.latest_level_value or not rec.threshold_value
+
+        if operator not in ('=', '!=') or value not in ('A', 'N', 'U'):
+            recs = recs.search([])
+        else:
+            if operator == '=':
+                if value == 'A':
+                    recs = recs.filtered(acceptable)
+                elif value == 'N':
+                    recs = recs.filtered(unacceptable)
+                elif value == 'U':
+                    recs = recs.filtered(unknown_status)
+            if operator == '!=':
+                if value == 'A':
+                    recs = recs.filtered(unacceptable) | recs.filtered(unknown_status)
+                elif value == 'N':
+                    recs = recs.filtered(acceptable) | recs.filtered(unknown_status)
+                elif value == 'U':
+                    recs = recs.filtered(acceptable) | recs.filtered(unacceptable)
+
+        return [('id', 'in', [rec.id for rec in recs])]
 
 
 class BusinessRisk(models.Model):
@@ -323,11 +355,11 @@ class BusinessRisk(models.Model):
             rec.treatment_id.risk_id = rec
 
     @api.depends('latest_level_value', 'treatment_id')
-    def compute_stage(self):
+    def _compute_stage(self):
         for rec in self:
             if rec.active and not rec.latest_level_value:
                 rec.mgt_stage = 'I'
-            elif rec.lates_level_value and not rec.treatment_id:
+            elif rec.latest_level_value and not rec.treatment_id:
                 rec.mgt_stage = 'E'
             elif rec.treatment_id:
                 rec.mgt_stage = 'T'
@@ -346,14 +378,14 @@ class ProjectRisk(models.Model):
     treatment_ids = fields.One2many(comodel_name='risk_management.project_risk.treatment_task', inverse_name='risk_id',
                                     string='Treatment tasks')
 
-    @api.depends('latest_level_value', 'treatment_id')
-    def compute_stage(self):
+    @api.depends('latest_level_value', 'treatment_ids')
+    def _compute_stage(self):
         for rec in self:
             if rec.active and not rec.latest_level_value:
                 rec.mgt_stage = 'I'
-            elif rec.lates_level_value and not rec.treatment_ids:
+            elif rec.latest_level_value and not rec.treatment_ids:
                 rec.mgt_stage = 'E'
-            elif rec.treatment_id:
+            elif rec.treatment_ids:
                 rec.mgt_stage = 'T'
             else:
                 rec.mgt_stage = False
@@ -365,14 +397,13 @@ class ProjectRisk(models.Model):
 class BaseEvaluation(models.AbstractModel):
     _name = 'risk_management.base_evaluation'
     _inherit = ['risk_management.base_criteria']
-    _order = 'date desc'
+    _order = 'write_date desc'
 
     def _compute_default_review_date(self):
         date = fields.Date.from_string(fields.Date.today())
         default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
-    date = fields.Date(string='Evaluated On', default=lambda self: fields.Date.today())
     review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')  # TODO: search method
 
@@ -384,6 +415,21 @@ class BaseEvaluation(models.AbstractModel):
                 rec.is_obsolete = review_date < fields.Date.from_string(fields.Date.today())
             else:
                 rec.is_obsolete = False
+
+    def _search_is_obsolete(self, operator, value):
+        if operator not in('=', "!=") or value not in (0, 1):
+            recs = self.search([])
+        elif operator == '=':
+            if value:
+                recs = self.search(['review_date', '<', fields.Date.today()])
+            else:
+                recs = self.search(['review_date', '>=', fields.Date.today()])
+        else:
+            if value:
+                recs = self.search(['review_date', '>=', fields.Date.today()])
+            else:
+                recs = self.search(['review_date', '<', fields.Date.today()])
+        return [('id', 'in', [rec.id for rec in recs])]
 
 
 class BusinessRiskEvaluation(models.Model):
@@ -411,9 +457,14 @@ class BusinessRiskTreatment(models.Model):
     _inherit = ['project.project']
 
     def _get_default_risk(self):
-        default_risk_id = self.env.context.get('default_risk_id')
-        if default_risk_id:
-            return default_risk_id.exists()
+        # return the risk to use as default in risk_id field
+        default_risk_id = self.env.context.get('default_risk_id', False)
+        risk_model = self.env.context.get('risk_model', False)
+
+        if default_risk_id and risk_model:
+            risk = self.env[risk_model].browse(default_risk_id)
+            if risk:
+                return risk.exists()
         else:
             return False
 
@@ -478,9 +529,9 @@ class BaseRiskWizard(models.AbstractModel):
             # Search the database for an old risk report with the same type, the same infos and on the same process as
             # this one.
             old_report = risk_model.search([('risk_type', '=', risk_type),
-                                               ('risk_info_id', '=', risk_info),
-                                               ('process_id', '=', process_id),
-                                               ('active', '=', False)])
+                                            ('risk_info_id', '=', risk_info),
+                                            ('process_id', '=', process_id),
+                                            ('active', '=', False)])
             if old_report:
                 # old report is inactive
                 old_report.update_id_info(report_date=report_date, reporter=reporter)
@@ -520,12 +571,29 @@ class BaseEvaluationWizard(models.AbstractModel):
         scores = [str(x) for x in range(1, 6)]
         return list(zip(scores, levels))
 
-    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='3', required=True,
+    def _get_default_criteria(self):
+        # return a dict of the risk criteria
+        risk_id = self.env.context.get('default_risk_id', False)
+        risk_model = self.env.context.get('risk_model', False)
+        if risk_id and risk_model:
+            risk = self.env[risk_model].browse(risk_id)
+            if risk.exists():
+                return {'detectability': risk.detectability,
+                        'occurrence': risk.occurrence,
+                        'severity': risk.severity}
+        else:
+            return {}
+
+    detectability = fields.Selection(selection=_get_detectability, string='Detectability',
+                                     default=lambda self: self._get_default_criteria().get('detectability', '3'),
+                                     required=True,
                                      help='What is the ability of the company to detect'
                                           ' this failure (or gain) if it were to occur?')
-    occurrence = fields.Selection(selection=_get_occurrence, default='3', string='Occurrence', required=True,
+    occurrence = fields.Selection(selection=_get_occurrence, string='Occurrence',
+                                  default=lambda self: self._get_default_criteria().get('occurrence', '3'), required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
-    severity = fields.Selection(selection=_get_severity, default='3', string='Severity', required=True,
+    severity = fields.Selection(selection=_get_severity, string='Severity',
+                                default=lambda self: self._get_default_criteria().get('severity', '3'), required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
     comment = fields.Html(string='Comments', translate=True)
@@ -549,28 +617,40 @@ class BaseRiskLevelWizard(models.AbstractModel):
     _name = 'risk_management.base_risk_level_wizard'
     _inherit = ['risk_management.base_eval_wizard']
 
+    def _get_default_criteria(self):
+        # returns a dict of the risk latest evaluation's criteria
+        risk_id = self.env.context.get('default_risk_id', False)
+        risk_model = self.env.context.get('risk_model', False)
+        if risk_model and risk_id:
+            risk = self.env[risk_model].browse(risk_id)
+            if risk.exists() and risk.evaluation_ids.exists():
+                latest_evaluation = risk.evaluation_ids.sorted()[0]
+                return {
+                    'detectability': latest_evaluation.detectability,
+                    'occurrence': latest_evaluation.occurrence,
+                    'severity': latest_evaluation.severity,
+                }
+        else:
+            return {}
+
     def _compute_default_review_date(self):
-        date = fields.Date.from_string(fields.Date.today())
+        date = fields.Date.from_string(fields.Date.context_today(self))
         default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
-
-    date = fields.Date(string='Evaluated On', default=lambda self: fields.Date.today())
 
     review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
 
     @api.multi
     def set_value(self):
-        eval_risk_model = self.env[self.eval_risk_model]
+        risk_eval_model = self.env[self.risk_eval_model]
         for wizard in self:
-            date = wizard.date
             review_date = wizard.review_date
             detectability = wizard.detectability
             occurrence = wizard.occurrence
             severity = wizard.severity
             comment = wizard.comment
             risk_id = self.risk_id.id
-            eval_risk_model.create({
-                'date': date,
+            risk_eval_model.create({
                 'review_date': review_date,
                 'detectability': detectability,
                 'occurrence': occurrence,
@@ -602,6 +682,7 @@ class BusinessRiskEvalWizard(models.TransientModel):
 
     risk_id = fields.Many2one('risk_management.business_risk', string='Business Risk', required=True,
                               ondelete='cascade')
+    risk_eval_model = fields.Char('Evaluation Model', default='risk_management.business_risk.evaluation', readonly=True)
 
 
 class ProjectRiskEvalWizard(models.TransientModel):
@@ -609,6 +690,7 @@ class ProjectRiskEvalWizard(models.TransientModel):
 
     risk_id = fields.Many2one('risk_management.project_risk', string='Project Risk', required=True,
                               ondelete='cascade')
+    risk_eval_model = fields.Char('Evaluation Model', default='risk_management.project_risk.evaluation', required=True)
 
 
 class BusinessRiskWizard(models.TransientModel):
@@ -625,3 +707,31 @@ class ProjectRiskWizard(models.TransientModel):
 
     process_id = fields.Many2one('risk_management.project_process', string='Process', ondelete='cascade')
     risk_model = fields.Char(default='risk_management.project_risk', readonly=True)
+
+
+class RiskHelpWizard(models.TransientModel):
+    _name = 'risk_management.risk.help_wizard'
+
+    def _get_default_risk_info(self):
+        risk_info_id = self.env.context.get('default_risk_info_id', False)
+        if risk_info_id:
+            risk_info = self.env['risk_management.risk.info'].browse(risk_info_id)
+            if risk_info:
+                return risk_info.exists()
+
+    risk_info_id = fields.Many2one('risk_management.risk.info', default=_get_default_risk_info, required=True,
+                                   ondelete='cascade')
+    risk_info_control = fields.Text(translate=True, string='Steering / Monitoring', related='risk_info_id.control')
+    risk_info_action = fields.Text(translate=True, string='Action / Hedging policy', related='risk_info_id.action')
+
+    @api.multi
+    def write_changes(self):
+        for wizard in self:
+            control = wizard.risk_info_control
+            action = wizard.risk_info_action
+            wizard.risk_info_id.write({
+                'control': control,
+                'action': action
+            })
+
+
