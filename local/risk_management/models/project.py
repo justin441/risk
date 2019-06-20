@@ -13,18 +13,18 @@ class Project(models.Model):
     process_count = fields.Integer(compute="_compute_count_process")
 
     @api.multi
-    def add_risk_management_process(self):
-        """Adds a risk management process to projects in self"""
+    def get_or_add_risk_treatment_proc(self):
+        """get or create a process a process named `Risk Treatment`"""
         project_process = self.env['risk_management.project_process']
         responsible = self.env.user
         for rec in self:
             # look for a project process with `risk management` in their name
-            risk_mgt_process = project_process.sudo().browse([
+            risk_treatment_process = project_process.sudo().search([
                 '&',
                 ('project_id', '=', rec.id),
-                ('name', '=ilike', '%risk treatment%')
-            ])
-            if not risk_mgt_process.exist():
+                ('name', 'ilike', 'risk treatment')
+            ])[0]
+            if not risk_treatment_process.exist():
                 # We assume there is no risk management process in the current project
                 project_process.sudo().create({
                     'name': 'Risk Treatment',
@@ -37,7 +37,7 @@ class Project(models.Model):
                     'project_id': rec.id
                 })
             else:
-                return
+                return risk_treatment_process
 
 
 class Task(models.Model):
