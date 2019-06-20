@@ -320,6 +320,9 @@ class BaseRiskIdentification(models.AbstractModel):
 
         return [('id', 'in', [rec.id for rec in recs])]
 
+    def assign_to_me(self):
+        self.sudo().write({'owner': self.env.user.id})
+
 
 class BusinessRisk(models.Model):
     _name = 'risk_management.business_risk'
@@ -459,10 +462,9 @@ class BusinessRiskTreatment(models.Model):
     def _get_default_risk(self):
         # return the risk to use as default in risk_id field
         default_risk_id = self.env.context.get('default_risk_id', False)
-        risk_model = self.env.context.get('risk_model', False)
 
-        if default_risk_id and risk_model:
-            risk = self.env[risk_model].browse(default_risk_id)
+        if default_risk_id:
+            risk = self.env['risk_management.business_risk'].browse(default_risk_id)
             if risk:
                 return risk.exists()
         else:
@@ -483,7 +485,7 @@ class ProjectRiskTreatmentTask(models.Model):
     _inherit = ['project.task']
 
     def _get_default_risk(self):
-        default_risk_id = self.env.context.get('default_risk_id')
+        default_risk_id = self.env.context.get('default_risk_id', False)
         if default_risk_id:
             return default_risk_id.exists()
         else:
