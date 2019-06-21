@@ -258,7 +258,7 @@ class ProjectProcess(models.Model):
     ]
 
     project_id = fields.Many2one('project.project', string='Project', ondelete='cascade',
-                                 default=lambda self: self.env.context.get('default_project_id'),
+                                 default=lambda self: self.env.context.get('default_project_id', False),
                                  index=True)
     task_ids = fields.One2many('project.task', string='Tasks', inverse_name='process_id',
                                domain=lambda self: [('project_id', '=', self.project_id.id), '|',
