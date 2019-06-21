@@ -61,6 +61,15 @@ class RiskInfo(models.Model):
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
     project_occurrences = fields.Integer(string="Occurrences in Projects", compute="_compute_project_occurrences")
 
+    @api.model
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
+        """Searches risk by name or description"""
+        args = [] if args is None else args.copy()
+        if not (name == '' and operator == 'ilike'):
+            args += ['|', ('name', operator, name), ('description', operator, name)]
+        return super(RiskInfo, self)._name_search(name=name, args=args, operator='ilike', limit=limit,
+                                                  name_get_uid=name_get_uid)
+
     @api.multi
     def _compute_business_occurrences(self):
         for rec in self:
@@ -467,8 +476,6 @@ class BusinessRiskTreatment(models.Model):
             risk = self.env['risk_management.business_risk'].browse(default_risk_id)
             if risk:
                 return risk.exists()
-        else:
-            return False
 
     risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk',
                               default=_get_default_risk, required=True)
@@ -488,8 +495,6 @@ class ProjectRiskTreatmentTask(models.Model):
         default_risk_id = self.env.context.get('default_risk_id', False)
         if default_risk_id:
             return default_risk_id.exists()
-        else:
-            return False
 
     risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', default=_get_default_risk,
                               required=True)
@@ -699,7 +704,14 @@ class BusinessRiskWizard(models.TransientModel):
     _name = 'risk_management.business_risk.wizard'
     _inherit = ['risk_management.base_risk_wizard']
 
-    process_id = fields.Many2one('risk_management.business_process', string='Process', ondelete='cascade')
+    def get_default_process_id(self):
+        process_id = self.env.context.get('default_process_id', False)
+        if process_id:
+            process = self.env['risk_management.business_process'].browse(process_id)
+            return process.exists()
+
+    process_id = fields.Many2one('risk_management.business_process', string='Process', ondelete='cascade',
+                                 default=get_default_process_id)
     risk_model = fields.Char(default='risk_management.business_risk', readonly=True)
 
 
@@ -718,8 +730,7 @@ class RiskHelpWizard(models.TransientModel):
         risk_info_id = self.env.context.get('default_risk_info_id', False)
         if risk_info_id:
             risk_info = self.env['risk_management.risk.info'].browse(risk_info_id)
-            if risk_info:
-                return risk_info.exists()
+            return risk_info.exists()
 
     risk_info_id = fields.Many2one('risk_management.risk.info', default=_get_default_risk_info, required=True,
                                    ondelete='cascade')
