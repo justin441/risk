@@ -7,6 +7,8 @@
     <menuitem id="config_menu" name="Configuration" parent="main_menu_risk_management" sequence="100"
               groups="risk_management.group_process_manager"/>
 
+     <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
+
 
     <!-- ============================= COMPANY ================================= -->
 
@@ -210,6 +212,343 @@
         <field name="sequence">20</field>
     </record>
 
+    <!-- BUSINESS RISKS -->
+
+    <!-- Evaluation -->
+    <record model="ir.actions.act_window" id="act_set_business_risk_threshold_wizard">
+        <field name="name">Set Business Risk Threshold</field>
+        <field name="res_model">risk_management.business_risk.set_threshold_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">
+            {'default_risk_id': active_id, 'risk_model': 'risk_management.business_risk'}
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_eval_business_risk_wizard">
+        <field name="name">Business Risk Evaluation</field>
+        <field name="res_model">risk_management.business_risk.eval_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">
+            {'default_risk_id': active_id, 'risk_model': 'risk_management.business_risk'}
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_edit_risk_info_help">
+        <field name="name">Risk Help Edit Wizard</field>
+        <field name="res_model">risk_management.risk.help_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record model="ir.ui.view" id="view_business_risk_threshold_wizard">
+        <field name="name">Business Risk Threshold Wizard Form</field>
+        <field name="model">risk_management.business_risk.set_threshold_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Set risk Threshold">
+                <sheet>
+                    <group name="info">
+                        <field name="risk_id" invisible="1"/>
+                    </group>
+                    <group string="Criteria scores">
+                        <field name="detectability"/>
+                        <field name="occurrence"/>
+                        <field name="severity"/>
+                    </group>
+                    <notebook>
+                        <page name="comment_page" string="Comment">
+                            <field name="comment"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="set_value"
+                            string="Set"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_business_evaluation_wizard">
+        <field name="name">Business Risk Evaluation Wizard Form</field>
+        <field name="model">risk_management.business_risk.eval_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Risk Evaluation">
+                <sheet>
+                    <group name="info">
+                        <field name="risk_id" invisible="1"/>
+                        <label for="write_date" class="oe_read_only"/>
+                        <field name="write_date" class="oe_read_only" nolabel="1"/>
+                    </group>
+                    <group string="Criteria scores">
+                        <group>
+                            <field name="detectability"/>
+                            <field name="occurrence"/>
+                            <field name="severity"/>
+                        </group>
+                        <group>
+                            <field name="review_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="comment_page" string="Comment">
+                            <field name="comment"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="set_value"
+                            string="Save"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_risk_help_wizard">
+        <field name="name">Risk Help Wizard Form</field>
+        <field name="model">risk_management.risk.help_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Edit Help">
+                <sheet>
+                    <group>
+                        <field name="risk_info_id" invisible="1"/>
+                        <field name="risk_info_control"/>
+                        <field name="risk_info_action"/>
+                    </group>
+                </sheet>
+               <footer>
+                    <button name="write_changes"
+                            string="Save"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+
+        </field>
+    </record>
+
+    <record id="view_business_risk_search" model="ir.ui.view">
+        <field name="name">business_risk.search</field>
+        <field name="model">risk_management.business_risk</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="risk_info_id"/>
+                <field name="process_id"/>
+                <field name="risk_info_description"/>
+                <field name="risk_info_cause"/>
+                <field name="risk_info_consequence"/>
+                <filter name="threats" string="Threat" domain="[('risk_type', '=', 'T')]"/>
+                <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
+                <filter name="active" string="Active" domain="[('active', '=', 1)]"/>
+                <filter name="inactive" string="Inactive" domain="[('active', '=', 0)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
+                    <filter string="Process" name="Process" context="{'group_by': 'process_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="act_record_risk_wizard" model="ir.actions.act_window">
+        <field name="name">New Business Risk</field>
+        <field name="res_model">risk_management.business_risk.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_business_risk_register">
+        <field name="name">Risk Register</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context" eval="{'active_test': False}"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent">
+                There is no risk in this risk register at the moment.
+                <br/>
+                <a type="action" name="%(risk_management.act_record_risk_wizard)d">Report a risk</a>
+            </p>
+        </field>
+    </record>
+
+    <record id="view_business_risk_list" model="ir.ui.view">
+        <field name="name">business_risk.list</field>
+        <field name="model">risk_management.business_risk</field>
+        <field name="arch" type="xml">
+            <tree create="false" decoration-muted="active==False"
+                  decoration-info="active==True and status=='U'" decoration-danger="status=='N'"
+                  decoration-bf="status=='N'" decoration-success="status=='A'"
+            >
+                <field name="risk_info_id"/>
+                <field name="report_date"/>
+                <field name="status" invisible="1"/>
+                <field name="active" invisible="1"/>
+                <field name="process_id"/>
+                <field name="review_date"/>
+                <field name="threshold_value"/>
+                <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', 0)] }"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_business_risk_edit" model="ir.ui.view">
+        <field name="name">business_risk.edit_form</field>
+        <field name="model">risk_management.business_risk</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                   <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
+                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
+                    <field name="mgt_stage" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                            <field name="active" invisible="1"/>
+                        </h1>
+
+                        <div name="info_id" class="oe_readonly">
+                            <div>
+                                <label for="risk_info_id" class="oe_inline" string="Risk Name :"/>
+                                <field name="risk_info_id" class="oe_inline oe_input_align"/>
+                            </div>
+                            <div>
+                                <label for="process_id" class="oe_inline" string="Impacted Process :"/>
+                                <field name="process_id" class="oe_inline oe_input_align"/>
+                            </div>
+                        </div>
+
+                    </div>
+                    <group col="12">
+                        <group colspan="6" col="2">
+
+                            <field name="risk_info_category"/>
+                            <field name="risk_info_subcategory"/>
+                            <label for="threshold_value"/>
+                            <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
+                                    type="action"
+                                    class="btn-primary oe_link"
+                            >
+                                <field name="threshold_value" string="Risk Threshold" help="Change risk threshold"/>
+                            </button>
+                            <label for="latest_level_value"/>
+                            <button name="%(risk_management.act_eval_business_risk_wizard)d"
+                                    type="action"
+                                    class="btn-primary oe_link"
+                            >
+                                <field name="latest_level_value" string="Risk Level"/>
+                            </button>
+                        </group>
+                        <group colspan="6" col="2">
+                            <field name="risk_type"/>
+                            <label for="reported_by" class="oe_read_only"/>
+                            <field name="reported_by" class="oe_read_only" nolabel="1"/>
+                            <label for="report_date" class="oe_read_only"/>
+                            <field name="report_date" class="oe_read_only" nolabel="1"/>
+                            <label for="review_date" class="oe_edit_only"/>
+                            <field name="review_date" class="oe_edit_only" nolabel="1"/>
+                            <field name="owner"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="info_page" string="Info">
+
+                            <group>
+                                <field name="risk_info_description"/>
+
+
+                                <field name="risk_info_cause"/>
+
+
+                                <field name="risk_info_consequence"/>
+                            </group>
+                        </page>
+                        <page name="help_page" string="Treatment guides">
+                            <group>
+                                <button
+                                        name="%(risk_management.act_edit_risk_info_help)d"
+                                        type="action"
+                                        string="Edit..."
+                                        class="btn-primary oe_right oe_link"
+                                        context="{'default_risk_info_id': risk_info_id}"
+                                >
+                                </button>
+                            </group>
+                            <group>
+                                <field name="risk_info_control"/>
+                                <field name="risk_info_action"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_business_risk_wizard" model="ir.ui.view">
+        <field name="name">Risk Report Wizard Form</field>
+        <field name="model">risk_management.business_risk.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Report a risk">
+                <sheet>
+                    <group string="Ref.">
+                        <group>
+                            <field name="process_id"/>
+                            <field name="risk_type"/>
+                        </group>
+                        <group>
+                            <field name="reported_by"/>
+                            <field name="report_date"/>
+                        </group>
+                    </group>
+                    <group string="Details">
+                        <field name="risk_info_id" string="Risk Name" class="oe_no_button"/>
+                        <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                        <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                        <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="record_risk"
+                            string="Submit"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+
+    <menuitem id="menu_risk_register" name="Risk Register" parent="risk_menu" action="act_business_risk_register"/>
+    <menuitem id="menu_wizard_report_business_risk" parent="risk_menu" action="act_record_risk_wizard" sequence="30"/>
+
     <!-- BUSINESS PROCESS-->
     <!-- actions-->
     <record model="ir.actions.act_window" id="business_process_list_action">
@@ -220,6 +559,7 @@
             <p class="oe_view_nocontent_create">Create your first Process!</p>
         </field>
     </record>
+
     <!-- views-->
     <record model="ir.ui.view" id="business_process_kanban_view">
         <field name="name">process.kanban</field>
@@ -281,6 +621,14 @@
                                 class="oe_stat_button"
                                 icon="fa-tasks">
                             <field string="Task" name="task_count" widget="statinfo"/>
+                        </button>
+                        <button name="%(risk_management.act_business_risk_register)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-exclamation-circle"
+                                context="{'default_process_id': active_id, 'search_default_process_id': [active_id], 'search_default_active': 1}"
+                        >
+                            <field name="risk_count" string="Risk reports"/>
                         </button>
                     </div>
                     <group>
@@ -843,343 +1191,6 @@
 
     </record>
 
-    <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
     <menuitem id="menu_risk_category" parent="config_menu" sequence="10" action="act_risk_category_list"/>
-
-
-    <!-- BUSINESS RISKS -->
-
-    <!-- Evaluation -->
-    <record model="ir.actions.act_window" id="act_set_business_risk_threshold_wizard">
-        <field name="name">Set Business Risk Threshold</field>
-        <field name="res_model">risk_management.business_risk.set_threshold_wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="context">
-            {'default_risk_id': active_id, 'risk_model': 'risk_management.business_risk'}
-        </field>
-    </record>
-
-    <record model="ir.actions.act_window" id="act_eval_business_risk_wizard">
-        <field name="name">Business Risk Evaluation</field>
-        <field name="res_model">risk_management.business_risk.eval_wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="context">
-            {'default_risk_id': active_id, 'risk_model': 'risk_management.business_risk'}
-        </field>
-    </record>
-
-    <record model="ir.actions.act_window" id="act_edit_risk_info_help">
-        <field name="name">Risk Help Edit Wizard</field>
-        <field name="res_model">risk_management.risk.help_wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-    </record>
-
-    <record model="ir.ui.view" id="view_business_risk_threshold_wizard">
-        <field name="name">Business Risk Threshold Wizard Form</field>
-        <field name="model">risk_management.business_risk.set_threshold_wizard</field>
-        <field name="arch" type="xml">
-            <form string="Set risk Threshold">
-                <sheet>
-                    <group name="info">
-                        <field name="risk_id" invisible="1"/>
-                    </group>
-                    <group string="Criteria scores">
-                        <field name="detectability"/>
-                        <field name="occurrence"/>
-                        <field name="severity"/>
-                    </group>
-                    <notebook>
-                        <page name="comment_page" string="Comment">
-                            <field name="comment"/>
-                            <div class="oe_clear"/>
-                        </page>
-                    </notebook>
-                </sheet>
-                <footer>
-                    <button name="set_value"
-                            string="Set"
-                            class="btn-primary"
-                            type="object"
-                    />
-                    <button string="Cancel"
-                            class="btn-default"
-                            special="cancel"
-                    />
-                </footer>
-            </form>
-        </field>
-    </record>
-
-    <record model="ir.ui.view" id="view_business_evaluation_wizard">
-        <field name="name">Business Risk Evaluation Wizard Form</field>
-        <field name="model">risk_management.business_risk.eval_wizard</field>
-        <field name="arch" type="xml">
-            <form string="Risk Evaluation">
-                <sheet>
-                    <group name="info">
-                        <field name="risk_id" invisible="1"/>
-                        <label for="write_date" class="oe_read_only"/>
-                        <field name="write_date" class="oe_read_only" nolabel="1"/>
-                    </group>
-                    <group string="Criteria scores">
-                        <group>
-                            <field name="detectability"/>
-                            <field name="occurrence"/>
-                            <field name="severity"/>
-                        </group>
-                        <group>
-                            <field name="review_date"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page name="comment_page" string="Comment">
-                            <field name="comment"/>
-                            <div class="oe_clear"/>
-                        </page>
-                    </notebook>
-                </sheet>
-                <footer>
-                    <button name="set_value"
-                            string="Save"
-                            class="btn-primary"
-                            type="object"
-                    />
-                    <button string="Cancel"
-                            class="btn-default"
-                            special="cancel"
-                    />
-                </footer>
-            </form>
-        </field>
-    </record>
-
-    <record model="ir.ui.view" id="view_risk_help_wizard">
-        <field name="name">Risk Help Wizard Form</field>
-        <field name="model">risk_management.risk.help_wizard</field>
-        <field name="arch" type="xml">
-            <form string="Edit Help">
-                <sheet>
-                    <group>
-                        <field name="risk_info_id" invisible="1"/>
-                        <field name="risk_info_control"/>
-                        <field name="risk_info_action"/>
-                    </group>
-                </sheet>
-               <footer>
-                    <button name="write_changes"
-                            string="Save"
-                            class="btn-primary"
-                            type="object"
-                    />
-                    <button string="Cancel"
-                            class="btn-default"
-                            special="cancel"
-                    />
-                </footer>
-            </form>
-
-        </field>
-    </record>
-
-    <record id="view_business_risk_search" model="ir.ui.view">
-        <field name="name">business_risk.search</field>
-        <field name="model">risk_management.business_risk</field>
-        <field name="arch" type="xml">
-            <search>
-                <field name="risk_info_id"/>
-                <field name="risk_info_description"/>
-                <field name="risk_info_cause"/>
-                <field name="risk_info_consequence"/>
-                <filter name="threats" string="Threat" domain="[('risk_type', '=', 'T')]"/>
-                <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
-                <filter name="active" string="Active" domain="[('active', '=', 1)]"/>
-                <filter name="inactive" string="Inactive" domain="[('active', '=', 0)]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
-
-    <record id="act_record_risk_wizard" model="ir.actions.act_window">
-        <field name="name">New Business Risk</field>
-        <field name="res_model">risk_management.business_risk.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-    </record>
-
-    <record model="ir.actions.act_window" id="act_business_risk_register">
-        <field name="name">Risk Register</field>
-        <field name="res_model">risk_management.business_risk</field>
-        <field name="view_mode">tree,form</field>
-        <field name="context" eval="{'active_test': False}"/>
-        <field name="help" type="html">
-            <p class="oe_view_nocontent">
-                There is no risk in this risk register at the moment.
-                <br/>
-                <a type="action" name="%(risk_management.act_record_risk_wizard)d">Report a risk</a>
-            </p>
-        </field>
-    </record>
-
-    <record id="view_business_risk_list" model="ir.ui.view">
-        <field name="name">business_risk.list</field>
-        <field name="model">risk_management.business_risk</field>
-        <field name="arch" type="xml">
-            <tree create="false" decoration-muted="active==False"
-                  decoration-info="active==True and status=='U'" decoration-danger="status=='N'"
-                  decoration-bf="status=='N'" decoration-success="status=='A'"
-            >
-                <field name="risk_info_id"/>
-                <field name="report_date"/>
-                <field name="status" invisible="1"/>
-                <field name="active" invisible="1"/>
-                <field name="process_id"/>
-                <field name="review_date"/>
-                <field name="threshold_value"/>
-                <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', 0)] }"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="view_business_risk_edit" model="ir.ui.view">
-        <field name="name">business_risk.edit_form</field>
-        <field name="model">risk_management.business_risk</field>
-        <field name="arch" type="xml">
-            <form create="false">
-                <header>
-                   <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
-                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
-                    <field name="mgt_stage" widget="statusbar"/>
-                </header>
-                <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name"/>
-                            <field name="active" invisible="1"/>
-                        </h1>
-
-                        <div name="info_id" class="oe_readonly">
-                            <div>
-                                <label for="risk_info_id" class="oe_inline" string="Risk Name :"/>
-                                <field name="risk_info_id" class="oe_inline oe_input_align"/>
-                            </div>
-                            <div>
-                                <label for="process_id" class="oe_inline" string="Impacted Process :"/>
-                                <field name="process_id" class="oe_inline oe_input_align"/>
-                            </div>
-                        </div>
-
-                    </div>
-                    <group col="12">
-                        <group colspan="6" col="2">
-
-                            <field name="risk_info_category"/>
-                            <field name="risk_info_subcategory"/>
-                            <label for="threshold_value"/>
-                            <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
-                                    type="action"
-                                    class="btn-primary oe_link"
-                            >
-                                <field name="threshold_value" string="Risk Threshold" help="Change risk threshold"/>
-                            </button>
-                            <label for="latest_level_value"/>
-                            <button name="%(risk_management.act_eval_business_risk_wizard)d"
-                                    type="action"
-                                    class="btn-primary oe_link"
-                            >
-                                <field name="latest_level_value" string="Risk Level"/>
-                            </button>
-                        </group>
-                        <group colspan="6" col="2">
-                            <field name="risk_type"/>
-                            <label for="reported_by" class="oe_read_only"/>
-                            <field name="reported_by" class="oe_read_only" nolabel="1"/>
-                            <label for="report_date" class="oe_read_only"/>
-                            <field name="report_date" class="oe_read_only" nolabel="1"/>
-                            <label for="review_date" class="oe_edit_only"/>
-                            <field name="review_date" class="oe_edit_only" nolabel="1"/>
-                            <field name="owner"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page name="info_page" string="Info">
-
-                            <group>
-                                <field name="risk_info_description"/>
-
-
-                                <field name="risk_info_cause"/>
-
-
-                                <field name="risk_info_consequence"/>
-                            </group>
-                        </page>
-                        <page name="help_page" string="Treatment guides">
-                            <group>
-                                <button
-                                        name="%(risk_management.act_edit_risk_info_help)d"
-                                        type="action"
-                                        string="Edit..."
-                                        class="btn-primary oe_right oe_link"
-                                        context="{'default_risk_info_id': risk_info_id}"
-                                >
-                                </button>
-                            </group>
-                            <group>
-                                <field name="risk_info_control"/>
-                                <field name="risk_info_action"/>
-                            </group>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_business_risk_wizard" model="ir.ui.view">
-        <field name="name">Risk Report Wizard Form</field>
-        <field name="model">risk_management.business_risk.wizard</field>
-        <field name="arch" type="xml">
-            <form string="Report a risk">
-                <sheet>
-                    <group string="Ref.">
-                        <group>
-                            <field name="process_id"/>
-                            <field name="risk_type"/>
-                        </group>
-                        <group>
-                            <field name="reported_by"/>
-                            <field name="report_date"/>
-                        </group>
-                    </group>
-                    <group string="Details">
-                        <field name="risk_info_id" string="Risk Name" class="oe_no_button"/>
-                        <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                        <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                        <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                    </group>
-                </sheet>
-                <footer>
-                    <button name="record_risk"
-                            string="Submit"
-                            class="btn-primary"
-                            type="object"
-                    />
-                    <button string="Cancel"
-                            class="btn-default"
-                            special="cancel"
-                    />
-                </footer>
-            </form>
-        </field>
-    </record>
-
-
-    <menuitem id="menu_risk_register" name="Risk Register" parent="risk_menu" action="act_business_risk_register"/>
-    <menuitem id="menu_wizard_report_business_risk" parent="risk_menu" action="act_record_risk_wizard" sequence="30"/>
 
 </odoo>
