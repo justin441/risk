@@ -353,6 +353,13 @@ class BusinessRisk(models.Model):
     treatment_ids = fields.One2many(comodel_name='project.project', inverse_name='risk_id')
     treatment_id = fields.Many2one(comodel_name='project.project', compute='_compute_treatment',
                                    inverse='_inverse_treatment', store=True)
+    treatment_task_count = fields.Integer(compute='_compute_treatment_task_count', string='Risk Treatment Tasks')
+
+    @api.depends('treatment_id')
+    def _compute_treatment_task_count(self):
+        for rec in self:
+            if rec.treatment_id:
+                rec.treatment_task_count = rec.treatment_id.task_count
 
     @api.depends('treatment_ids')
     def _compute_treatment(self):
@@ -397,7 +404,7 @@ class BusinessRisk(models.Model):
             t = self.treatment_ids.sorted('create_date', reverse=True)[0]
             process = t.get_or_add_risk_treatment_proc()
         return {
-            'name': _('Treatment'),
+            'name': _('Treatment tasks'),
             'type': 'ir.actions.act_window',
             'res_model': 'project.task',
             'views': [[False, "kanban"], [False, "form"], [False, "tree"], [False, "calendar"], [False, "pivot"], [False, "graph"]],

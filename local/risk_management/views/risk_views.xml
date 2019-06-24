@@ -421,9 +421,6 @@
                     <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
                             attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
                     <field name="mgt_stage" widget="statusbar"/>
-                    <button name="get_treatment" string="Treatment" type="object" class="oe_highlight"
-                           >
-                    </button>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -431,6 +428,16 @@
                             <field name="name"/>
                             <field name="active" invisible="1"/>
                         </h1>
+                        <div class="oe_right oe_button_box" name="treatment_button">
+                        <button name="get_treatment"
+                                type="object"
+                                class="btb-primary oe_stat_button"
+                                icon="fa-tasks"
+                                attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
+                        >
+                            <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
+                        </button>
+                    </div>
 
                         <div name="info_id" class="oe_readonly">
                             <div>
@@ -442,16 +449,6 @@
                                 <field name="process_id" class="oe_inline oe_input_align"/>
                             </div>
                         </div>
-
-                    </div>
-                    <div class="oe_right oe_button_box" name="treatment_button">
-                        <button name="get_treatment"
-                                type="object"
-                                class="btb-primary"
-                                icon="fa-files-o"
-                        >
-                            <field string="Treatment" name="treatment_id" widget="statinfo"/>
-                        </button>
                     </div>
                     <group col="12">
                         <group colspan="6" col="2">
