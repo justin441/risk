@@ -23,6 +23,7 @@
     'data': [
         'data/process_partner_categories_data.xml',
         'data/risk_categories_data.xml',
+        'data/process_data.xml',
         'security/risk_security.xml',
         'views/risk_views.xml',
         'views/templates.xml',

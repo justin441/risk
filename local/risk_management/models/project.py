@@ -25,7 +25,7 @@ class Project(models.Model):
                 ('name', 'ilike', 'risk treatment')
             ])[0]
             if not risk_treatment_process.exist():
-                # We assume there is no risk management process in the current project
+                # it's assumed there is no risk management process in the current project
                 project_process.sudo().create({
                     'name': 'Risk Treatment',
                     'process_type': 'M',

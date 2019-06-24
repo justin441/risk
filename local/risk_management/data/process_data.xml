@@ -4,7 +4,7 @@
         <record id="plan_rm" model="risk_management.business_process" >
             <field name="name">Plan Risk Management</field>
             <field name="process_type">M</field>
-            <field name="Description" type="html">
+            <field name="description" type="html">
                <p>
                     Planning Risk Management is the process of defining how to conduct risk management activities. The
                    key benefit of this process is it ensures that the degree, type, and visibility of risk management
