@@ -236,7 +236,7 @@
     </record>
 
     <record model="ir.actions.act_window" id="act_edit_risk_info_help">
-        <field name="name">Risk Help Edit Wizard</field>
+        <field name="name">Risk Treatment guidelines</field>
         <field name="res_model">risk_management.risk.help_wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -601,6 +601,16 @@
         <field name="model">risk_management.business_process</field>
         <field name="arch" type="xml">
             <form string="Process">
+                <header>
+                    <button name="%(risk_management.act_record_risk_wizard)d"
+                            type="action"
+                            string="New risk"
+                            context="{'default_process_id': active_id}"
+                            class="btn-danger"
+                    >
+
+                    </button>
+                </header>
                 <sheet string="Process">
                     <div class="oe_left oe_title">
                         <label for="name" class="oe_edit_only"/>

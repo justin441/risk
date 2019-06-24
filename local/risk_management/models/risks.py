@@ -1,10 +1,13 @@
 import datetime
 import uuid
+import logging
 
 from odoo import models, fields, api, exceptions
 
 RISK_REPORT_DEFAULT_MAX_AGE = 90
 RISK_EVALUATION_DEFAULT_MAX_AGE = 30
+
+_logger = logging.getLogger(__name__)
 
 
 # -------------------------------------- Risk identification ----------------------------------
@@ -67,7 +70,7 @@ class RiskInfo(models.Model):
         args = [] if args is None else args.copy()
         if not (name == '' and operator == 'ilike'):
             args += ['|', ('name', operator, name), ('description', operator, name)]
-        return super(RiskInfo, self)._name_search(name=name, args=args, operator='ilike', limit=limit,
+        return super(RiskInfo, self)._name_search(name='', args=args, operator='ilike', limit=limit,
                                                   name_get_uid=name_get_uid)
 
     @api.multi
@@ -704,14 +707,12 @@ class BusinessRiskWizard(models.TransientModel):
     _name = 'risk_management.business_risk.wizard'
     _inherit = ['risk_management.base_risk_wizard']
 
-    def get_default_process_id(self):
-        process_id = self.env.context.get('default_process_id', False)
-        if process_id:
-            process = self.env['risk_management.business_process'].browse(process_id)
-            return process.exists()
+    def _get_default_process(self):
+        process_id = self.env.context.get('default_process_id')
+        return self.env['risk_management.business_process'].browse(process_id).exists()
 
     process_id = fields.Many2one('risk_management.business_process', string='Process', ondelete='cascade',
-                                 default=get_default_process_id)
+                                 default=_get_default_process, required=True)
     risk_model = fields.Char(default='risk_management.business_risk', readonly=True)
 
 
@@ -727,7 +728,7 @@ class RiskHelpWizard(models.TransientModel):
     _name = 'risk_management.risk.help_wizard'
 
     def _get_default_risk_info(self):
-        risk_info_id = self.env.context.get('default_risk_info_id', False)
+        risk_info_id = self.env.context.get('default_risk_info_id')
         if risk_info_id:
             risk_info = self.env['risk_management.risk.info'].browse(risk_info_id)
             return risk_info.exists()
