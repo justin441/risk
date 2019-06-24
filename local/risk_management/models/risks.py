@@ -390,8 +390,8 @@ class BusinessRisk(models.Model):
 
     @api.multi
     def get_treatment(self):
-        """returns the views for treatment tasks. If the treatment project does not exist, create one. If there is no
-        risk treatment process in the treatment project, create one.
+        """returns the treatment tasks view. If the treatment project does not exist, creates one. If there is no
+        risk treatment process in the treatment project, creates one.
         """
         project = self.env['project.project']
         self.ensure_one()
@@ -411,7 +411,10 @@ class BusinessRisk(models.Model):
             'name': _('Treatment tasks'),
             'type': 'ir.actions.act_window',
             'res_model': 'project.task',
-            'views': [[False, "kanban"], [False, "form"], [False, "tree"], [False, "calendar"], [False, "pivot"], [False, "graph"]],
+            'views': [
+                [False, "kanban"], [False, "form"], [False, "tree"],
+                [False, "calendar"], [False, "pivot"], [False, "graph"]
+                      ],
             'context': {
                 'search_default_project_id': t.id,
                 'search_default_user_id': self.env.user.id,
@@ -472,7 +475,7 @@ class BaseEvaluation(models.AbstractModel):
 
     def _search_is_obsolete(self, operator, value):
         if operator not in ('=', "!=") or value not in (0, 1):
-            recs = self.search([])
+            recs = self
         elif operator == '=':
             if value:
                 recs = self.search(['review_date', '<', fields.Date.today()])

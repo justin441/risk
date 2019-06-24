@@ -19,6 +19,8 @@ class BaseProcess(models.AbstractModel):
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
     sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True)
+    is_core = fields.Boolean(compute='_compute_is_core', string='Is core process', search='_search_is_core',
+                             help='Is this a core process')
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -46,6 +48,34 @@ class BaseProcess(models.AbstractModel):
         for data in self.output_data_ids:
             c |= data.consumer_ids
         return c
+
+    @api.depends('input_data_ids')
+    def _compute_is_core(self):
+        for rec in self:
+            if rec.input_data_ids.filtered('is_customer_voice').exists():
+                rec.is_core = True
+            else:
+                rec.is_core = False
+
+    def _search_is_core(self, operator, value):
+        def is_core(rec):
+            if rec.input_data_ids.filtered('is_customer_voice').exists():
+                return True
+            return False
+
+        if operator not in ('=', "!=") or value not in (0, 1):
+            recs = self
+        elif operator == '=':
+            if value:
+                recs = self.filtered(is_core)
+            else:
+                recs = self - self.filtered(is_core)
+        else:
+            if value:
+                recs = self - self.filtered(is_core)
+            else:
+                recs = self.filtered(is_core)
+        return [('id', 'in', [rec.id for rec in recs])]
 
 
 class BaseProcessData(models.AbstractModel):
@@ -143,42 +173,50 @@ class BusinessProcess(models.Model):
         """
 
         for rec in self:
-            operational_processes = rec.env['risk_management.business_process'].search([
-                ('business_id', '=', rec.business_id.id),
-                ('process_type', '=', 'O')])
-            management_processes = rec.env['risk_management.business_process'].search([
-                ('business_id', '=', rec.business_id.id),
-                ('process_type', '=', 'M')])
+            operational_processes = rec.env[
+                'risk_management.business_process'].search(['|', '&',
+                                                            ('business_id', '=', rec.business_id.id),
+                                                            ('process_type', '=', 'O'),
+                                                            '&',
+                                                            ('business_id', '=', rec.business_id.id),
+                                                            ('is_core', '=', 1)
+                                                            ])
+            management_processes = rec.env[
+                'risk_management.business_process'].search(['&', '&',
+                                                            ('business_id', '=', rec.business_id.id),
+                                                            ('process_type', '=', 'M'),
+                                                            ('is_core', '=', 0)
+                                                            ])
             default_seq = 10
-            if rec.process_type == "O":
+            if rec.process_type == "O" or rec.is_core:
                 if rec.get_input_ext_provider_cats().exists():
                     rec.sequence = default_seq
                 else:
                     if rec.get_input_int_providers().exists():
                         operational_providers = rec.get_input_int_providers().filtered(
-                            lambda record: record.process_type == 'O')
+                            lambda record: record.process_type == 'O' or record.is_core)
                         rec.sequence = default_seq + sum([record.sequence for record in operational_providers])
                     else:
                         rec.sequence = default_seq
-            elif rec.process_type == "M":
+            elif rec.process_type == "M" and not rec.is_core:
                 default = default_seq
                 if operational_processes.exists():
                     default += max([record.sequence for record in operational_processes])
                 if rec.get_input_int_providers().exists():
                     mgt_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'M'
+                        lambda record: record.process_type == 'M' and not record.is_core
                     )
                     rec.sequence = default + sum(
                         [record.sequence for record in mgt_providers])
                 else:
                     rec.sequence = default
-            elif rec.process_type == "S":
+            elif rec.process_type == "S" and not rec.is_core:
                 default = default_seq
                 if management_processes.exists():
                     default += max([record.sequence for record in management_processes])
                 if rec.get_input_int_providers().exists():
                     support_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'S'
+                        lambda record: record.process_type == 'S' and not record.is_core
                     )
                     rec.sequence = default + sum(
                         [record.sequence for record in support_providers])
