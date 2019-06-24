@@ -390,9 +390,13 @@ class BusinessRisk(models.Model):
 
     @api.multi
     def get_treatment(self):
+        """returns the views for treatment tasks. If the treatment project does not exist, create one. If there is no
+        risk treatment process in the treatment project, create one.
+        """
         project = self.env['project.project']
         self.ensure_one()
         if not self.latest_level_value:
+            # No need to treat a risk if it's not yet evaluated
             raise exceptions.UserError('The risk is not yet evaluated')
         if not self.treatment_id:
             t = project.create({
@@ -410,6 +414,7 @@ class BusinessRisk(models.Model):
             'views': [[False, "kanban"], [False, "form"], [False, "tree"], [False, "calendar"], [False, "pivot"], [False, "graph"]],
             'context': {
                 'search_default_project_id': t.id,
+                'search_default_user_id': self.env.user.id,
                 'default_project_id': t.id,
                 'default_process_id': process.id
             }
