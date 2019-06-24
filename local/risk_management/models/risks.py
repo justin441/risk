@@ -238,33 +238,6 @@ class BaseRiskIdentification(models.AbstractModel):
                 recs = recs.search([('review_date', '>', today)])
         return [('id', 'in', [rec.id for rec in recs])]
 
-    @api.constrains('report_date', 'review_date')
-    def _check_review_after_report(self):
-        for rec in self:
-            if (rec.review_date and rec.report_date) and (rec.review_date < rec.report_date):
-                raise exceptions.ValidationError('Review date must be after report date')
-
-    @api.constrains('report_date', 'create_date')
-    def _check_report_date_post_create_date(self):
-        for rec in self:
-            if rec.report_date and rec.create_date < rec.report_date:
-                raise exceptions.ValidationError('Report date must post or same as create date')
-
-    @api.depends('evaluation_ids')
-    def _compute_latest_level_value(self):
-        for rec in self:
-            if not rec.evaluation_ids.exists():
-                rec.latest_level_value = False
-            else:
-                # get the latest evaluation
-                latest_evaluation = rec.evaluation_ids.sorted()[0]
-                if latest_evaluation.is_obsolete:
-                    rec.latest_level_value = False
-                elif rec.risk_type == 'T':
-                    rec.latest_level_value = latest_evaluation.value_threat
-                elif rec.risk_type == 'O':
-                    rec.latest_level_value = latest_evaluation.value_opportunity
-
     @api.multi
     def update_id_info(self, report_date=None, reporter=None):
         """Reactivate an old risk when it's re-reported"""
@@ -335,6 +308,33 @@ class BaseRiskIdentification(models.AbstractModel):
     def assign_to_me(self):
         self.sudo().write({'owner': self.env.user.id})
 
+    @api.depends('evaluation_ids')
+    def _compute_latest_level_value(self):
+        for rec in self:
+            if not rec.evaluation_ids.exists():
+                rec.latest_level_value = False
+            else:
+                # get the latest evaluation
+                latest_evaluation = rec.evaluation_ids.sorted()[0]
+                if latest_evaluation.is_obsolete:
+                    rec.latest_level_value = False
+                elif rec.risk_type == 'T':
+                    rec.latest_level_value = latest_evaluation.value_threat
+                elif rec.risk_type == 'O':
+                    rec.latest_level_value = latest_evaluation.value_opportunity
+
+    @api.constrains('report_date', 'review_date')
+    def _check_review_after_report(self):
+        for rec in self:
+            if (rec.review_date and rec.report_date) and (rec.review_date < rec.report_date):
+                raise exceptions.ValidationError('Review date must be after report date')
+
+    @api.constrains('report_date', 'create_date')
+    def _check_report_date_post_create_date(self):
+        for rec in self:
+            if rec.report_date and rec.create_date < rec.report_date:
+                raise exceptions.ValidationError('Report date must post or same as create date')
+
 
 class BusinessRisk(models.Model):
     _name = 'risk_management.business_risk'
@@ -380,6 +380,17 @@ class BusinessRisk(models.Model):
                 rec.mgt_stage = 'T'
             else:
                 rec.mgt_stage = False
+
+    # @api.multi
+    # def get_treatment(self):
+    #     treatment = self.env['risk_management.business_risk.treatment']
+    #     self.ensure_one()
+    #     if not self.treatment_ids.exists():
+    #         treatment.create({
+    #
+    #         })
+    #
+    #     return {}
 
 
 class ProjectRisk(models.Model):
@@ -471,23 +482,14 @@ class BusinessRiskTreatment(models.Model):
     _description = 'Business risk treatment'
     _inherit = ['project.project']
 
-    def _get_default_risk(self):
-        # return the risk to use as default in risk_id field
-        default_risk_id = self.env.context.get('default_risk_id', False)
-
-        if default_risk_id:
-            risk = self.env['risk_management.business_risk'].browse(default_risk_id)
-            if risk:
-                return risk.exists()
-
     risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk',
-                              default=_get_default_risk, required=True)
+                              required=True)
     name = fields.Char(compute='_compute_name', store=True)
 
     @api.depends('risk_id')
     def _compute_name(self):
         for rec in self:
-            rec.name = "%s: Treatment" % self.risk_id.name
+            rec.name = "%s / Treatment" % self.risk_id.name
 
 
 class ProjectRiskTreatmentTask(models.Model):
