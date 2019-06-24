@@ -2,7 +2,7 @@ import datetime
 import uuid
 import logging
 
-from odoo import models, fields, api, exceptions
+from odoo import models, fields, api, exceptions, _
 
 RISK_REPORT_DEFAULT_MAX_AGE = 90
 RISK_EVALUATION_DEFAULT_MAX_AGE = 30
@@ -187,7 +187,7 @@ class BaseRiskIdentification(models.AbstractModel):
     @api.depends('uuid')
     def _compute_name(self):
         for rec in self:
-            rec.name = 'risk #%s' % rec.uuid[:8]
+            rec.name = _('risk') + '#%s' % rec.uuid[:8]
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -350,15 +350,15 @@ class BusinessRisk(models.Model):
 
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
-    treatment_ids = fields.One2many(comodel_name='risk_management.business_risk.treatment', inverse_name='risk_id')
-    treatment_id = fields.Many2one(comodel_name='risk_management.business_risk.treatment', compute='_compute_treatment',
-                                   inverse='_inverse_treatment')
+    treatment_ids = fields.One2many(comodel_name='project.project', inverse_name='risk_id')
+    treatment_id = fields.Many2one(comodel_name='project.project', compute='_compute_treatment',
+                                   inverse='_inverse_treatment', store=True)
 
     @api.depends('treatment_ids')
     def _compute_treatment(self):
         for rec in self:
             if rec.latest_level_value and rec.treatment_ids:
-                rec.treatment_id = rec.treatment_ids[0]
+                rec.treatment_id = rec.treatment_ids.sorted('create_date', reverse=True)[0]
 
     @api.multi
     def _inverse_treatment(self):
@@ -381,16 +381,32 @@ class BusinessRisk(models.Model):
             else:
                 rec.mgt_stage = False
 
-    # @api.multi
-    # def get_treatment(self):
-    #     treatment = self.env['risk_management.business_risk.treatment']
-    #     self.ensure_one()
-    #     if not self.treatment_ids.exists():
-    #         treatment.create({
-    #
-    #         })
-    #
-    #     return {}
+    @api.multi
+    def get_treatment(self):
+        project = self.env['project.project']
+        self.ensure_one()
+        if not self.latest_level_value:
+            raise exceptions.UserError('The risk is not yet evaluated')
+        if not self.treatment_id:
+            t = project.create({
+                'risk_id': self.id,
+                'name': _('Treatment for %s') % self.name
+            })
+            process = t.get_or_add_risk_treatment_proc()
+        else:
+            t = self.treatment_ids.sorted('create_date', reverse=True)[0]
+            process = t.get_or_add_risk_treatment_proc()
+        return {
+            'name': _('Treatment'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task',
+            'views': [[False, "kanban"], [False, "form"], [False, "tree"], [False, "calendar"], [False, "pivot"], [False, "graph"]],
+            'context': {
+                'search_default_project_id': t.id,
+                'default_project_id': t.id,
+                'default_process_id': process.id
+            }
+        }
 
 
 class ProjectRisk(models.Model):
@@ -443,7 +459,7 @@ class BaseEvaluation(models.AbstractModel):
                 rec.is_obsolete = False
 
     def _search_is_obsolete(self, operator, value):
-        if operator not in('=', "!=") or value not in (0, 1):
+        if operator not in ('=', "!=") or value not in (0, 1):
             recs = self.search([])
         elif operator == '=':
             if value:
@@ -478,18 +494,10 @@ class ProjectRiskEvaluation(models.Model):
 
 
 class BusinessRiskTreatment(models.Model):
-    _name = 'risk_management.business_risk.treatment'
     _description = 'Business risk treatment'
     _inherit = ['project.project']
 
-    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk',
-                              required=True)
-    name = fields.Char(compute='_compute_name', store=True)
-
-    @api.depends('risk_id')
-    def _compute_name(self):
-        for rec in self:
-            rec.name = "%s / Treatment" % self.risk_id.name
+    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk')
 
 
 class ProjectRiskTreatmentTask(models.Model):
@@ -602,7 +610,8 @@ class BaseEvaluationWizard(models.AbstractModel):
                                      help='What is the ability of the company to detect'
                                           ' this failure (or gain) if it were to occur?')
     occurrence = fields.Selection(selection=_get_occurrence, string='Occurrence',
-                                  default=lambda self: self._get_default_criteria().get('occurrence', '3'), required=True,
+                                  default=lambda self: self._get_default_criteria().get('occurrence', '3'),
+                                  required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
     severity = fields.Selection(selection=_get_severity, string='Severity',
                                 default=lambda self: self._get_default_criteria().get('severity', '3'), required=True,
@@ -749,5 +758,3 @@ class RiskHelpWizard(models.TransientModel):
                 'control': control,
                 'action': action
             })
-
-
