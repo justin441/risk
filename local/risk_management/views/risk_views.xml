@@ -7,7 +7,7 @@
     <menuitem id="config_menu" name="Configuration" parent="main_menu_risk_management" sequence="100"
               groups="risk_management.group_process_manager"/>
 
-     <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
+    <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
 
 
     <!-- ============================= COMPANY ================================= -->
@@ -333,7 +333,7 @@
                         <field name="risk_info_action"/>
                     </group>
                 </sheet>
-               <footer>
+                <footer>
                     <button name="write_changes"
                             string="Save"
                             class="btn-primary"
@@ -418,9 +418,12 @@
         <field name="arch" type="xml">
             <form create="false">
                 <header>
-                   <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
+                    <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
                             attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
                     <field name="mgt_stage" widget="statusbar"/>
+                    <button name="get_treatment" string="Treatment" type="object" class="oe_highlight"
+                           >
+                    </button>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -440,6 +443,15 @@
                             </div>
                         </div>
 
+                    </div>
+                    <div class="oe_right oe_button_box" name="treatment_button">
+                        <button name="get_treatment"
+                                type="object"
+                                class="btb-primary"
+                                icon="fa-files-o"
+                        >
+                            <field string="Treatment" name="treatment_id" widget="statinfo"/>
+                        </button>
                     </div>
                     <group col="12">
                         <group colspan="6" col="2">
@@ -554,7 +566,7 @@
     <record model="ir.actions.act_window" id="business_process_list_action">
         <field name="name">Processes</field>
         <field name="res_model">risk_management.business_process</field>
-        <field name="view_mode">tree,form,kanban</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">Create your first Process!</p>
         </field>
@@ -1171,6 +1183,7 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
+                <field name="risk_count"></field>
             </tree>
         </field>
     </record>

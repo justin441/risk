@@ -23,10 +23,10 @@ class Project(models.Model):
                 '&',
                 ('project_id', '=', rec.id),
                 ('name', 'ilike', 'risk treatment')
-            ])[0]
-            if not risk_treatment_process.exist():
+            ])
+            if not risk_treatment_process.exists():
                 # it's assumed there is no risk management process in the current project
-                project_process.sudo().create({
+                risk_treatment_process = project_process.sudo().create({
                     'name': 'Risk Treatment',
                     'process_type': 'M',
                     'description': """
@@ -36,8 +36,8 @@ class Project(models.Model):
                     'responsible_id': responsible.id,
                     'project_id': rec.id
                 })
-            else:
-                return risk_treatment_process
+
+            return risk_treatment_process.exists()[0]
 
 
 class Task(models.Model):
