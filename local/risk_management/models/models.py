@@ -339,41 +339,50 @@ class ProjectProcess(models.Model):
         """
 
         for rec in self:
-            operational_processes = rec.env['risk_management.project_process'].search([
-                ('project_id', '=', rec.project_id.id),
-                ('process_type', '=', 'O')])
-            management_processes = rec.env['risk_management.project_process'].search([
-                ('project_id', '=', rec.project_id.id),
-                ('process_type', '=', 'M')])
+            operational_processes = rec.env[
+                'risk_management.project_process'].search(['|', '&',
+                                                           ('project_id', '=', rec.project_id.id),
+                                                           ('process_type', '=', 'O'),
+                                                           '&',
+                                                           ('project_id', '=', rec.project_id.id),
+                                                           ('is_core', '=', 1)
+                                                           ])
+            management_processes = rec.env[
+                'risk_management.project_process'].search(['&', '&',
+                                                            ('project_id', '=', rec.project_id.id),
+                                                            ('process_type', '=', 'M'),
+                                                            ('is_core', '=', 0)
+                                                            ])
             default_seq = 10
-            if rec.process_type == "O":
+            if rec.process_type == "O" or rec.is_core:
                 if rec.get_input_ext_provider_cats().exists():
                     rec.sequence = default_seq
                 else:
                     if rec.get_input_int_providers().exists():
                         operational_providers = rec.get_input_int_providers().filtered(
-                            lambda record: record.process_type == 'O')
+                            lambda record: record.process_type == 'O' or record.is_core)
                         rec.sequence = default_seq + sum([record.sequence for record in operational_providers])
                     else:
                         rec.sequence = default_seq
-            elif rec.process_type == "M":
+            elif rec.process_type == "M" and not rec.is_core:
+                default = default_seq
                 if operational_processes.exists():
-                    default = max([record.sequence for record in operational_processes]) + default_seq
-                else:
-                    default = default_seq
+                    default += max([record.sequence for record in operational_processes])
                 if rec.get_input_int_providers().exists():
                     mgt_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'M'
+                        lambda record: record.process_type == 'M' and not record.is_core
                     )
                     rec.sequence = default + sum(
                         [record.sequence for record in mgt_providers])
                 else:
                     rec.sequence = default
-            elif rec.process_type == "S":
-                default = max([record.sequence for record in management_processes]) + default_seq
+            elif rec.process_type == "S" and not rec.is_core:
+                default = default_seq
+                if management_processes.exists():
+                    default += max([record.sequence for record in management_processes])
                 if rec.get_input_int_providers().exists():
                     support_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'S'
+                        lambda record: record.process_type == 'S' and not record.is_core
                     )
                     rec.sequence = default + sum(
                         [record.sequence for record in support_providers])
