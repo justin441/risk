@@ -327,11 +327,15 @@
         <field name="arch" type="xml">
             <form string="Edit Help">
                 <sheet>
-                    <group>
-                        <field name="risk_info_id" invisible="1"/>
-                        <field name="risk_info_control"/>
-                        <field name="risk_info_action"/>
-                    </group>
+                    <field name="risk_info_id" invisible="1"/>
+                    <notebook>
+                        <page string="Steering / Monitoring">
+                            <field name="risk_info_control"/>
+                        </page>
+                        <page string="Action / Hedging policy">
+                            <field name="risk_info_action"/>
+                        </page>
+                    </notebook>
                 </sheet>
                 <footer>
                     <button name="write_changes"
@@ -429,15 +433,15 @@
                             <field name="active" invisible="1"/>
                         </h1>
                         <div class="oe_right oe_button_box" name="treatment_button">
-                        <button name="get_treatment"
-                                type="object"
-                                class="btb-primary oe_stat_button"
-                                icon="fa-tasks"
-                                attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
-                        >
-                            <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
-                        </button>
-                    </div>
+                            <button name="get_treatment"
+                                    type="object"
+                                    class="btb-primary oe_stat_button"
+                                    icon="fa-tasks"
+                                    attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
+                            >
+                                <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
+                            </button>
+                        </div>
 
                         <div name="info_id" class="oe_readonly">
                             <div>
@@ -507,6 +511,8 @@
                             </group>
                             <group>
                                 <field name="risk_info_control"/>
+                            </group>
+                            <group>
                                 <field name="risk_info_action"/>
                             </group>
                         </page>
@@ -863,6 +869,189 @@
         <field name="sequence">10</field>
     </record>
 
+    <!-- PROJECT RISK-->
+
+    <record model="ir.actions.act_window" id="act_set_project_risk_threshold_wizard">
+        <field name="name">Set Project Risk Threshold</field>
+        <field name="res_model">risk_management.project_risk.set_threshold_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">
+            {'default_risk_id': active_id, 'risk_model': 'risk_management.project_risk'}
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_eval_project_risk_wizard">
+        <field name="name">Project Risk Evaluation</field>
+        <field name="res_model">risk_management.project_risk.eval_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">
+            {'default_risk_id': active_id, 'risk_model': 'risk_management.project_risk'}
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_project_risk_threshold_wizard">
+        <field name="name">Project Risk Threshold Wizard Form</field>
+        <field name="model">risk_management.project_risk.set_threshold_wizard</field>
+        <field name="inherit_id" ref="view_business_risk_threshold_wizard"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='set_value']" position="replace">
+                <button name="set_value"
+                        string="Set Threshold"
+                        class="btn-primary"
+                        type="object"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_project_evaluation_wizard">
+        <field name="name">Project Risk Evaluation Wizard Form</field>
+        <field name="model">risk_management.project_risk.eval_wizard</field>
+        <field name="inherit_id" ref="view_business_evaluation_wizard"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='set_value']" position="replace">
+                <button name="set_value"
+                        string="Set Level"
+                        class="btn-primary"
+                        type="object"
+                />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_project_risk_search" model="ir.ui.view">
+        <field name="name">project_risk.search</field>
+        <field name="model">risk_management.project_risk</field>
+        <field name="inherit_id" ref="view_business_risk_search"/>
+        <field name="arch" type="xml">
+            <field name="process_id" position="after">
+                <field name="project_id"/>
+            </field>
+            <xpath expr="//filter[@name='Process']" position="after">
+                <filter string="Project" name="Project" context="{'group_by': 'project_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="act_record_project_risk_wizard" model="ir.actions.act_window">
+        <field name="name">New Project Risk</field>
+        <field name="res_model">risk_management.project_risk.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_project_risk_reg">
+        <field name="name">Risk Register</field>
+        <field name="res_model">risk_management.project_risk</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context" eval="{'active_test': False}"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent">
+                There is no risk in this risk register at the moment.
+                <br/>
+                <a type="action" name="%(risk_management.act_record_project_risk_wizard)d">Report a risk</a>
+            </p>
+        </field>
+    </record>
+
+    <record id="view_project_risk_list" model="ir.ui.view">
+        <field name="name">project_risk.list</field>
+        <field name="model">risk_management.project_risk</field>
+        <field name="inherit_id" ref="view_business_risk_list"/>
+        <field name="arch" type="xml">
+            <field name="process_id" position="before">
+                <field name="project_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_project_risk_edit" model="ir.ui.view">
+        <field name="name">project_risk.edit_form</field>
+        <field name="model">risk_management.project_risk</field>
+        <field name="inherit_id" ref="view_business_risk_edit"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="project_id"/>
+            </field>
+            <xpath expr="//button[@name='get_treatment']" position="replace">
+                <button name="action_add_treatment_task"
+                        type="object"
+                        class="btb-primary oe_stat_button"
+                        icon="fa-tasks"
+                        attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
+                >
+                    <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
+                </button>
+            </xpath>
+            <xpath expr="//button[@name='%(risk_management.act_set_business_risk_threshold_wizard)d']"
+                   position="replace">
+                <button name="%(risk_management.act_set_project_risk_threshold_wizard)d"
+                        type="action"
+                        class="btn-primary oe_link"
+                >
+                    <field name="threshold_value" string="Risk Threshold" help="Change risk threshold"/>
+                </button>
+            </xpath>
+            <xpath expr="//button[@name='%(risk_management.act_eval_business_risk_wizard)d']" position="replace">
+                <button name="%(risk_management.act_eval_project_risk_wizard)d"
+                        type="action"
+                        class="btn-primary oe_link"
+                >
+                    <field name="latest_level_value" string="Risk Level"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_project_risk_wiz" model="ir.ui.view">
+        <field name="name">Risk Report Wizard Form</field>
+        <field name="model">risk_management.project_risk.wizard</field>
+
+        <field name="arch" type="xml">
+            <form string="Report a risk">
+                <sheet>
+                    <group string="Ref.">
+                        <group>
+                            <field name="project_id"/>
+                            <field name="process_id"/>
+                            <field name="risk_type"/>
+                        </group>
+                        <group>
+                            <field name="reported_by"/>
+                            <field name="report_date"/>
+                        </group>
+                    </group>
+                    <group string="Details">
+                        <field name="risk_info_id" string="Risk Name" class="oe_no_button"/>
+                        <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                        <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                        <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="record_risk"
+                            string="Submit"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+
+    <menuitem name="Risks management" id="project_risk_management" parent="project.menu_main_pm" sequence="3"/>
+    <menuitem name="Report a new risk" id="menu_wizard_report_project_risk" parent="project_risk_management"
+              action="act_record_project_risk_wizard" sequence="20"/>
+    <menuitem name="Risk Register" id="menu_project_risk_register" parent="project_risk_management"
+              action="act_project_risk_reg" sequence="10"/>
+
     <!-- PROJECT PROCESS-->
     <!--views-->
     <record model="ir.ui.view" id="project_process_search">
@@ -942,9 +1131,9 @@
             <field name="input_data_ids" position="attributes">
                 <attribute name="context" eval="{'tree_view_ref': 'risk_management.project_process_data_list'}"/>
             </field>
-            <field name="output_data_ids" position="attributes">
-                <attribute name="context"
-                           eval="{'tree_view_ref':'risk_management.project_process_output_data_list', 'default_int_provider_id': active_id}"/>
+            <field name="output_data_ids" position="replace">
+                <field name="output_data_ids"
+                       context="{ 'tree_view_ref':'risk_management.project_process_output_data_list', 'default_int_provider_id': active_id}"/>
             </field>
         </field>
     </record>
@@ -1031,6 +1220,8 @@
             <field name="project_id" position="after">
                 <field name="process_id" domain="[('project_id', '=', project_id)]"
                        context="{'form_view_ref': 'risk_management.project_process_form'}"/>
+                <field name="risk_id" attrs="{'invisible': [('process_id', 'not ilike', 'risk treatment')]}"/>
+                <field name="target_criterium" attrs="{'invisible': [('risk_id', '=', False)]}"/>
             </field>
         </field>
     </record>
@@ -1162,10 +1353,10 @@
                             <div class="oe_clear"/>
                         </page>
                         <page name="help" string="Help">
-                            <label for="control"/>
-                            <field name="control"/>
-                            <label for="action"/>
-                            <field name="action"/>
+                            <group>
+                                <field name="control"/>
+                                <field name="action"/>
+                            </group>
                         </page>
                     </notebook>
 
@@ -1212,5 +1403,7 @@
     </record>
 
     <menuitem id="menu_risk_category" parent="config_menu" sequence="10" action="act_risk_category_list"/>
+
+    <menuitem id="menu_risk_database" parent="project_risk_management" action="act_risk_category_list" sequence="30"/>
 
 </odoo>

@@ -43,11 +43,19 @@ class Project(models.Model):
 class Task(models.Model):
     _inherit = 'project.task'
 
+    def _get_default_risk(self):
+        default_risk_id = self.env.context.get('default_risk_id', False)
+        if default_risk_id:
+            return default_risk_id.exists()
+
     def get_target_selection(self):
         if not self.process_id:
             return []
         else:
             return [('D', 'Detectability'), ('O', 'Occurrence'), ('S', 'Severity')]
+
+    risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', default=_get_default_risk,
+                              domain="[('process_id.project_id', '=', project_id)]")
 
     process_id = fields.Many2one('risk_management.project_process', ondelete='cascade', string='Process',
                                  domain="[('project_id', '=', project_id)]")

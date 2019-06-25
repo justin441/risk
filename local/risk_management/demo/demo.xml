@@ -61,15 +61,19 @@
                     <li>Reputational risk; risk of business failure.</li>
                 </ul>
             </field>
-            <field name="control">
-               Monitor all geopolitical indicators available, from multiple sources (Ministries, Banks, International Institutions).
+            <field name="control" type="html">
+               <p>
+                   Monitor all geopolitical indicators available, from multiple sources (Ministries, Banks, International Institutions).
                 Monitor local and regional situation, implement micromanagement on site.
+               </p>
             </field>
-            <field name="action">
-                In-depth knowledge of the country concerned and its associated risks.
+            <field name="action" type="html">
+                <p>
+                    In-depth knowledge of the country concerned and its associated risks.
                 Mastering the geopolitical issues of the geographical area of exposure.
                 Reduction of the presence, repositioning of critical processes, exit of the zone,
                 Avoidance strategy, reduction strategy.
+                </p>
             </field>
         </record>
         <record id="risk_info_2" model="risk_management.risk.info">
@@ -95,14 +99,18 @@
                     <li>customer insolvency.</li>
                 </ul>
             </field>
-            <field name="control">
-                Growth rate of the turnover. Turnover rate of the offer. Failure rate on launching new offers. Fine management
+            <field name="control" type="html">
+                <p>
+                    Growth rate of the turnover. Turnover rate of the offer. Failure rate on launching new offers. Fine management
                 of the company's activity levels (production, storage and consumption cycles)
+                </p>
             </field>
-            <field name="action">
-                Adaptability and flexibility of the strategic and production model of the company: reactivity of the supply
+            <field name="action" type="html">
+                <p>
+                    Adaptability and flexibility of the strategic and production model of the company: reactivity of the supply
                 the evolution of the demand, adaptation of the structure of production and cost of the offer; risk reduction
                 strategy to be favored.
+                </p>
             </field>
         </record>
         <record id="risk_info_3" model="risk_management.risk.info">
@@ -129,15 +137,19 @@
                     <li>Loss of sales, deterioration of the company's economic conditions.</li>
                 </ul>
             </field>
-            <field name="control">
-                Success rate of the marketing of the offer by strategic segment.
+            <field name="control" type="html">
+                <p>
+                    Success rate of the marketing of the offer by strategic segment.
                 Number of strategic segments.
                 Dimensioning and validated consistency of the strategic business model
+                </p>
             </field>
-            <field name="action">
-                Precise analysis of target market, anticipated segments, and customer profiles making up each strategic segment.
+            <field name="action" type="html">
+                <p>
+                    Precise analysis of target market, anticipated segments, and customer profiles making up each strategic segment.
                 Precise identification of the specific needs of each client and consistency of the offer that is intended for them.
                 Risk circumvention or reduction strategy.
+                </p>
             </field>
         </record>
         <record id="risk_info_4" model="risk_management.risk.info">
@@ -164,10 +176,19 @@
                     of a bankruptcy or liquidation procedure.
                 </p>
             </field>
-            <field name="control">Daily situation of the current cash position; cash flow forecasts; number of days and amounts of anticipated overruns; rate and degree of use of short-term financing schemes
+            <field name="control" type="html">
+                <p>
+                    Daily situation of the current cash position; cash flow forecasts; number of days and amounts of
+                    anticipated overruns; rate and degree of use of short-term financing schemes
+                </p>
             </field>
-            <field name="action">
-                Development of a precise forecast of cash flow; absolute control of the need in working capital; implementation of short term financing solutions (overdraft, factoring, discount); reinforcement of equity; setting up an appropriate debt for long-term financing; current account contributions.
+            <field name="action" type="html">
+                <p>
+                    Development of a precise forecast of cash flow; absolute control of the need in working capital;
+                    implementation of short term financing solutions (overdraft, factoring, discount); reinforcement of
+                    equity; setting up an appropriate debt for long-term financing; current account contributions.
+
+                </p>
             </field>
         </record>
 

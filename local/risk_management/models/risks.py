@@ -55,8 +55,8 @@ class RiskInfo(models.Model):
     description = fields.Html(translate=True, string='Description', required=True)
     cause = fields.Html(Translate=True, string='Cause', index=True)
     consequence = fields.Html(translate=True, string='Consequence', index=True)
-    control = fields.Text(translate=True, string='Steering / Monitoring', groups='risk_management.group_risk_manager')
-    action = fields.Text(translate=True, string='Action / Hedging policy', groups='risk_management.group_risk_manager')
+    control = fields.Html(translate=True, string='Steering / Monitoring', groups='risk_management.group_risk_manager')
+    action = fields.Html(translate=True, string='Action / Hedging policy', groups='risk_management.group_risk_manager')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
     project_risk_ids = fields.One2many(comodel_name='risk_management.project_risk', inverse_name='risk_info_id',
@@ -169,8 +169,8 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_info_description = fields.Html('Description', related='risk_info_id.description', readonly=True)
     risk_info_cause = fields.Html('Cause', related='risk_info_id.cause', readonly=True)
     risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
-    risk_info_control = fields.Text('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
-    risk_info_action = fields.Text('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
+    risk_info_control = fields.Html('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
+    risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
     report_date = fields.Date(string='Reported On', default=lambda self: fields.Date.context_today(self))
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
@@ -414,7 +414,7 @@ class BusinessRisk(models.Model):
             'views': [
                 [False, "kanban"], [False, "form"], [False, "tree"],
                 [False, "calendar"], [False, "pivot"], [False, "graph"]
-                      ],
+            ],
             'context': {
                 'search_default_project_id': t.id,
                 'search_default_user_id': self.env.user.id,
@@ -430,10 +430,14 @@ class ProjectRisk(models.Model):
     _inherit = ['risk_management.base_identification']
 
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Process')
+    project_id = fields.Many2one(comodel_name='project.project', related='process_id.project_id', string='Project',
+                                 readonly=True)
     evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id',
                                      string='Evaluations')
-    treatment_ids = fields.One2many(comodel_name='risk_management.project_risk.treatment_task', inverse_name='risk_id',
-                                    string='Treatment tasks')
+    treatment_ids = fields.One2many(comodel_name='project.task', inverse_name='risk_id', string='Treatment tasks',
+                                    domain=lambda self: [('project_id', '=', self.process_id.project_id.id),
+                                                         ('process_id', 'ilike', 'risk treatment')])
+    treatment_task_count = fields.Integer(compute='_compute_treatment_count', string='Treatment tasks', store=True)
 
     @api.depends('latest_level_value', 'treatment_ids')
     def _compute_stage(self):
@@ -446,6 +450,34 @@ class ProjectRisk(models.Model):
                 rec.mgt_stage = 'T'
             else:
                 rec.mgt_stage = False
+
+    @api.depends('treatment_ids')
+    def _compute_treatment_count(self):
+        for rec in self:
+            rec.treatment_task_count = len(rec.treatment_ids)
+
+    @api.multi
+    def action_add_treatment_task(self):
+        for rec in self:
+            project = rec.process_id.project_id
+            treatment_process = project.get_or_add_risk_treatment_proc()
+            return {
+                'name': _('Treatment tasks'),
+                'type': 'ir.actions.act_window',
+                'res_model': 'project.task',
+                'views': [
+                    [False, "kanban"], [False, "form"], [False, "tree"],
+                    [False, "calendar"], [False, "pivot"], [False, "graph"]
+                ],
+                'context': {
+                    'search_default_project_id': project.id,
+                    'search_default_process_id': treatment_process.id,
+                    'search_default_user_id': self.env.user.id,
+                    'default_project_id': project.id,
+                    'default_process_id': treatment_process.id,
+                    'default_risk_id': rec.id
+                }
+            }
 
 
 # -------------------------------------- Risk evaluation ----------------------------------
@@ -515,30 +547,8 @@ class BusinessRiskTreatment(models.Model):
     risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk')
 
 
-class ProjectRiskTreatmentTask(models.Model):
-    _name = 'risk_management.project_risk.treatment_task'
-    _inherit = ['project.task']
-
-    def _get_default_risk(self):
-        default_risk_id = self.env.context.get('default_risk_id', False)
-        if default_risk_id:
-            return default_risk_id.exists()
-
-    risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', default=_get_default_risk,
-                              required=True)
-    project_id = fields.Many2one('project.project', string='Project', index=True, track_visibility='onchange',
-                                 change_default=True, compute='_compute_project_id', store=True, default=False)
-
-    @api.depends('risk_id')
-    def _compute_project_id(self):
-        for rec in self:
-            if rec.risk_id:
-                rec.project_id = rec.risk_id.process_id.project_id
-            else:
-                rec.project_id = False
-
-
 # -------------------------------------- Wizards -------------------------------------------
+
 
 class BaseRiskWizard(models.AbstractModel):
     _name = 'risk_management.base_risk_wizard'
@@ -723,6 +733,7 @@ class BusinessRiskEvalWizard(models.TransientModel):
 
 class ProjectRiskEvalWizard(models.TransientModel):
     _name = 'risk_management.project_risk.eval_wizard'
+    _inherit = ['risk_management.base_risk_level_wizard']
 
     risk_id = fields.Many2one('risk_management.project_risk', string='Project Risk', required=True,
                               ondelete='cascade')
@@ -746,7 +757,9 @@ class ProjectRiskWizard(models.TransientModel):
     _name = 'risk_management.project_risk.wizard'
     _inherit = ['risk_management.base_risk_wizard']
 
-    process_id = fields.Many2one('risk_management.project_process', string='Process', ondelete='cascade')
+    project_id = fields.Many2one('project.project', string='Project', ondelete='cascade', required=True)
+    process_id = fields.Many2one('risk_management.project_process', string='Process', ondelete='cascade',
+                                 domain="[('project_id', '=', project_id)]")
     risk_model = fields.Char(default='risk_management.project_risk', readonly=True)
 
 
@@ -761,8 +774,8 @@ class RiskHelpWizard(models.TransientModel):
 
     risk_info_id = fields.Many2one('risk_management.risk.info', default=_get_default_risk_info, required=True,
                                    ondelete='cascade')
-    risk_info_control = fields.Text(translate=True, string='Steering / Monitoring', related='risk_info_id.control')
-    risk_info_action = fields.Text(translate=True, string='Action / Hedging policy', related='risk_info_id.action')
+    risk_info_control = fields.Html(translate=True, string='Steering / Monitoring', related='risk_info_id.control')
+    risk_info_action = fields.Html(translate=True, string='Action / Hedging policy', related='risk_info_id.action')
 
     @api.multi
     def write_changes(self):
