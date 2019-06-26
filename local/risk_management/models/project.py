@@ -11,6 +11,15 @@ class Project(models.Model):
 
     process_ids = fields.One2many('risk_management.project_process', string="Process", inverse_name='project_id')
     process_count = fields.Integer(compute="_compute_count_process")
+    risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
+
+    @api.multi
+    def _compute_risk_count(self):
+        for rec in self:
+            if rec.process_ids:
+                rec.risk_count = sum([process.risk_count for process in rec.process_ids])
+            else:
+                rec.risk_count = 0
 
     @api.multi
     def get_or_add_risk_treatment_proc(self):
@@ -43,20 +52,37 @@ class Project(models.Model):
 class Task(models.Model):
     _inherit = 'project.task'
 
-    def _get_default_risk(self):
-        default_risk_id = self.env.context.get('default_risk_id', False)
-        if default_risk_id:
-            return default_risk_id.exists()
+    def _get_default_project_risk(self):
+        default_risk_id = self.env.context.get('default_risk_id')
+        risk_model = self.env.context.get('risk_model')
+        if default_risk_id and risk_model == 'risk_management.project_risk':
+            risk = self.env[risk_model].browse(default_risk_id)
+            if risk:
+                return risk.exists()
 
-    def get_target_selection(self):
-        if not self.process_id:
-            return []
-        else:
-            return [('D', 'Detectability'), ('O', 'Occurrence'), ('S', 'Severity')]
+    def _get_default_business_risk(self):
+        default_risk_id = self.env.context.get('default_risk_id')
+        risk_model = self.env.context.get('risk_model')
+        if default_risk_id and risk_model == 'risk_management.business_risk':
+            risk = self.env[risk_model].browse(default_risk_id)
+            if risk:
+                return risk.exists()
+        elif self.project_id:
+            return self.project_id.risk_id
 
-    risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', default=_get_default_risk,
-                              domain="[('process_id.project_id', '=', project_id)]")
+    project_risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Project Risk',
+                                      default=_get_default_project_risk)
+    business_risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Business Risk',
+                                       default=_get_default_business_risk)
 
     process_id = fields.Many2one('risk_management.project_process', ondelete='cascade', string='Process',
                                  domain="[('project_id', '=', project_id)]")
-    target_criterium = fields.Selection(selection=get_target_selection, string='Target Criterium')
+    process_name = fields.Char(related='process_id.name')
+    target_criterium = fields.Selection(selection=[('D', 'Detectability'), ('O', 'Occurrence'), ('S', 'Severity')],
+                                        string='Target Criterium')
+
+    @api.onchange('process_id')
+    def _onchange_process_name(self):
+        if self.process_name != 'Risk Treatment':
+            self.project_risk_id = False
+            self.business_risk_id = False
