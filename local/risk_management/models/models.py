@@ -148,6 +148,8 @@ class BusinessProcess(models.Model):
     task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
     risk_ids = fields.One2many('risk_management.business_risk', inverse_name='process_id', string='Identified risks')
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
+    module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
+                             domain=[('state', '=', 'installed')])
 
     @api.depends('task_ids')
     def _compute_task_count(self):

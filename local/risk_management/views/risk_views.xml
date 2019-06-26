@@ -653,6 +653,7 @@
                         <field name="business_id" invisible="1"/> <!-- FIXME multi-company -->
                         <field name="process_type"/>
                         <field name="responsible_id"/>
+                        <field name="module" class="oe_no_link"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">
@@ -684,6 +685,7 @@
             <tree>
                 <field name="name"/>
                 <field name="responsible_id"/>
+                <field name="module"/>
             </tree>
         </field>
     </record>
@@ -695,11 +697,13 @@
             <search>
                 <field name="name"/>
                 <field name="description"/>
+                <field name="module"/>
                 <filter name="Management" string="Management" domain="[('process_type', '=', 'M')]"/>
                 <filter name="Operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
                 <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Type" name="Type" context="{'group_by':'process_type'}"/>
+                    <filter string="Module" name="Module" context="{'group_by':'module'}"/>
                 </group>
             </search>
         </field>
@@ -1258,6 +1262,7 @@
             <field name="business_id" position="replace">
                 <field name="project_id"/>
             </field>
+            <field name="module" position="replace"/>
             <field name="input_data_ids" position="attributes">
                 <attribute name="context" eval="{'tree_view_ref': 'risk_management.project_process_data_list'}"/>
             </field>
