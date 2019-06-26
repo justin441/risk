@@ -1362,11 +1362,15 @@
             <field name="project_id" position="after">
                 <field name="process_name" invisible="1"/>
                 <field name="process_id" domain="[('project_id', '=', project_id)]"
-                       context="{'form_view_ref': 'risk_management.project_process_form'}"/>
-                <field name="project_risk_id"
-                       attrs="{'invisible': ['|', ('process_name', '!=', 'Risk Treatment'), ('business_risk_id', '!=', False)]}"/>
-                <field name="business_risk_id"
-                       attrs="{'invisible': ['|', ('process_name', '!=', 'Risk Treatment'), ('project_risk_id', '!=', False)]}"/>
+                       context="{'form_view_ref': 'risk_management.project_process_form'}"
+                       attrs="{'readonly': ['|', ('project_risk_id', '!=', False), ('business_risk_id', '!=', False)]}"
+                />
+                <field name="project_risk_id" readonly="1"
+                       attrs="{'invisible': ['|', ('process_name', '!=', 'Risk Treatment'), ('business_risk_id', '!=', False)]}"
+                />
+                <field name="business_risk_id" readonly="1"
+                       attrs="{'invisible': ['|', ('process_name', '!=', 'Risk Treatment'), ('project_risk_id', '!=', False)]}"
+                />
                 <field name="target_criterium"
                        attrs="{'invisible': [('process_name', '!=', 'Risk Treatment')]}"/>
                 <!-- Issue #22879 with `not ilike` operator-->
