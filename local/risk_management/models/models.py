@@ -14,7 +14,7 @@ class BaseProcess(models.AbstractModel):
     name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
                                     required=True, string='Process type', track_visibility='onchange')
-    description = fields.Html(translate=True, string="Description")
+    description = fields.Html(translate=True, string="Description", track_visibility='onchange')
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
@@ -149,7 +149,7 @@ class BusinessProcess(models.Model):
     risk_ids = fields.One2many('risk_management.business_risk', inverse_name='process_id', string='Identified risks')
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
     module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
-                             domain=[('state', '=', 'installed')])
+                             domain=[('state', '=', 'installed')], track_visibility='always')
 
     @api.depends('task_ids')
     def _compute_task_count(self):
@@ -299,7 +299,7 @@ class ProjectProcess(models.Model):
 
     project_id = fields.Many2one('project.project', string='Project', ondelete='cascade',
                                  default=lambda self: self.env.context.get('default_project_id', False),
-                                 index=True)
+                                 index=True, track_visibility='onchange')
     task_ids = fields.One2many('project.task', string='Tasks', inverse_name='process_id',
                                domain=lambda self: [('project_id', '=', self.project_id.id), '|',
                                                     ('stage_id.fold', '=', False), ('stage_id', '=', False)])

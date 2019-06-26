@@ -149,7 +149,7 @@ class BaseRiskCriteria(models.AbstractModel):
 
 class BaseRiskIdentification(models.AbstractModel):
     _name = 'risk_management.base_identification'
-    _inherit = ['risk_management.base_criteria']
+    _inherit = ['risk_management.base_criteria', 'mail.thread']
     _order = 'report_date desc'
 
     def _compute_default_review_date(self):
@@ -160,11 +160,11 @@ class BaseRiskIdentification(models.AbstractModel):
         return fields.Date.to_string(default_review_date)
 
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
-    name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True)
+    name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
-                                 require=True)
+                                 require=True, track_visibility="onchange")
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Name')
-    risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True)
+    risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,)
     risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)
     risk_info_description = fields.Html('Description', related='risk_info_id.description', readonly=True)
     risk_info_cause = fields.Html('Cause', related='risk_info_id.cause', readonly=True)
@@ -173,16 +173,21 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
     report_date = fields.Date(string='Reported On', default=lambda self: fields.Date.context_today(self))
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
-    threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True)
-    latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True)
+    threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True,
+                                     track_visibility="onchange")
+    latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True,
+                                        track_visibility="onchange")
     last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date')
-    review_date = fields.Date(default=_compute_default_review_date, string="Review Date")
-    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True)
-    active = fields.Boolean(compute='_compute_active', inverse='_inverse_active', search='_search_active')
+    review_date = fields.Date(default=_compute_default_review_date, string="Review Date", track_visibility="onchange")
+    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
+                            track_visibility="onchange")
+    active = fields.Boolean(compute='_compute_active', inverse='_inverse_active', search='_search_active',
+                            track_visibility="onchange")
     status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
-                              compute='_compute_acceptable', string='Status', search='_search_acceptable')
+                              compute='_compute_acceptable', string='Status', search='_search_acceptable',
+                              track_visibility="onchange")
     mgt_stage = fields.Selection([('I', 'Identification'), ('E', 'Evaluation'), ('T', 'Treatment')],
-                                 compute='_compute_stage', store=True)
+                                 compute='_compute_stage', store=True, track_visibility="onchange")
 
     @api.depends('uuid')
     def _compute_name(self):
