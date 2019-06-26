@@ -386,6 +386,7 @@
         <field name="name">Risk Register</field>
         <field name="res_model">risk_management.business_risk</field>
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_business_risk_search"/>
         <field name="context" eval="{'active_test': False}"/>
         <field name="help" type="html">
             <p class="oe_view_nocontent">
@@ -428,11 +429,7 @@
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <h1>
-                            <field name="name"/>
-                            <field name="active" invisible="1"/>
-                        </h1>
-                        <div class="oe_right oe_button_box" name="treatment_button">
+                        <div class="oe_button_box" name="treatment_button">
                             <button name="get_treatment"
                                     type="object"
                                     class="btb-primary oe_stat_button"
@@ -442,18 +439,14 @@
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
-
-                        <div name="info_id" class="oe_readonly">
-                            <div>
-                                <label for="risk_info_id" class="oe_inline" string="Risk Name :"/>
-                                <field name="risk_info_id" class="oe_inline oe_input_align"/>
-                            </div>
-                            <div>
-                                <label for="process_id" class="oe_inline" string="Impacted Process :"/>
-                                <field name="process_id" class="oe_inline oe_input_align"/>
-                            </div>
-                        </div>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
                     </div>
+                    <group>
+                        <field name="risk_info_id" style="width:400px" readonly="1"/>
+                         <field name="process_id" readonly="1"/>
+                    </group>
                     <group col="12">
                         <group colspan="6" col="2">
 
@@ -475,6 +468,7 @@
                             </button>
                         </group>
                         <group colspan="6" col="2">
+                            <field name="active" invisible="1"/>
                             <field name="risk_type"/>
                             <label for="reported_by" class="oe_read_only"/>
                             <field name="reported_by" class="oe_read_only" nolabel="1"/>
@@ -639,7 +633,6 @@
                                 class="oe_stat_button"
                                 icon="fa-files-o">
                             <field string="Procedures" name="method_count" widget="statinfo"/>
-
                         </button>
                         <button name="%(risk_management.act_business_process_2_process_task_all)d"
                                 type="action"
@@ -891,33 +884,82 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="view_project_risk_threshold_wizard">
+    <record model="ir.ui.view" id="view_project_risk_threshold_wizard2">
         <field name="name">Project Risk Threshold Wizard Form</field>
         <field name="model">risk_management.project_risk.set_threshold_wizard</field>
-        <field name="inherit_id" ref="view_business_risk_threshold_wizard"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='set_value']" position="replace">
-                <button name="set_value"
-                        string="Set Threshold"
-                        class="btn-primary"
-                        type="object"
-                />
-            </xpath>
+            <form string="Set risk Threshold">
+                <sheet>
+                    <group name="info">
+                        <field name="risk_id" invisible="1"/>
+                    </group>
+                    <group string="Criteria scores">
+                        <field name="detectability"/>
+                        <field name="occurrence"/>
+                        <field name="severity"/>
+                    </group>
+                    <notebook>
+                        <page name="comment_page" string="Comment">
+                            <field name="comment"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="set_value"
+                            string="Set Threshold"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
         </field>
     </record>
 
-    <record model="ir.ui.view" id="view_project_evaluation_wizard">
+    <record model="ir.ui.view" id="view_project_evaluation_wizard2">
         <field name="name">Project Risk Evaluation Wizard Form</field>
         <field name="model">risk_management.project_risk.eval_wizard</field>
-        <field name="inherit_id" ref="view_business_evaluation_wizard"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='set_value']" position="replace">
-                <button name="set_value"
-                        string="Set Level"
-                        class="btn-primary"
-                        type="object"
-                />
-            </xpath>
+            <form string="Risk Evaluation">
+                <sheet>
+                    <group name="info">
+                        <field name="risk_id" invisible="1"/>
+                        <label for="write_date" class="oe_read_only"/>
+                        <field name="write_date" class="oe_read_only" nolabel="1"/>
+                    </group>
+                    <group string="Criteria scores">
+                        <group>
+                            <field name="detectability"/>
+                            <field name="occurrence"/>
+                            <field name="severity"/>
+                        </group>
+                        <group>
+                            <field name="review_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="comment_page" string="Comment">
+                            <field name="comment"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="set_value"
+                            string="Save"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
         </field>
     </record>
 
@@ -942,11 +984,117 @@
         <field name="target">new</field>
     </record>
 
+    <record id="view_project_risk_edit2" model="ir.ui.view">
+        <field name="name">project_risk.edit_form</field>
+        <field name="model">risk_management.project_risk</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
+                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
+                    <field name="mgt_stage" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <div class="oe_button_box" name="treatment_button">
+                            <button name="action_add_treatment_task"
+                                    type="object"
+                                    class="btb-primary oe_stat_button"
+                                    icon="fa-tasks"
+                                    attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
+                            >
+                                <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
+                            </button>
+                        </div>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="risk_info_id" readonly="1" style="width:400px"/>
+                        <field name="project_id" readonly="1"/>
+                        <field name="process_id" readonly="1"/>
+                    </group>
+                    <group col="12">
+                        <group colspan="6" col="2">
+
+                            <field name="risk_info_category"/>
+                            <field name="risk_info_subcategory"/>
+                            <label for="threshold_value"/>
+                            <button name="%(risk_management.act_set_project_risk_threshold_wizard)d"
+                                    type="action"
+                                    class="btn-primary oe_link"
+                            >
+                                <field name="threshold_value" string="Risk Threshold" help="Change risk threshold"/>
+                            </button>
+                            <label for="latest_level_value"/>
+                            <button name="%(risk_management.act_eval_project_risk_wizard)d"
+                                    type="action"
+                                    class="btn-primary oe_link"
+                            >
+                                <field name="latest_level_value" string="Risk Level"/>
+                            </button>
+                        </group>
+                        <group colspan="6" col="2">
+                            <field name="active" invisible="1"/>
+                            <field name="risk_type"/>
+                            <label for="reported_by" class="oe_read_only"/>
+                            <field name="reported_by" class="oe_read_only" nolabel="1"/>
+                            <label for="report_date" class="oe_read_only"/>
+                            <field name="report_date" class="oe_read_only" nolabel="1"/>
+                            <label for="review_date" class="oe_edit_only"/>
+                            <field name="review_date" class="oe_edit_only" nolabel="1"/>
+                            <field name="owner"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="info_page" string="Info">
+
+                            <group>
+                                <field name="risk_info_description"/>
+
+
+                                <field name="risk_info_cause"/>
+
+
+                                <field name="risk_info_consequence"/>
+                            </group>
+                        </page>
+                        <page name="help_page" string="Treatment guides">
+                            <group>
+                                <button
+                                        name="%(risk_management.act_edit_risk_info_help)d"
+                                        type="action"
+                                        string="Edit..."
+                                        class="btn-primary oe_right oe_link"
+                                        context="{'default_risk_info_id': risk_info_id}"
+                                >
+                                </button>
+                            </group>
+                            <group>
+                                <field name="risk_info_control"/>
+                            </group>
+                            <group>
+                                <field name="risk_info_action"/>
+                            </group>
+                        </page>
+                        <page name="comment_page" string="Comments">
+                            <group>
+                                <field name="comment"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record model="ir.actions.act_window" id="act_project_risk_reg">
         <field name="name">Risk Register</field>
         <field name="res_model">risk_management.project_risk</field>
         <field name="view_mode">tree,form</field>
-        <field name="context" eval="{'active_test': False}"/>
+        <field name="context" eval="{'active_test': False, 'form_view_ref': 'risk_management.view_project_risk_edit'}"/>
+        <field name="search_view_id" ref="view_project_risk_search"/>
         <field name="help" type="html">
             <p class="oe_view_nocontent">
                 There is no risk in this risk register at the moment.
@@ -959,56 +1107,28 @@
     <record id="view_project_risk_list" model="ir.ui.view">
         <field name="name">project_risk.list</field>
         <field name="model">risk_management.project_risk</field>
-        <field name="inherit_id" ref="view_business_risk_list"/>
         <field name="arch" type="xml">
-            <field name="process_id" position="before">
+            <tree create="false" decoration-muted="active==False"
+                  decoration-info="active==True and status=='U'" decoration-danger="status=='N'"
+                  decoration-bf="status=='N'" decoration-success="status=='A'"
+            >
+                <field name="risk_info_id"/>
+                <field name="report_date"/>
+                <field name="status" invisible="1"/>
+                <field name="active" invisible="1"/>
                 <field name="project_id"/>
-            </field>
+                <field name="process_id"/>
+                <field name="review_date"/>
+                <field name="threshold_value"/>
+                <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', 0)] }"/>
+            </tree>
         </field>
     </record>
 
-    <record id="view_project_risk_edit" model="ir.ui.view">
-        <field name="name">project_risk.edit_form</field>
-        <field name="model">risk_management.project_risk</field>
-        <field name="inherit_id" ref="view_business_risk_edit"/>
-        <field name="arch" type="xml">
-            <field name="name" position="after">
-                <field name="project_id"/>
-            </field>
-            <xpath expr="//button[@name='get_treatment']" position="replace">
-                <button name="action_add_treatment_task"
-                        type="object"
-                        class="btb-primary oe_stat_button"
-                        icon="fa-tasks"
-                        attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
-                >
-                    <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
-                </button>
-            </xpath>
-            <xpath expr="//button[@name='%(risk_management.act_set_business_risk_threshold_wizard)d']"
-                   position="replace">
-                <button name="%(risk_management.act_set_project_risk_threshold_wizard)d"
-                        type="action"
-                        class="btn-primary oe_link"
-                >
-                    <field name="threshold_value" string="Risk Threshold" help="Change risk threshold"/>
-                </button>
-            </xpath>
-            <xpath expr="//button[@name='%(risk_management.act_eval_business_risk_wizard)d']" position="replace">
-                <button name="%(risk_management.act_eval_project_risk_wizard)d"
-                        type="action"
-                        class="btn-primary oe_link"
-                >
-                    <field name="latest_level_value" string="Risk Level"/>
-                </button>
-            </xpath>
-        </field>
-    </record>
 
     <record id="view_project_risk_wiz" model="ir.ui.view">
         <field name="name">Risk Report Wizard Form</field>
         <field name="model">risk_management.project_risk.wizard</field>
-
         <field name="arch" type="xml">
             <form string="Report a risk">
                 <sheet>
@@ -1124,6 +1244,16 @@
 
                 </button>
             </xpath>
+            <xpath expr="//div[@name='buttons']/button[3]" position="replace">
+                <button name="%(risk_management.act_project_risk_reg)d"
+                        type="action"
+                        class="oe_stat_button"
+                        icon="fa-exclamation-circle"
+                        context="{'default_process_id': active_id, 'search_default_process_id': [active_id], 'search_default_active': 1}"
+                >
+                    <field name="risk_count" string="Risk reports"/>
+                </button>
+            </xpath>
             <xpath expr="//div[@name='buttons']/button[2]" position="replace"/>
             <field name="business_id" position="replace">
                 <field name="project_id"/>
@@ -1206,6 +1336,13 @@
                         name="%(act_project_project_2_project_process_all)d" icon="fa-refresh">
                     <field string="Processes" name="process_count" widget="statinfo"/>
                 </button>
+                <button class="oe_stat_button" type="action"
+                        name="%(risk_management.act_project_risk_reg)d"
+                        icon="fa-exclamation-circle"
+                        context="{'search_default_project_id': active_id}"
+                >
+                    <field string="Risks" name="risk_count" widget="statinfo"/>
+                </button>
             </xpath>
         </field>
     </record>
@@ -1218,10 +1355,16 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <field name="project_id" position="after">
+                <field name="process_name" invisible="1"/>
                 <field name="process_id" domain="[('project_id', '=', project_id)]"
                        context="{'form_view_ref': 'risk_management.project_process_form'}"/>
-                <field name="risk_id" attrs="{'invisible': [('process_id', 'not ilike', 'risk treatment')]}"/>
-                <field name="target_criterium" attrs="{'invisible': [('risk_id', '=', False)]}"/>
+                <field name="project_risk_id"
+                       attrs="{'invisible': ['|', ('process_name', '!=', 'Risk Treatment'), ('business_risk_id', '!=', False)]}"/>
+                <field name="business_risk_id"
+                       attrs="{'invisible': ['|', ('process_name', '!=', 'Risk Treatment'), ('project_risk_id', '!=', False)]}"/>
+                <field name="target_criterium"
+                       attrs="{'invisible': [('process_name', '!=', 'Risk Treatment')]}"/>
+                <!-- Issue #22879 with `not ilike` operator-->
             </field>
         </field>
     </record>
@@ -1332,7 +1475,7 @@
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-hashtag">
-                            <field string="Occurrences in Projects" name="project_occurrences" widget="statinfo"/>
+                            <field string="Projects Occurrences" name="project_occurrences" widget="statinfo"/>
                         </button>
                     </div>
                     <group name="classification" string="Classification">
