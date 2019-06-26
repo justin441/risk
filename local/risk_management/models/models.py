@@ -313,7 +313,7 @@ class ProjectProcess(models.Model):
     task_count = fields.Integer(string='Tasks', compute="_compute_task_count")
     method_count = fields.Integer(string='Method', compute="_compute_method_count")
     risk_ids = fields.One2many('risk_management.project_risk', inverse_name='process_id', string='Identified risks')
-    risk_count = fields.Integer(compute='_compute_risk_count', string='Risk')
+    risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
 
     @api.depends('task_ids')
     def _compute_task_count(self):
