@@ -163,7 +163,7 @@ class BaseRiskIdentification(models.AbstractModel):
     name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True)
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True)
-    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk')
+    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Name')
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True)
     risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)
     risk_info_description = fields.Html('Description', related='risk_info_id.description', readonly=True)
@@ -348,7 +348,7 @@ class BusinessRisk(models.Model):
         )
     ]
 
-    process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Process')
+    process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
     treatment_ids = fields.One2many(comodel_name='project.project', inverse_name='risk_id')
     treatment_id = fields.Many2one(comodel_name='project.project', compute='_compute_treatment',
@@ -419,7 +419,9 @@ class BusinessRisk(models.Model):
                 'search_default_project_id': t.id,
                 'search_default_user_id': self.env.user.id,
                 'default_project_id': t.id,
-                'default_process_id': process.id
+                'default_process_id': process.id,
+                'default_business_risk_id': self.id,
+                'risk_model': self._name
             }
         }
 
@@ -429,12 +431,13 @@ class ProjectRisk(models.Model):
     _description = 'Project risk'
     _inherit = ['risk_management.base_identification']
 
-    process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Process')
+    process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Impacted Process')
     project_id = fields.Many2one(comodel_name='project.project', related='process_id.project_id', string='Project',
                                  readonly=True)
     evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id',
                                      string='Evaluations')
-    treatment_ids = fields.One2many(comodel_name='project.task', inverse_name='risk_id', string='Treatment tasks',
+    treatment_ids = fields.One2many(comodel_name='project.task', inverse_name='project_risk_id',
+                                    string='Treatment tasks',
                                     domain=lambda self: [('project_id', '=', self.process_id.project_id.id),
                                                          ('process_id', 'ilike', 'risk treatment')])
     treatment_task_count = fields.Integer(compute='_compute_treatment_count', string='Treatment tasks', store=True)
@@ -475,7 +478,8 @@ class ProjectRisk(models.Model):
                     'search_default_user_id': self.env.user.id,
                     'default_project_id': project.id,
                     'default_process_id': treatment_process.id,
-                    'default_risk_id': rec.id
+                    'default_project_risk_id': rec.id,
+                    'risk_model': rec._name
                 }
             }
 
@@ -626,8 +630,7 @@ class BaseEvaluationWizard(models.AbstractModel):
                 return {'detectability': risk.detectability,
                         'occurrence': risk.occurrence,
                         'severity': risk.severity}
-        else:
-            return {}
+        return {}
 
     detectability = fields.Selection(selection=_get_detectability, string='Detectability',
                                      default=lambda self: self._get_default_criteria().get('detectability', '3'),
@@ -676,8 +679,7 @@ class BaseRiskLevelWizard(models.AbstractModel):
                     'occurrence': latest_evaluation.occurrence,
                     'severity': latest_evaluation.severity,
                 }
-        else:
-            return {}
+        return {}
 
     def _compute_default_review_date(self):
         date = fields.Date.from_string(fields.Date.context_today(self))
@@ -737,7 +739,7 @@ class ProjectRiskEvalWizard(models.TransientModel):
 
     risk_id = fields.Many2one('risk_management.project_risk', string='Project Risk', required=True,
                               ondelete='cascade')
-    risk_eval_model = fields.Char('Evaluation Model', default='risk_management.project_risk.evaluation', required=True)
+    risk_eval_model = fields.Char('Evaluation Model', default='risk_management.project_risk.evaluation', readonly=True)
 
 
 class BusinessRiskWizard(models.TransientModel):
