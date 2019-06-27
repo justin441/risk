@@ -258,6 +258,8 @@ class BusinessProcessTask(models.Model):
     owner_id = fields.Many2one('res.users', ondelete="set null")
     sequence = fields.Integer(default=10)
     process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
+    manager_id = fields.Many2one('res.users', related='process_id.responsible_id', readonly=True,
+                                 related_sudo=False, string='Process Manager')
 
 
 class BusinessProcessMethod(models.Model):

@@ -187,7 +187,7 @@ class BaseRiskIdentification(models.AbstractModel):
                               compute='_compute_acceptable', string='Status', search='_search_acceptable',
                               track_visibility="onchange")
     mgt_stage = fields.Selection([('I', 'Identification'), ('E', 'Evaluation'), ('T', 'Treatment')],
-                                 compute='_compute_stage', store=True, track_visibility="onchange")
+                                 compute='_compute_stage', string='Stage', store=True, track_visibility="onchange")
 
     @api.depends('uuid')
     def _compute_name(self):

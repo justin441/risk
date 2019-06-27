@@ -439,6 +439,7 @@
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
+                        <field name="status" readonly="True"/>
                         <h1>
                             <field name="name"/>
                         </h1>

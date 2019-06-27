@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Business risk subtypes for messaging / Chatter -->
+    <record id="mt_business_risk_new" model="mail.message.subtype">
+        <field name="name">New Risk</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="hidden" eval="False"/>
+        <field name="description">New risk added</field>
+    </record>
+
+    <record id="mt_business_risk_status" model="mail.message.subtype">
+        <field name="name">Risk Status Changed</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="hidden" eval="False"/>
+        <field name="description">Task status changed</field>
+    </record>
+
+    <record id="mt_business_risk_new_treatment_task" model="mail.message.subtype">
+        <field name="name">New Treatment Task</field>
+        <field name="sequence">10</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_new')"/>
+        <field name="relation_field">business_risk_id</field>
+        <field name="description">New treatment task opened</field>
+    </record>
+
+    <record id="mt_business_risk_treatment_task_blocked" model="mail.message.subtype">
+        <field name="name">Risk Treatment Task Blocked</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="sequence">11</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_blocked')"/>
+        <field name="relation_field">business_risk_id</field>
+    </record>
+
+    <record id="mt_business_risk_treatment_task_ready" model="mail.message.subtype">
+        <field name="name">Risk Treatment Task Ready</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="sequence">12</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_ready')"/>
+        <field name="relation_field">business_risk_id</field>
+    </record>
+
+    <record id="mt_business_risk_treatment_task_stage" model="mail.message.subtype">
+        <field name="name">Risk Treatment Task Stage Changed</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="sequence">13</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_stage')"/>
+        <field name="relation_field">business_risk_id</field>
+    </record>
+
+    <!-- Project risk related subtypes for messaging / Chatter -->
+    <record id="mt_project_risk_new" model="mail.message.subtype">
+        <field name="name">New Project Risk</field>
+        <field name="res_model">risk_management.project_risk</field>
+        <field name="default" eval="True"/>
+        <field name="internal" eval="True"/>
+        <field name="hidden" eval="False"/>
+        <field name="description">New risk added</field>
+    </record>
+
+    <record id="mt_project_risk_status" model="mail.message.subtype">
+        <field name="name">Risk Status Changed</field>
+        <field name="res_model">risk_management.project_risk</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="hidden" eval="False"/>
+        <field name="description">Task status changed</field>
+    </record>
+
+    <record id="mt_project_risk_new_treatment_task" model="mail.message.subtype">
+        <field name="name">New Risk Treatment Task</field>
+        <field name="res_model">risk_management.project_risk</field>
+        <field name="sequence">10</field>
+        <field name="default" eval="True"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_new')"/>
+        <field name="relation_field">project_risk_id</field>
+        <field name="description">New treatment task opened</field>
+    </record>
+
+     <record id="mt_project_risk_treatment_task_blocked" model="mail.message.subtype">
+        <field name="name">Risk Treatment Task Blocked</field>
+        <field name="res_model">risk_management.project_risk</field>
+        <field name="sequence">11</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_blocked')"/>
+        <field name="relation_field">project_risk_id</field>
+    </record>
+
+    <record id="mt_project_risk_treatment_task_ready" model="mail.message.subtype">
+        <field name="name">Risk Treatment Task Ready</field>
+        <field name="res_model">risk_management.project_risk</field>
+        <field name="sequence">12</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_ready')"/>
+        <field name="relation_field">project_risk_id</field>
+    </record>
+
+    <record id="mt_project_risk_treatment_task_stage" model="mail.message.subtype">
+        <field name="name">Risk Treatment Task Stage Changed</field>
+        <field name="res_model">risk_management.project_risk</field>
+        <field name="sequence">13</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('project.mt_task_stage')"/>
+        <field name="relation_field">project_risk_id</field>
+    </record>
+
+    <record id="mt_project_project_risk_new" model="mail.message.subtype">
+        <field name="name">New Project Risk</field>
+        <field name="sequence">14</field>
+        <field name="res_model">project.project</field>
+        <field name="default" eval="True"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('mt_project_risk_new')"/>
+         <field name="relation_field">project_id</field>
+        <field name="description">New risk added</field>
+    </record>
+</odoo>
