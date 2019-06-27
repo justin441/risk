@@ -5,7 +5,7 @@
     <record id="mt_business_risk_new" model="mail.message.subtype">
         <field name="name">New Risk</field>
         <field name="res_model">risk_management.business_risk</field>
-        <field name="default" eval="False"/>
+        <field name="default" eval="True"/>
         <field name="internal" eval="True"/>
         <field name="hidden" eval="False"/>
         <field name="description">New risk added</field>
@@ -14,7 +14,7 @@
     <record id="mt_business_risk_status" model="mail.message.subtype">
         <field name="name">Risk Status Changed</field>
         <field name="res_model">risk_management.business_risk</field>
-        <field name="default" eval="False"/>
+        <field name="default" eval="True"/>
         <field name="internal" eval="True"/>
         <field name="hidden" eval="False"/>
         <field name="description">Risk status changed</field>
@@ -24,7 +24,7 @@
         <field name="name">New Treatment Task</field>
         <field name="sequence">10</field>
         <field name="res_model">risk_management.business_risk</field>
-        <field name="default" eval="False"/>
+        <field name="default" eval="True"/>
         <field name="internal" eval="True"/>
         <field name="parent_id" eval="ref('project.mt_task_new')"/>
         <field name="relation_field">business_risk_id</field>
