@@ -514,7 +514,7 @@
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
-                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
                     <field name="message_ids" widget="mail_thread"/>
                 </div>
             </form>
@@ -621,9 +621,7 @@
                             string="New risk"
                             context="{'default_process_id': active_id}"
                             class="btn-danger"
-                    >
-
-                    </button>
+                    />
                 </header>
                 <sheet string="Process">
                     <div class="oe_left oe_title">
@@ -1248,6 +1246,14 @@
         <field name="model">risk_management.project_process</field>
         <field name="inherit_id" ref="business_process_form_view"/>
         <field name="arch" type="xml">
+            <xpath expr="//header/button[1]" position="replace">
+                <button name="%(risk_management.act_record_project_risk_wizard)d"
+                            type="action"
+                            string="New risk"
+                            context="{'default_process_id': active_id}"
+                            class="btn-danger"
+                    />
+            </xpath>
             <xpath expr="//div[@name='buttons']/button[1]" position="replace">
                 <button name="%(risk_management.act_project_process_2_process_method_all)d"
                         type="action"

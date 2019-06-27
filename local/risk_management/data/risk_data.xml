@@ -17,7 +17,7 @@
         <field name="default" eval="False"/>
         <field name="internal" eval="True"/>
         <field name="hidden" eval="False"/>
-        <field name="description">Task status changed</field>
+        <field name="description">Risk status changed</field>
     </record>
 
     <record id="mt_business_risk_new_treatment_task" model="mail.message.subtype">

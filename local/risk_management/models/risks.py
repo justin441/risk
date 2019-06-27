@@ -430,6 +430,17 @@ class BusinessRisk(models.Model):
             }
         }
 
+    @api.multi
+    def _track_subtype(self, init_values):
+        self.ensure_one()
+        if 'active' in init_values and self.active:
+            return 'risk_management.mt_business_risk_new'
+        elif 'owner' in init_values and self.owner:
+            return 'risk_management.mt_business_risk_new'
+        elif 'status' in init_values:
+            return 'risk_management.mt_business_risk_status'
+        return super(BusinessRisk, self)._track_subtype(init_values)
+
 
 class ProjectRisk(models.Model):
     _name = 'risk_management.project_risk'
@@ -487,6 +498,17 @@ class ProjectRisk(models.Model):
                     'risk_model': rec._name
                 }
             }
+
+    @api.multi
+    def _track_subtype(self, init_values):
+        self.ensure_one()
+        if 'active' in init_values and self.active:
+            return 'risk_management.mt_project_risk_new'
+        elif 'owner' in init_values and self.owner:
+            return 'risk_management.mt_project_risk_new'
+        elif 'status' in init_values:
+            return 'risk_management.mt_project_risk_status'
+        return super(ProjectRisk, self)._track_subtype(init_values)
 
 
 # -------------------------------------- Risk evaluation ----------------------------------
@@ -764,9 +786,9 @@ class ProjectRiskWizard(models.TransientModel):
     _name = 'risk_management.project_risk.wizard'
     _inherit = ['risk_management.base_risk_wizard']
 
-    project_id = fields.Many2one('project.project', string='Project', ondelete='cascade', required=True)
-    process_id = fields.Many2one('risk_management.project_process', string='Process', ondelete='cascade',
-                                 domain="[('project_id', '=', project_id)]")
+    process_id = fields.Many2one('risk_management.project_process', string='Process', ondelete='cascade')
+    project_id = fields.Many2one('project.project', string='Project', ondelete='cascade', required=True,
+                                 related='process_id.project_id')
     risk_model = fields.Char(default='risk_management.project_risk', readonly=True)
 
 
