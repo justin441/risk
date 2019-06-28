@@ -149,7 +149,8 @@ class BaseRiskCriteria(models.AbstractModel):
 
 class BaseRiskIdentification(models.AbstractModel):
     _name = 'risk_management.base_identification'
-    _inherit = ['risk_management.base_criteria', 'mail.thread']
+    _inherit = ['risk_management.base_criteria', 'mail.thread', 'mail.activity.mixin']
+    _mail_post_access = 'read'
     _order = 'report_date desc'
 
     def _compute_default_review_date(self):
@@ -441,6 +442,15 @@ class BusinessRisk(models.Model):
             return 'risk_management.mt_business_risk_status'
         return super(BusinessRisk, self)._track_subtype(init_values)
 
+    @api.multi
+    def _notification_recipients(self, message, groups):
+        groups = super(BusinessRisk, self)._notification_recipients(message, groups)
+
+        for group_name, group_method, group_data in groups:
+            group_data['has_button_access'] = True
+
+        return groups
+
 
 class ProjectRisk(models.Model):
     _name = 'risk_management.project_risk'
@@ -509,6 +519,15 @@ class ProjectRisk(models.Model):
         elif 'status' in init_values:
             return 'risk_management.mt_project_risk_status'
         return super(ProjectRisk, self)._track_subtype(init_values)
+
+    @api.multi
+    def _notification_recipients(self, message, groups):
+        groups = super(ProjectRisk, self)._notification_recipients(message, groups)
+
+        for group_name, group_method, group_data in groups:
+            group_data['has_button_access'] = True
+
+        return groups
 
 
 # -------------------------------------- Risk evaluation ----------------------------------

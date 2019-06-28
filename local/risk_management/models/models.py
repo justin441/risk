@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 class BaseProcess(models.AbstractModel):
     _name = 'risk_management.base_process'
     _inherit = ['mail.thread']
-    _order = 'sequence asc'
+    _order = 'sequence asc name id'
 
     name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
@@ -225,6 +225,33 @@ class BusinessProcess(models.Model):
                 else:
                     rec.sequence = default
 
+    @api.multi
+    def _notification_recipients(self, message, groups):
+        groups = super(BusinessProcess, self)._notification_recipients(message, groups)
+
+        for group_name, group_method, group_data in groups:
+            group_data['has_button_access'] = True
+
+        return groups
+
+    @api.multi
+    def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
+        """ Subscribe to all existing risks on the process when subscribing to a business process """
+        res = super(BusinessProcess, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids,
+                                                             subtype_ids=subtype_ids, force=force)
+        if not subtype_ids or any(subtype.parent_id.res_model == 'business_management.business_risk' for subtype in
+                                  self.env['mail.message.subtype'].browse(subtype_ids)):
+            for partner_id in partner_ids or []:
+                self.mapped('risk_ids').filtered(
+                    lambda risk: partner_id not in risk.message_partner_ids.ids
+                ).message_subscribe(partner_ids=[partner_id], channel_ids=None, subtype_ids=None, force=False)
+            for channel_id in channel_ids or []:
+                self.mapped('risk_ids').filtered(
+                    lambda risk: channel_id not in risk.message_channel_ids.ids
+                ).message_subscribe(
+                    partner_ids=None, channel_ids=[channel_id], subtype_ids=None, force=False)
+        return res
+
 
 class BusinessProcessData(models.Model):
     _name = 'risk_management.business_process_data'
@@ -353,10 +380,10 @@ class ProjectProcess(models.Model):
                                                            ])
             management_processes = rec.env[
                 'risk_management.project_process'].search(['&', '&',
-                                                            ('project_id', '=', rec.project_id.id),
-                                                            ('process_type', '=', 'M'),
-                                                            ('is_core', '=', 0)
-                                                            ])
+                                                           ('project_id', '=', rec.project_id.id),
+                                                           ('process_type', '=', 'M'),
+                                                           ('is_core', '=', 0)
+                                                           ])
             default_seq = 10
             if rec.process_type == "O" or rec.is_core:
                 if rec.get_input_ext_provider_cats().exists():
@@ -392,6 +419,33 @@ class ProjectProcess(models.Model):
                         [record.sequence for record in support_providers])
                 else:
                     rec.sequence = default
+
+    @api.multi
+    def _notification_recipients(self, message, groups):
+        groups = super(ProjectProcess, self)._notification_recipients(message, groups)
+
+        for group_name, group_method, group_data in groups:
+            group_data['has_button_access'] = True
+
+        return groups
+
+    @api.multi
+    def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
+        """ Subscribe to all existing risks on the process when subscribing to a project process """
+        res = super(ProjectProcess, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids,
+                                                            subtype_ids=subtype_ids, force=force)
+        if not subtype_ids or any(subtype.parent_id.res_model == 'business_management.business_risk' for subtype in
+                                  self.env['mail.message.subtype'].browse(subtype_ids)):
+            for partner_id in partner_ids or []:
+                self.mapped('risk_ids').filtered(
+                    lambda risk: partner_id not in risk.message_partner_ids.ids
+                ).message_subscribe(partner_ids=[partner_id], channel_ids=None, subtype_ids=None, force=False)
+            for channel_id in channel_ids or []:
+                self.mapped('risk_ids').filtered(
+                    lambda risk: channel_id not in risk.message_channel_ids.ids
+                ).message_subscribe(
+                    partner_ids=None, channel_ids=[channel_id], subtype_ids=None, force=False)
+        return res
 
 
 class ProjectMethod(models.Model):
