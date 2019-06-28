@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 class BaseProcess(models.AbstractModel):
     _name = 'risk_management.base_process'
     _inherit = ['mail.thread']
-    _order = 'sequence asc name id'
+    _order = 'sequence asc, name, id'
 
     name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
