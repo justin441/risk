@@ -2,7 +2,7 @@
 <odoo>
     <data noupdate="0">
         <record id="group_risk_user" model="res.groups">
-            <field name="name">User</field>
+            <field name="name">Risk user</field>
             <field name="category_id" ref="base.module_category_risk_management"/>
             <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
 
@@ -16,7 +16,7 @@
         </record>
 
         <record id="group_risk_management_manager" model="res.groups">
-            <field name="name">Manager</field>
+            <field name="name">Upper Manager</field>
             <field name="category_id" ref="base.module_category_risk_management"/>
             <field name="implied_ids" eval="[(4, ref('group_risk_manager'))]"/>
             <field name="users" eval="[(4, ref('base.user_root'))]"/>
