@@ -187,7 +187,7 @@ class BaseRiskIdentification(models.AbstractModel):
     status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                               compute='_compute_acceptable', string='Status', search='_search_acceptable',
                               track_visibility="onchange")
-    mgt_stage = fields.Selection([('I', 'Identification'), ('E', 'Evaluation'), ('T', 'Treatment')],
+    mgt_stage = fields.Selection([('1', 'Identification done'), ('2', 'Evaluation done'), ('3', 'Ongoing treatment')],
                                  compute='_compute_stage', string='Stage', store=True, track_visibility="onchange")
 
     @api.depends('uuid')
@@ -386,11 +386,11 @@ class BusinessRisk(models.Model):
     def _compute_stage(self):
         for rec in self:
             if rec.active and not rec.latest_level_value:
-                rec.mgt_stage = 'I'
+                rec.mgt_stage = '1'
             elif rec.latest_level_value and not rec.treatment_id:
-                rec.mgt_stage = 'E'
+                rec.mgt_stage = '2'
             elif rec.treatment_id:
-                rec.mgt_stage = 'T'
+                rec.mgt_stage = '3'
             else:
                 rec.mgt_stage = False
 
