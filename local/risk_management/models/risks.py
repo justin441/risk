@@ -184,7 +184,7 @@ class BaseRiskIdentification(models.AbstractModel):
                             track_visibility="onchange")
     active = fields.Boolean(compute='_compute_active', inverse='_inverse_active', search='_search_active',
                             track_visibility="onchange")
-    status = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
+    state = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                               compute='_compute_acceptable', string='Status', search='_search_acceptable',
                               track_visibility="onchange")
     mgt_stage = fields.Selection([('1', 'Identification done'), ('2', 'Evaluation done'), ('3', 'Ongoing treatment')],
@@ -361,6 +361,11 @@ class BusinessRisk(models.Model):
                                    inverse='_inverse_treatment', store=True)
     treatment_task_count = fields.Integer(compute='_compute_treatment_task_count', string='Risk Treatment Tasks')
 
+    @api.onchange('owner')
+    def _onchange_owner(self):
+        if self.treatment_id:
+            self.treatment_id.user_id = self.owner
+
     @api.depends('treatment_id')
     def _compute_treatment_task_count(self):
         for rec in self:
@@ -396,8 +401,8 @@ class BusinessRisk(models.Model):
 
     @api.multi
     def get_treatment(self):
-        """returns the treatment tasks view. If the treatment project does not exist, creates one. If there is no
-        risk treatment process in the treatment project, creates one.
+        """returns the treatment tasks view. If the risk treatment project does not exist, creates one. If there is no
+        risk treatment process in the treatment project, also creates one.
         """
         project = self.env['project.project']
         self.ensure_one()
@@ -405,14 +410,17 @@ class BusinessRisk(models.Model):
             # No need to treat a risk if it's not yet evaluated
             raise exceptions.UserError('The risk is not yet evaluated')
         if not self.treatment_id:
-            t = project.create({
-                'risk_id': self.id,
-                'name': _('Treatment for %s') % self.name
-            })
-            process = t.get_or_add_risk_treatment_proc()
+            if not self.env.user.has_group('risk_management.group_manager'):
+                raise exceptions.UserError('there is no project to treat this risk for the moment')
+            else:
+                t = project.create({
+                    'risk_id': self.id,
+                    'name': _('Risk Treatment #%s') % self.uuid[:8],
+                    'user_id': self.owner.id if self.owner else False
+                })
         else:
             t = self.treatment_ids.sorted('create_date', reverse=True)[0]
-            process = t.get_or_add_risk_treatment_proc()
+        process = t.get_or_add_risk_treatment_proc()
         return {
             'name': _('Treatment tasks'),
             'type': 'ir.actions.act_window',
