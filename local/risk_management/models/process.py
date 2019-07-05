@@ -14,11 +14,11 @@ class BaseProcess(models.AbstractModel):
     name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility=True)
     process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
                                     required=True, string='Process type', track_visibility='onchange')
-    description = fields.Html(translate=True, string="Description", track_visibility='onchange')
+    description = fields.Html(translate=True, string="Description", track_visibility='onchange', index=True)
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
-    sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True)
+    sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True, compute_sudo=True)
     is_core = fields.Boolean(compute='_compute_is_core', string='Is core process', search='_search_is_core',
                              help='Is this a core process')
 
@@ -118,7 +118,7 @@ class BaseProcessMethod(models.AbstractModel):
         )
     ]
 
-    name = fields.Char(translate=True, string='Title', required=True, copy=False)
+    name = fields.Char(translate=True, string='Title', required=True, copy=False, index=True)
     content = fields.Html(translate=True)
 
 
@@ -280,8 +280,8 @@ class BusinessProcessTask(models.Model):
         )
     ]
 
-    name = fields.Char(required=True, translate=True)
-    description = fields.Text(translate=True)
+    name = fields.Char(required=True, translate=True, index=True)
+    description = fields.Text(translate=True, index=True)
     owner_id = fields.Many2one('res.users', ondelete="set null")
     sequence = fields.Integer(default=10)
     process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
