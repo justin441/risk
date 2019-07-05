@@ -5,7 +5,7 @@
     <menuitem id="main_menu_risk_management" name="Risks"/>
 
     <menuitem id="config_menu" name="Configuration" parent="main_menu_risk_management" sequence="100"
-              groups="risk_management.group_process_manager"/>
+              groups="risk_management.group_manager"/>
 
     <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
 
@@ -380,12 +380,12 @@
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
             <tree create="false" decoration-muted="active==False"
-                  decoration-info="active==True and status=='U'" decoration-danger="status=='N'"
-                  decoration-bf="status=='N'" decoration-success="status=='A'"
+                  decoration-info="active==True and state=='U'" decoration-danger="state=='N'"
+                  decoration-bf="state=='N'" decoration-success="state=='A'"
             >
                 <field name="risk_info_id"/>
                 <field name="report_date"/>
-                <field name="status" invisible="1"/>
+                <field name="state" invisible="1"/>
                 <field name="active" invisible="1"/>
                 <field name="process_id"/>
                 <field name="review_date"/>
@@ -408,7 +408,7 @@
                 <field name="report_date"/>
                 <field name="review_date"/>
                 <field name="owner"/>
-                <field name="status"/>
+                <field name="state"/>
                 <field name="activity_ids"/>
                 <field name="mgt_stage"/>
                 <templates>
@@ -467,7 +467,7 @@
                                 </div>
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
-                                        <field name="status"/>
+                                        <field name="state"/>
                                         <field name="activity_ids" widget="kanban_activity"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
@@ -533,7 +533,7 @@
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
-                        <field name="status" readonly="True"/>
+                        <field name="state" readonly="True"/>
                         <h1>
                             <field name="name"/>
                         </h1>
@@ -729,7 +729,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-xs-8">
-                                    <field name="business_id" string="Company"/>
+                                    <field name="business_id" string="Company" groups="base.group_multi_company"/>
                                 </div>
                                 <div class="col-xs-4">
                                     <div class="oe_kanban_bottom_right">
@@ -788,7 +788,7 @@
                         </button>
                     </div>
                     <group>
-                        <field name="business_id" invisible="1"/> <!-- FIXME multi-company -->
+                        <field name="business_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                         <field name="process_type"/>
                         <field name="responsible_id"/>
                         <field name="module" class="oe_no_link"/>
@@ -823,6 +823,7 @@
             <tree>
                 <field name="name"/>
                 <field name="responsible_id"/>
+                <field name="business_id" groups="base.group_multi_company"/>
                 <field name="module"/>
             </tree>
         </field>
@@ -842,6 +843,7 @@
                 <group expand="0" string="Group By">
                     <filter string="Type" name="Type" context="{'group_by':'process_type'}"/>
                     <filter string="Module" name="Module" context="{'group_by':'module'}"/>
+                    <filter string="Company" name="Company" context="{'group_by': 'business_id'}" groups="base.group_multi_company"/>
                 </group>
             </search>
         </field>
@@ -1140,12 +1142,12 @@
         <field name="model">risk_management.project_risk</field>
         <field name="arch" type="xml">
             <tree create="false" decoration-muted="active==False"
-                  decoration-info="active==True and status=='U'" decoration-danger="status=='N'"
-                  decoration-bf="status=='N'" decoration-success="status=='A'"
+                  decoration-info="active==True and state=='U'" decoration-danger="state=='N'"
+                  decoration-bf="state=='N'" decoration-success="state=='A'"
             >
                 <field name="risk_info_id"/>
                 <field name="report_date"/>
-                <field name="status" invisible="1"/>
+                <field name="state" invisible="1"/>
                 <field name="active" invisible="1"/>
                 <field name="project_id"/>
                 <field name="process_id"/>
@@ -1181,7 +1183,7 @@
                 <field name="report_date"/>
                 <field name="review_date"/>
                 <field name="owner"/>
-                <field name="status"/>
+                <field name="state"/>
                 <field name="activity_ids"/>
                 <field name="mgt_stage"/>
                 <templates>
@@ -1242,7 +1244,7 @@
                                 </div>
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
-                                        <field name="status"/>
+                                        <field name="state"/>
                                         <field name="activity_ids" widget="kanban_activity"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
