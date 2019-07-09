@@ -1,4 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+
+    <template id="assets_backend" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <link
+                    href="/risk_management/static/src/css/progress-bar.css"
+                    rel="stylesheet" type="text/css"
+            />
+            <script
+                    src="/risk_management/static/src/js/risk_level_widgets.js"
+                    type="text/javascript"
+            />
+        </xpath>
+    </template>
+
     <data>
         <!-- <template id="listing"> -->
         <!--   <ul> -->

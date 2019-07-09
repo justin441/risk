@@ -1,0 +1,8 @@
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_acceptable {
+  background-color: #00802b;
+  height: 100%;
+}
+.o_progressbar .o_progress .o_progressbar_complete.o_progress_unacceptable {
+  background-color: #ff1a1a;
+  height: 100%;
+}

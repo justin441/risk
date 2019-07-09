@@ -498,19 +498,20 @@
     </record>
 
     <record id="view_tree_business_risk_activity" model="ir.ui.view">
-            <field name="name">business_risk.tree.activity</field>
-            <field name="model">risk_management.business_risk</field>
-            <field name="arch" type="xml">
-                <tree string="Risk activities" default_order="activity_date_deadline" create="false" decoration-danger="activity_date_deadline != False and activity_date_deadline &lt; current_date">
-                    <field name="name"/>
-                    <field name="process_id"/>
-                    <field name="activity_date_deadline"/>
-                    <field name="activity_type_id"/>
-                    <field name="activity_summary"/>
-                    <field name="mgt_stage"/>
-                </tree>
-            </field>
-        </record>
+        <field name="name">business_risk.tree.activity</field>
+        <field name="model">risk_management.business_risk</field>
+        <field name="arch" type="xml">
+            <tree string="Risk activities" default_order="activity_date_deadline" create="false"
+                  decoration-danger="activity_date_deadline != False and activity_date_deadline &lt; current_date">
+                <field name="name"/>
+                <field name="process_id"/>
+                <field name="activity_date_deadline"/>
+                <field name="activity_type_id"/>
+                <field name="activity_summary"/>
+                <field name="mgt_stage"/>
+            </tree>
+        </field>
+    </record>
 
     <record id="view_business_risk_edit" model="ir.ui.view">
         <field name="name">business_risk.edit_form</field>
@@ -519,7 +520,8 @@
             <form create="false">
                 <header>
                     <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
-                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}" groups="risk_management.group_risk_manager"/>
+                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"
+                            groups="risk_management.group_risk_manager"/>
                     <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
                             type="action"
                             class="btn-primary" groups="risk_management.group_manager"
@@ -555,22 +557,21 @@
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
-                        <field name="state" widget="label_selection" options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
+                        <field name="state" widget="label_selection"
+                               options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                         <field name="treatment_id" invisible="1"/>
                         <h1>
                             <field name="name"/>
                         </h1>
                     </div>
                     <group>
-                        <field name="risk_info_id" style="width:400px" readonly="1"/>
-                        <field name="process_id" readonly="1"/>
+                        <field name="risk_info_id" readonly="1"/>
                     </group>
                     <group col="12">
                         <group colspan="6" col="2">
+                            <field name="process_id" readonly="1"/>
                             <field name="risk_info_category"/>
                             <field name="risk_info_subcategory"/>
-                            <field name="threshold_value"/>
-                            <field name="latest_level_value"/>
                         </group>
                         <group colspan="6" col="2">
                             <field name="active" invisible="1"/>
@@ -583,6 +584,15 @@
                             <field name="review_date" class="oe_edit_only" nolabel="1"/>
                             <field name="owner"/>
                         </group>
+                    </group>
+                    <group>
+                        <field name="max_level_value" invisible="1"/>
+                        <label for="threshold_value" class="oe_read_only"/>
+                        <field name="threshold_value" widget="progressbar" class="oe_read_only" nolabel="1"
+                               options="{'current_value': 'threshold_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
+                        <label for="latest_level_value" class="oe_read_only"/>
+                        <field name="latest_level_value" widget="progressbar" class="oe_read_only" nolabel="1"
+                               options="{'current_value': 'latest_level_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
                     </group>
                     <notebook>
                         <page name="info_page" string="Info">
@@ -852,7 +862,8 @@
                 <group expand="0" string="Group By">
                     <filter string="Type" name="Type" context="{'group_by':'process_type'}"/>
                     <filter string="Module" name="Module" context="{'group_by':'module'}"/>
-                    <filter string="Company" name="Company" context="{'group_by': 'business_id'}" groups="base.group_multi_company"/>
+                    <filter string="Company" name="Company" context="{'group_by': 'business_id'}"
+                            groups="base.group_multi_company"/>
                 </group>
             </search>
         </field>
@@ -1134,22 +1145,23 @@
     </record>
 
     <record id="view_tree_project_risk_activity" model="ir.ui.view">
-            <field name="name">project_risk.tree.activity</field>
-            <field name="model">risk_management.project_risk</field>
-            <field name="arch" type="xml">
-                <tree string="Risk activities" decoration-danger="activity_date_deadline &lt; current_date" default_order="activity_date_deadline" create="false">
-                    <field name="name"/>
-                    <field name="process_id"/>
-                    <field name="project_id"/>
-                    <field name="activity_date_deadline"/>
-                    <field name="activity_type_id"/>
-                    <field name="activity_summary"/>
-                    <field name="mgt_stage"/>
-                </tree>
-            </field>
-        </record>
+        <field name="name">project_risk.tree.activity</field>
+        <field name="model">risk_management.project_risk</field>
+        <field name="arch" type="xml">
+            <tree string="Risk activities" decoration-danger="activity_date_deadline &lt; current_date"
+                  default_order="activity_date_deadline" create="false">
+                <field name="name"/>
+                <field name="process_id"/>
+                <field name="project_id"/>
+                <field name="activity_date_deadline"/>
+                <field name="activity_type_id"/>
+                <field name="activity_summary"/>
+                <field name="mgt_stage"/>
+            </tree>
+        </field>
+    </record>
 
-     <record id="view_project_risk_list" model="ir.ui.view">
+    <record id="view_project_risk_list" model="ir.ui.view">
         <field name="name">project_risk.list</field>
         <field name="model">risk_management.project_risk</field>
         <field name="arch" type="xml">
@@ -1382,22 +1394,21 @@
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
-                        <field name="state" widget="label_selection" options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
+                        <field name="state" widget="label_selection"
+                               options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                         <h1>
                             <field name="name"/>
                         </h1>
                     </div>
                     <group>
-                        <field name="risk_info_id" readonly="1" style="width:400px"/>
-                        <field name="project_id" readonly="1"/>
-                        <field name="process_id" readonly="1"/>
+                        <field name="risk_info_id" readonly="1"/>
                     </group>
                     <group col="12">
                         <group colspan="6" col="2">
+                            <field name="project_id" readonly="1"/>
+                            <field name="process_id" readonly="1"/>
                             <field name="risk_info_category"/>
                             <field name="risk_info_subcategory"/>
-                            <field name="threshold_value"/>
-                            <field name="latest_level_value" string="Risk Level"/>
                         </group>
                         <group colspan="6" col="2">
                             <field name="active" invisible="1"/>
@@ -1410,6 +1421,15 @@
                             <field name="review_date" class="oe_edit_only" nolabel="1"/>
                             <field name="owner"/>
                         </group>
+                    </group>
+                    <group>
+                        <field name="max_level_value" invisible="1"/>
+                        <label for="threshold_value" class="oe_read_only"/>
+                        <field name="threshold_value" widget="progressbar" class="oe_read_only" nolabel="1"
+                               options="{'current_value': 'threshold_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
+                        <label for="latest_level_value" class="oe_read_only"/>
+                        <field name="latest_level_value" widget="progressbar" class="oe_read_only" nolabel="1"
+                               options="{'current_value': 'latest_level_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
                     </group>
                     <notebook>
                         <page name="info_page" string="Info">
@@ -1458,7 +1478,7 @@
         <field name="name">Risk Register</field>
         <field name="res_model">risk_management.project_risk</field>
         <field name="view_mode">tree,kanban,form</field>
-         <field name="view_id" ref="view_project_risk_list"/>
+        <field name="view_id" ref="view_project_risk_list"/>
         <field name="context" eval="{'active_test': False, 'form_view_ref': 'risk_management.view_project_risk_edit'}"/>
         <field name="search_view_id" ref="view_project_risk_search"/>
         <field name="help" type="html">
@@ -1475,7 +1495,8 @@
               action="act_record_project_risk_wizard" sequence="20"/>
     <menuitem name="Risk Register" id="menu_project_risk_register" parent="project_risk_management"
               action="act_project_risk_reg" sequence="10"/>
-    <menuitem action="act_project_risk_activity" id="menu_project_risk_activity" parent="project_risk_management" sequence="30"/>
+    <menuitem action="act_project_risk_activity" id="menu_project_risk_activity" parent="project_risk_management"
+              sequence="30"/>
 
     <!-- PROJECT PROCESS-->
     <!--views-->

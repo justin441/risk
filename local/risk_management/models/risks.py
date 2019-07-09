@@ -177,6 +177,7 @@ class BaseRiskIdentification(models.AbstractModel):
                                      track_visibility="onchange")
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True,
                                         track_visibility="onchange")
+    max_level_value = fields.Integer(default=125, readonly=True)
     last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date')
     review_date = fields.Date(default=_compute_default_review_date, string="Review Date", track_visibility="onchange")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
