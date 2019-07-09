@@ -27,7 +27,7 @@
         'data/process_data.xml',
         'security/risk_security.xml',
         'views/risk_views.xml',
-        'views/templates.xml',
+        'views/risk_templates.xml',
         'security/ir.model.access.csv',
     ],
     # only loaded in demonstration mode
