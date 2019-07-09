@@ -86,7 +86,6 @@ class RiskInfo(models.Model):
 
 class BaseRiskCriteria(models.AbstractModel):
     _name = 'risk_management.base_criteria'
-    _order = 'report_date desc'
 
     @api.model
     def _get_detectability(self):
@@ -151,7 +150,7 @@ class BaseRiskIdentification(models.AbstractModel):
     _name = 'risk_management.base_identification'
     _inherit = ['risk_management.base_criteria', 'mail.thread', 'mail.activity.mixin']
     _mail_post_access = 'read'
-    _order = 'report_date desc'
+    _order = 'latest_level_value desc, report_date desc'
 
     def _compute_default_review_date(self):
 
@@ -185,8 +184,8 @@ class BaseRiskIdentification(models.AbstractModel):
     active = fields.Boolean(compute='_compute_active', inverse='_inverse_active', search='_search_active',
                             track_visibility="onchange")
     state = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
-                              compute='_compute_acceptable', string='Status', search='_search_acceptable',
-                              track_visibility="onchange")
+                             compute='_compute_status', string='Status', search='_search_status',
+                             track_visibility="onchange")
     mgt_stage = fields.Selection([('1', 'Identification done'), ('2', 'Evaluation done'), ('3', 'Ongoing treatment')],
                                  compute='_compute_stage', string='Stage', store=True, track_visibility="onchange")
 
@@ -266,17 +265,17 @@ class BaseRiskIdentification(models.AbstractModel):
                 rec.update_id_info()
 
     @api.depends('active', 'latest_level_value', 'threshold_value')
-    def _compute_acceptable(self):
+    def _compute_status(self):
         for rec in self:
             if rec.active and rec.latest_level_value and rec.threshold_value:
                 if rec.latest_level_value <= rec.threshold_value:
-                    rec.status = 'A'
+                    rec.state = 'A'
                 else:
-                    rec.status = 'N'
+                    rec.state = 'N'
             else:
-                rec.status = 'U'
+                rec.state = 'U'
 
-    def _search_acceptable(self, operator, value):
+    def _search_status(self, operator, value):
         recs = self.with_context(active_test=False)
 
         def acceptable(rec):
@@ -409,11 +408,11 @@ class BusinessRisk(models.Model):
         if not self.latest_level_value:
             # No need to treat a risk if it's not yet evaluated
             raise exceptions.UserError('The risk is not yet evaluated')
-        if not self.treatment_id:
-            if not self.env.user.has_group('risk_management.group_manager'):
-                raise exceptions.UserError('there is no project to treat this risk for the moment')
+        elif not self.treatment_id:
+            if self.env.user != self.owner:
+                raise exceptions.UserError('Only the risk owner can proceed with the risk treatment')
             else:
-                t = project.create({
+                t = project.sudo().create({
                     'risk_id': self.id,
                     'name': _('Risk Treatment #%s') % self.uuid[:8],
                     'user_id': self.owner.id if self.owner else False
@@ -446,7 +445,7 @@ class BusinessRisk(models.Model):
             return 'risk_management.mt_business_risk_new'
         elif 'owner' in init_values and self.owner:
             return 'risk_management.mt_business_risk_new'
-        elif 'status' in init_values:
+        elif 'state' in init_values:
             return 'risk_management.mt_business_risk_status'
         return super(BusinessRisk, self)._track_subtype(init_values)
 
@@ -480,11 +479,11 @@ class ProjectRisk(models.Model):
     def _compute_stage(self):
         for rec in self:
             if rec.active and not rec.latest_level_value:
-                rec.mgt_stage = 'I'
+                rec.mgt_stage = '1'
             elif rec.latest_level_value and not rec.treatment_ids:
-                rec.mgt_stage = 'E'
+                rec.mgt_stage = '2'
             elif rec.treatment_ids:
-                rec.mgt_stage = 'T'
+                rec.mgt_stage = '3'
             else:
                 rec.mgt_stage = False
 
@@ -513,6 +512,7 @@ class ProjectRisk(models.Model):
                     'default_project_id': project.id,
                     'default_process_id': treatment_process.id,
                     'default_project_risk_id': rec.id,
+                    'default_user_id': rec.owner.id if rec.owner else False,
                     'risk_model': rec._name
                 }
             }
@@ -524,7 +524,7 @@ class ProjectRisk(models.Model):
             return 'risk_management.mt_project_risk_new'
         elif 'owner' in init_values and self.owner:
             return 'risk_management.mt_project_risk_new'
-        elif 'status' in init_values:
+        elif 'state' in init_values:
             return 'risk_management.mt_project_risk_status'
         return super(ProjectRisk, self)._track_subtype(init_values)
 
@@ -699,7 +699,6 @@ class BaseEvaluationWizard(models.AbstractModel):
                                 default=lambda self: self._get_default_criteria().get('severity', '3'), required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
-    comment = fields.Html(string='Comments', translate=True)
 
     @api.multi
     def set_value(self):
@@ -714,6 +713,16 @@ class BaseEvaluationWizard(models.AbstractModel):
                 'severity': severity,
                 'comment': comment
             })
+
+    @api.onchange('detectability', 'occurrence', 'severity')
+    def _onchange_criteria(self):
+        if self.risk_id.risk_type == 'T':
+            self.threshold_value = int(self.detectability) * int(self.occurrence) * int(self.severity)
+        elif self.risk_id.risk_type == 'O':
+            inv_detectability_score = [str(x) for x in range(1, 6)]
+            opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
+            detectability_opp = opp_detectability_dict.get(self.detectability)
+            self.threshold_value = int(self.detectability) * detectability_opp * int(self.severity)
 
 
 class BaseRiskLevelWizard(models.AbstractModel):
@@ -761,6 +770,22 @@ class BaseRiskLevelWizard(models.AbstractModel):
                 'risk_id': risk_id
             })
 
+    @api.onchange('detectability', 'occurrence', 'severity')
+    def _onchange_criteria(self):
+        if self.risk_id.risk_type == 'T':
+            self.latest_level = int(self.detectability) * int(self.occurrence) * int(self.severity)
+        elif self.risk_id.risk_type == 'O':
+            inv_detectability_score = [str(x) for x in range(1, 6)]
+            opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
+            detectability_opp = opp_detectability_dict.get(self.detectability)
+            self.latest_level = int(self.detectability) * detectability_opp * int(self.severity)
+
+    @api.depends('risk_id')
+    def _compute_latest_eval(self):
+        for wizard in self:
+            if wizard.risk_id.evaluation_ids:
+                wizard.latest_eval = wizard.risk_id.evaluation_ids.sorted().exists()[0]
+
 
 class BusinessRiskThresholdWizard(models.TransientModel):
     _name = 'risk_management.business_risk.set_threshold_wizard'
@@ -768,6 +793,9 @@ class BusinessRiskThresholdWizard(models.TransientModel):
 
     risk_id = fields.Many2one('risk_management.business_risk', string='Business Risk', required=True,
                               ondelete='cascade')
+    threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
+    latest_level = fields.Integer('Current Level', related='risk_id.latest_level_value')
+    comment = fields.Html(string='Comments', related='risk_id.comment')
 
 
 class ProjectRiskThresholdWizard(models.TransientModel):
@@ -776,6 +804,9 @@ class ProjectRiskThresholdWizard(models.TransientModel):
 
     risk_id = fields.Many2one('risk_management.project_risk', string='Project Risk', required=True,
                               ondelete='cascade')
+    threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
+    latest_level = fields.Integer('Current Level', related='risk_id.latest_level_value')
+    comment = fields.Html(string='Comments', related='risk_id.comment')
 
 
 class BusinessRiskEvalWizard(models.TransientModel):
@@ -784,7 +815,12 @@ class BusinessRiskEvalWizard(models.TransientModel):
 
     risk_id = fields.Many2one('risk_management.business_risk', string='Business Risk', required=True,
                               ondelete='cascade')
+    latest_eval = fields.Many2one('risk_management.business_risk.evaluation', compute='_compute_latest_eval')
+    threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
+    latest_level = fields.Integer('Current Level', related='risk_id.latest_level_value')
     risk_eval_model = fields.Char('Evaluation Model', default='risk_management.business_risk.evaluation', readonly=True)
+    latest_level_date = fields.Date('Last evaluated on', related='risk_id.last_evaluate_date', readonly=True)
+    comment = fields.Html(string='Comments', related='latest_eval.comment')
 
 
 class ProjectRiskEvalWizard(models.TransientModel):
@@ -793,7 +829,12 @@ class ProjectRiskEvalWizard(models.TransientModel):
 
     risk_id = fields.Many2one('risk_management.project_risk', string='Project Risk', required=True,
                               ondelete='cascade')
+    latest_eval = fields.Many2one('risk_management.project_risk.evaluation', compute='_compute_latest_eval')
+    threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
+    latest_level = fields.Integer('Current Level', related='risk_id.latest_level_value')
     risk_eval_model = fields.Char('Evaluation Model', default='risk_management.project_risk.evaluation', readonly=True)
+    latest_level_date = fields.Date('Last evaluated on', related='risk_id.last_evaluate_date', readonly=True)
+    comment = fields.Html(string='Comments', related='latest_eval.comment')
 
 
 class BusinessRiskWizard(models.TransientModel):
