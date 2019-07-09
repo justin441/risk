@@ -183,7 +183,7 @@ class BaseRiskIdentification(models.AbstractModel):
                             track_visibility="onchange")
     active = fields.Boolean(compute='_compute_active', inverse='_inverse_active', search='_search_active',
                             track_visibility="onchange")
-    state = fields.Selection(selection=[('U', 'Unknown'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
+    state = fields.Selection(selection=[('U', 'Unknown status'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                              compute='_compute_status', string='Status', search='_search_status',
                              track_visibility="onchange")
     mgt_stage = fields.Selection([('1', 'Identification done'), ('2', 'Evaluation done'), ('3', 'Ongoing treatment')],

@@ -213,7 +213,6 @@
 
     <!-- BUSINESS RISKS -->
 
-    <!-- Evaluation -->
     <record model="ir.actions.act_window" id="act_set_business_risk_threshold_wizard">
         <field name="name">Set Business Risk Threshold</field>
         <field name="res_model">risk_management.business_risk.set_threshold_wizard</field>
@@ -549,13 +548,14 @@
                         <div class="oe_button_box" name="treatment_button">
                             <button name="get_treatment"
                                     type="object"
-                                    class="btn-primary oe_stat_button"
+                                    class="oe_stat_button"
                                     icon="fa-tasks"
                                     attrs="{'invisible': ['|', '|', ('treatment_id', '=', False), ('active', '=', False), ('latest_level_value', '=', False)]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
+                        <field name="state" widget="label_selection" options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                         <field name="treatment_id" invisible="1"/>
                         <h1>
                             <field name="name"/>
@@ -1375,13 +1375,14 @@
                         <div class="oe_button_box" name="treatment_button">
                             <button name="action_add_treatment_task"
                                     type="object"
-                                    class="btn-primary oe_stat_button"
+                                    class="oe_stat_button"
                                     icon="fa-tasks"
                                     attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
+                        <field name="state" widget="label_selection" options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                         <h1>
                             <field name="name"/>
                         </h1>
