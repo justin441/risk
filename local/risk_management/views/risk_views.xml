@@ -4,8 +4,7 @@
     <!--top level menu-->
     <menuitem id="main_menu_risk_management" name="Risks"/>
 
-    <menuitem id="config_menu" name="Configuration" parent="main_menu_risk_management" sequence="100"
-              groups="risk_management.group_manager"/>
+    <menuitem id="config_menu" name="Configuration" parent="main_menu_risk_management" sequence="100"/>
 
     <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
 
@@ -248,8 +247,10 @@
         <field name="arch" type="xml">
             <form string="Set risk Threshold">
                 <sheet>
-                    <group name="info">
-                        <field name="risk_id" invisible="1"/>
+                    <group name="info" string="Risk Info">
+                        <field name="risk_id" readonly="1"/>
+                        <field name="threshold_value"/>
+                        <field name="latest_level"/>
                     </group>
                     <group string="Criteria scores">
                         <field name="detectability"/>
@@ -284,10 +285,11 @@
         <field name="arch" type="xml">
             <form string="Risk Evaluation">
                 <sheet>
-                    <group name="info">
-                        <field name="risk_id" invisible="1"/>
-                        <label for="write_date" class="oe_read_only"/>
-                        <field name="write_date" class="oe_read_only" nolabel="1"/>
+                    <group name="info" string="Risk Info">
+                        <field name="risk_id" readonly="1"/>
+                        <field name="threshold_value"/>
+                        <field name="latest_level"/>
+                        <field name="latest_level_date"/>
                     </group>
                     <group string="Criteria scores">
                         <group>
@@ -375,13 +377,13 @@
         </field>
     </record>
 
-      <record id="view_business_risk_list" model="ir.ui.view">
+    <record id="view_business_risk_list" model="ir.ui.view">
         <field name="name">business_risk.list</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
             <tree create="false" decoration-muted="active==False"
                   decoration-info="active==True and state=='U'" decoration-danger="state=='N'"
-                  decoration-bf="state=='N'" decoration-success="state=='A'"
+                  decoration-bf="state=='N' or state=='A'" decoration-success="state=='A'"
             >
                 <field name="risk_info_id"/>
                 <field name="report_date"/>
@@ -500,7 +502,7 @@
             <field name="name">business_risk.tree.activity</field>
             <field name="model">risk_management.business_risk</field>
             <field name="arch" type="xml">
-                <tree string="Risk activities" decoration-danger="activity_date_deadline &lt; current_date" default_order="activity_date_deadline" create="false">
+                <tree string="Risk activities" default_order="activity_date_deadline" create="false" decoration-danger="activity_date_deadline != False and activity_date_deadline &lt; current_date">
                     <field name="name"/>
                     <field name="process_id"/>
                     <field name="activity_date_deadline"/>
@@ -518,7 +520,28 @@
             <form create="false">
                 <header>
                     <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
-                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
+                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}" groups="risk_management.group_risk_manager"/>
+                    <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
+                            type="action"
+                            class="btn-primary" groups="risk_management.group_manager"
+                            string="Set Threshold"/>
+                    <button name="%(risk_management.act_eval_business_risk_wizard)d"
+                            type="action"
+                            class="btn-danger" groups="risk_management.group_risk_manager"
+                            string="Evaluation"/>
+                    <button name="get_treatment"
+                            type="object"
+                            class="btn-success"
+                            string="Treatment"
+                            attrs="{'invisible': [
+                            '|',
+                                '|',
+                                    ('treatment_id', '!=', False),
+                                    ('owner', '=', False),
+                                '|',
+                                    ('active', '=', False),
+                                    ('latest_level_value', '=', False)]}"
+                    />
                     <field name="mgt_stage" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -526,14 +549,14 @@
                         <div class="oe_button_box" name="treatment_button">
                             <button name="get_treatment"
                                     type="object"
-                                    class="btb-primary oe_stat_button"
+                                    class="btn-primary oe_stat_button"
                                     icon="fa-tasks"
-                                    attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
+                                    attrs="{'invisible': ['|', '|', ('treatment_id', '=', False), ('active', '=', False), ('latest_level_value', '=', False)]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
-                        <field name="state" readonly="True"/>
+                        <field name="treatment_id" invisible="1"/>
                         <h1>
                             <field name="name"/>
                         </h1>
@@ -544,23 +567,10 @@
                     </group>
                     <group col="12">
                         <group colspan="6" col="2">
-
                             <field name="risk_info_category"/>
                             <field name="risk_info_subcategory"/>
-                            <label for="threshold_value"/>
-                            <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
-                                    type="action"
-                                    class="btn-primary oe_link"
-                            >
-                                <field name="threshold_value" string="Risk Threshold" help="Change risk threshold"/>
-                            </button>
-                            <label for="latest_level_value"/>
-                            <button name="%(risk_management.act_eval_business_risk_wizard)d"
-                                    type="action"
-                                    class="btn-primary oe_link"
-                            >
-                                <field name="latest_level_value" string="Risk Level"/>
-                            </button>
+                            <field name="threshold_value"/>
+                            <field name="latest_level_value"/>
                         </group>
                         <group colspan="6" col="2">
                             <field name="active" invisible="1"/>
@@ -665,7 +675,6 @@
         <field name="name">Risk Register</field>
         <field name="res_model">risk_management.business_risk</field>
         <field name="view_mode">tree,kanban,form</field>
-        <field name="view_id" ref="view_business_risk_list"/>
         <field name="search_view_id" ref="view_business_risk_search"/>
         <field name="context" eval="{'active_test': False}"/>
         <field name="help" type="html">
@@ -1034,8 +1043,10 @@
         <field name="arch" type="xml">
             <form string="Set risk Threshold">
                 <sheet>
-                    <group name="info">
-                        <field name="risk_id" invisible="1"/>
+                    <group name="info" string="Risk Info">
+                        <field name="risk_id" readonly="1"/>
+                        <field name="threshold_value"/>
+                        <field name="latest_level"/>
                     </group>
                     <group string="Criteria scores">
                         <field name="detectability"/>
@@ -1070,10 +1081,11 @@
         <field name="arch" type="xml">
             <form string="Risk Evaluation">
                 <sheet>
-                    <group name="info">
-                        <field name="risk_id" invisible="1"/>
-                        <label for="write_date" class="oe_read_only"/>
-                        <field name="write_date" class="oe_read_only" nolabel="1"/>
+                    <group name="info" string="Risk Info">
+                        <field name="risk_id" readonly="1"/>
+                        <field name="threshold_value"/>
+                        <field name="latest_level"/>
+                        <field name="latest_level_date"/>
                     </group>
                     <group string="Criteria scores">
                         <group>
@@ -1333,6 +1345,29 @@
                 <header>
                     <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
                             attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
+                    <button name="%(risk_management.act_set_project_risk_threshold_wizard)d"
+                            type="action"
+                            class="btn-primary"
+                            groups="project.group_project_manager"
+                            string="Set Threshold"
+                    />
+                    <button name="%(risk_management.act_eval_project_risk_wizard)d"
+                            type="action"
+                            class="btn-danger"
+                            groups="risk_management.group_risk_manager"
+                            string="Evaluation"
+                    />
+                    <button name="action_add_treatment_task"
+                            type="object"
+                            class="btn-success"
+                            string="Treatment"
+                            attrs="{'invisible': [
+                                '|',
+                                    ('owner', '=', False),
+                                '|',
+                                    ('active', '=', False),
+                                    ('latest_level_value', '=', False)]}"
+                    />
                     <field name="mgt_stage" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -1340,7 +1375,7 @@
                         <div class="oe_button_box" name="treatment_button">
                             <button name="action_add_treatment_task"
                                     type="object"
-                                    class="btb-primary oe_stat_button"
+                                    class="btn-primary oe_stat_button"
                                     icon="fa-tasks"
                                     attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
                             >
@@ -1358,23 +1393,10 @@
                     </group>
                     <group col="12">
                         <group colspan="6" col="2">
-
                             <field name="risk_info_category"/>
                             <field name="risk_info_subcategory"/>
-                            <label for="threshold_value"/>
-                            <button name="%(risk_management.act_set_project_risk_threshold_wizard)d"
-                                    type="action"
-                                    class="btn-primary oe_link"
-                            >
-                                <field name="threshold_value" string="Risk Threshold" help="Change risk threshold"/>
-                            </button>
-                            <label for="latest_level_value"/>
-                            <button name="%(risk_management.act_eval_project_risk_wizard)d"
-                                    type="action"
-                                    class="btn-primary oe_link"
-                            >
-                                <field name="latest_level_value" string="Risk Level"/>
-                            </button>
+                            <field name="threshold_value"/>
+                            <field name="latest_level_value" string="Risk Level"/>
                         </group>
                         <group colspan="6" col="2">
                             <field name="active" invisible="1"/>
@@ -1393,11 +1415,7 @@
 
                             <group>
                                 <field name="risk_info_description"/>
-
-
                                 <field name="risk_info_cause"/>
-
-
                                 <field name="risk_info_consequence"/>
                             </group>
                         </page>
