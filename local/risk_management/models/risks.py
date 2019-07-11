@@ -110,7 +110,7 @@ class BaseRiskCriteria(models.AbstractModel):
                                           ' this failure (or gain) if it were to occur?')
     occurrence = fields.Selection(selection=_get_occurrence, default='3', string='Occurrence', required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
-    severity = fields.Selection(selection=_get_severity, default='3', string='Severity', required=True,
+    severity = fields.Selection(selection=_get_severity, default='3', string='Impact', required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
 
@@ -141,7 +141,7 @@ class BaseRiskCriteria(models.AbstractModel):
         for rec in self:
             if rec.detectability and rec.occurrence and rec.severity:
                 detectability_opp = opp_detectability_dict.get(rec.detectability)
-                rec.value_opportunity = int(rec.detectability) * detectability_opp * int(rec.severity)
+                rec.value_opportunity = detectability_opp * int(rec.occurrence) * int(rec.severity)
             else:
                 rec.value_opportunity = False
 
@@ -164,7 +164,8 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True, track_visibility="onchange")
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Name')
-    risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,)
+    risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
+                                     store=True)
     risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)
     risk_info_description = fields.Html('Description', related='risk_info_id.description', readonly=True)
     risk_info_cause = fields.Html('Cause', related='risk_info_id.cause', readonly=True)
@@ -269,10 +270,16 @@ class BaseRiskIdentification(models.AbstractModel):
     def _compute_status(self):
         for rec in self:
             if rec.active and rec.latest_level_value and rec.threshold_value:
-                if rec.latest_level_value <= rec.threshold_value:
-                    rec.state = 'A'
-                else:
-                    rec.state = 'N'
+                if rec.risk_type == 'T':
+                    if rec.latest_level_value <= rec.threshold_value:
+                        rec.state = 'A'
+                    else:
+                        rec.state = 'N'
+                elif rec.risk_type == 'O':
+                    if rec.latest_level_value < rec.threshold_value:
+                        rec.state = 'N'
+                    else:
+                        rec.state = 'A'
             else:
                 rec.state = 'U'
 
@@ -281,11 +288,17 @@ class BaseRiskIdentification(models.AbstractModel):
 
         def acceptable(rec):
             # is the risk acceptable?
-            return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value <= rec.threshold_value
+            if rec.risk_type == 'T':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value <= rec.threshold_value
+            elif rec.risk_type == 'O':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value <= rec.latest_level_value
 
         def unacceptable(rec):
             # is the risk unacceptable?
-            return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value > rec.threshold_value
+            if rec.risk_type == 'T':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value > rec.threshold_value
+            elif rec.risk_type == 'O':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value > rec.latest_level_value
 
         def unknown_status(rec):
             # is the risk status unknown?
@@ -472,7 +485,7 @@ class ProjectRisk(models.Model):
                                      string='Evaluations')
     treatment_ids = fields.One2many(comodel_name='project.task', inverse_name='project_risk_id',
                                     string='Treatment tasks',
-                                    domain=lambda self: [('project_id', '=', self.process_id.project_id.id),
+                                    domain=lambda self: [('project_id', '=', self.project_id.id),
                                                          ('process_id', 'ilike', 'risk treatment')])
     treatment_task_count = fields.Integer(compute='_compute_treatment_count', string='Treatment tasks', store=True)
 
@@ -496,7 +509,7 @@ class ProjectRisk(models.Model):
     @api.multi
     def action_add_treatment_task(self):
         for rec in self:
-            project = rec.process_id.project_id
+            project = rec.project_id
             treatment_process = project.get_or_add_risk_treatment_proc()
             return {
                 'name': _('Treatment tasks'),
@@ -545,10 +558,10 @@ class ProjectRisk(models.Model):
 class BaseEvaluation(models.AbstractModel):
     _name = 'risk_management.base_evaluation'
     _inherit = ['risk_management.base_criteria']
-    _order = 'write_date desc'
+    _order = 'create_date desc'
 
     def _compute_default_review_date(self):
-        date = fields.Date.from_string(fields.Date.today())
+        date = fields.Date.from_string(fields.Date.context_today(self))
         default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
@@ -579,6 +592,14 @@ class BaseEvaluation(models.AbstractModel):
                 recs = self.search(['review_date', '<', fields.Date.today()])
         return [('id', 'in', [rec.id for rec in recs])]
 
+    @api.depends('risk_id')
+    def _compute_eval_value(self):
+        for ev in self:
+            if ev.risk_type == 'T':
+                ev.value = ev.value_threat
+            elif ev.risk_type == 'O':
+                ev.value = ev.value_opportunity
+
 
 class BusinessRiskEvaluation(models.Model):
     _name = 'risk_management.business_risk.evaluation'
@@ -586,6 +607,9 @@ class BusinessRiskEvaluation(models.Model):
     _inherit = ['risk_management.base_evaluation']
 
     risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk', required=True)
+    risk_type = fields.Selection(related='risk_id.risk_type', readonly=True)
+    threshold_value = fields.Integer(related='risk_id.threshold_value', store=True, readonly=True)
+    value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
 
 class ProjectRiskEvaluation(models.Model):
@@ -594,6 +618,9 @@ class ProjectRiskEvaluation(models.Model):
     _inherit = ['risk_management.base_evaluation']
 
     risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', required=True)
+    risk_type = fields.Selection(related='risk_id.risk_type', readonly=True)
+    threshold_value = fields.Integer(related='risk_id.threshold_value', store=True, readonly=True)
+    value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
 
 # -------------------------------------- Risk Treatment -----------------------------------
@@ -696,7 +723,7 @@ class BaseEvaluationWizard(models.AbstractModel):
                                   default=lambda self: self._get_default_criteria().get('occurrence', '3'),
                                   required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
-    severity = fields.Selection(selection=_get_severity, string='Severity',
+    severity = fields.Selection(selection=_get_severity, string='Impact',
                                 default=lambda self: self._get_default_criteria().get('severity', '3'), required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
@@ -723,7 +750,7 @@ class BaseEvaluationWizard(models.AbstractModel):
             inv_detectability_score = [str(x) for x in range(1, 6)]
             opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
             detectability_opp = opp_detectability_dict.get(self.detectability)
-            self.threshold_value = int(self.detectability) * detectability_opp * int(self.severity)
+            self.threshold_value = detectability_opp * int(self.occurrence) * int(self.severity)
 
 
 class BaseRiskLevelWizard(models.AbstractModel):
@@ -779,7 +806,7 @@ class BaseRiskLevelWizard(models.AbstractModel):
             inv_detectability_score = [str(x) for x in range(1, 6)]
             opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
             detectability_opp = opp_detectability_dict.get(self.detectability)
-            self.latest_level = int(self.detectability) * detectability_opp * int(self.severity)
+            self.latest_level = detectability_opp * int(self.occurrence) * int(self.severity)
 
     @api.depends('risk_id')
     def _compute_latest_eval(self):
