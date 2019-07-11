@@ -95,10 +95,12 @@ class BaseProcessData(models.AbstractModel):
     name = fields.Char(required=True, index=True, translate=True, copy=False)
     is_customer_voice = fields.Boolean('Consumer Voice?', default=False,
                                        help="Does this data relay the customer voice?")
-    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External proviser', ondelete='cascade',
+    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade',
                                           domain=lambda self: [('id', 'child_of',
                                                                 self.env.ref('risk_management.process_partner').id)],
                                           help='Must be a child of `Process partner` category')
+    default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
+        'risk_management.process_partner'), readonly=True)
 
     @api.constrains('consumer_ids', 'int_provider_id')
     def _check_provider_not_in_consumers(self):
@@ -295,8 +297,10 @@ class BusinessProcessMethod(models.Model):
     _inherit = ['risk_management.base_process_method']
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
     output_ref_id = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
-                                    domain="[('int_provider_id.project_id', '=', process_id.project_id),"
-                                           "('int_provider_id.process_type', '=', 'M')]",
+                                    domain=lambda self: [
+                                        ('int_provider_id.business_id', '=', self.process_id.business_id.id),
+                                        ('int_provider_id.process_type', '=', 'M')
+                                    ],
                                     help='Output data reference')
     author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)
 
@@ -454,6 +458,9 @@ class ProjectMethod(models.Model):
     _inherit = ['risk_management.base_process_method']
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='User process')
     output_ref_id = fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
-                                    domain="[('int_provider_id.process_type', '=', 'M')]",
+                                    domain=lambda self: [
+                                        ('int_provider_id.project_id', '=', self.process_id.project_id.id),
+                                        ('int_provider_id.process_type', '=', 'M')
+                                    ],
                                     help='Output data reference')
     author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)
