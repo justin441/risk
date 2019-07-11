@@ -28,10 +28,13 @@
                             <field name="is_customer_voice"/>
                         </group>
                         <group colspan="4" col="2">
+                            <field name="default_partner_cat_parent_id" invisible="1"/>
                             <field name="int_provider_id"
                                    attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)],}"/>
                             <field name="ext_provider_cat_id"
-                                   attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"/>
+                                   attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"
+                                   context="{'default_parent_id': default_partner_cat_parent_id}"
+                            />
                         </group>
                     </group>
                 </sheet>
@@ -211,6 +214,46 @@
         <field name="sequence">20</field>
     </record>
 
+    <!-- BUSINESS RISK EVALUATION -->
+
+    <record model="ir.ui.view" id="view_business_risk_evaluation_list">
+        <field name="name">business_risk.evaluation.tree</field>
+        <field name="model">risk_management.business_risk.evaluation</field>
+        <field name="arch" type="xml">
+            <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
+                  decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
+            >
+                <field name="create_date"/>
+                <field name="create_uid"/>
+                <field name="risk_id" invisible="1"/>
+                <field name="risk_type" invisible="1"/>
+                <field name="detectability"/>
+                <field name="severity"/>
+                <field name="occurrence"/>
+                <field name="threshold_value" invisible="1"/>
+                <field name="value" type="measure"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_business_risk_eval_graph">
+        <field name="name">business_risk.evaluation.graph</field>
+        <field name="model">risk_management.business_risk.evaluation</field>
+        <field name="arch" type="xml">
+            <graph string="Timeline" type="line">
+                <field name="create_date"/>
+                <field name="risk_id"/>
+                <field name="value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_business_risk_evaluation">
+        <field name="name">Business Risk Evaluation</field>
+        <field name="res_model">risk_management.business_risk.evaluation</field>
+        <field name="view_mode">tree,graph</field>
+    </record>
+
     <!-- BUSINESS RISKS -->
 
     <record model="ir.actions.act_window" id="act_set_business_risk_threshold_wizard">
@@ -364,13 +407,24 @@
                 <field name="risk_info_description"/>
                 <field name="risk_info_cause"/>
                 <field name="risk_info_consequence"/>
+                <filter name="my_reported" string="Reported by me" domain="[('reported_by', '=', uid)]"/>
+                <filter name="my_assigned" string="Assigned to me" domain="[('owner', '=', uid)]"/>
+                <filter name="my_followed" string="Followed by Me" domain="[('message_is_follower','=',True)]"/>
+                <filter name="unassigned" string="Unassigned" domain="[('owner', '=', False)]"/>
+                <separator/>
+                <filter name="inactive" string="Latent" domain="[('active', '=', 0)]"/>
+                <separator/>
                 <filter name="threats" string="Threat" domain="[('risk_type', '=', 'T')]"/>
                 <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
-                <filter name="active" string="Active" domain="[('active', '=', 1)]"/>
-                <filter name="inactive" string="Inactive" domain="[('active', '=', 0)]"/>
+                <separator/>
+                <filter name="unevaluated" string="Un-evaluated" domain="[('latest_level_value', '=', False)]"/>
+                <filter name="untreated" string="Untreated"
+                        domain="[('latest_level_value', '!=', False), ('treatment_id', '=', False)]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
+                    <filter string="Category" name="Category" context="{'group_by': 'risk_info_category'}"/>
                     <filter string="Process" name="Process" context="{'group_by': 'process_id'}"/>
+                    <filter string="Stage" name="Stage" context="{'group_by': 'mgt_stage'}"/>
+                    <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
                 </group>
             </search>
         </field>
@@ -385,6 +439,7 @@
                   decoration-bf="state=='N' or state=='A'" decoration-success="state=='A'"
             >
                 <field name="risk_info_id"/>
+                <field name="owner"/>
                 <field name="report_date"/>
                 <field name="state" invisible="1"/>
                 <field name="active" invisible="1"/>
@@ -625,6 +680,15 @@
                                 <field name="risk_info_action"/>
                             </group>
                         </page>
+                        <page name="comment_page" string="Comments">
+                            <group>
+                                <field name="comment"/>
+                            </group>
+                        </page>
+                        <page name="eval_timeline" string="Timeline"
+                              attrs="{'invisible': [('evaluation_ids', '=', False)]}">
+                            <field name="evaluation_ids" mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
+                        </page>
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
@@ -686,7 +750,13 @@
         <field name="res_model">risk_management.business_risk</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="search_view_id" ref="view_business_risk_search"/>
-        <field name="context" eval="{'active_test': False}"/>
+        <field name="context">
+            {
+            'search_default_my_assigned':1,
+            'search_default_my_reported':1,
+            'search_default_my_followed':1,
+            }
+        </field>
         <field name="help" type="html">
             <p class="oe_view_nocontent">
                 There is no risk in this risk register at the moment.
@@ -861,7 +931,6 @@
                 <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Type" name="Type" context="{'group_by':'process_type'}"/>
-                    <filter string="Module" name="Module" context="{'group_by':'module'}"/>
                     <filter string="Company" name="Company" context="{'group_by': 'business_id'}"
                             groups="base.group_multi_company"/>
                 </group>
@@ -1026,6 +1095,46 @@
         <field name="sequence">10</field>
     </record>
 
+    <!-- PROJECT RISK EVALUATION -->
+
+    <record model="ir.ui.view" id="view_project_risk_evaluation_list">
+        <field name="name">project_risk.evaluation.tree</field>
+        <field name="model">risk_management.project_risk.evaluation</field>
+        <field name="arch" type="xml">
+            <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
+                  decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
+            >
+                <field name="create_date"/>
+                <field name="create_uid"/>
+                <field name="risk_id" invisible="1"/>
+                <field name="risk_type" invisible="1"/>
+                <field name="detectability"/>
+                <field name="severity"/>
+                <field name="occurrence"/>
+                <field name="threshold_value" invisible="1"/>
+                <field name="value" type="measure"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_project_risk_eval_graph">
+        <field name="name">project_risk.evaluation.graph</field>
+        <field name="model">risk_management.project_risk.evaluation</field>
+        <field name="arch" type="xml">
+            <graph string="Timeline" type="line">
+                <field name="create_date"/>
+                <field name="risk_id"/>
+                <field name="value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_project_risk_evaluation">
+        <field name="name">Project Risk Evaluation</field>
+        <field name="res_model">risk_management.project_risk.evaluation</field>
+        <field name="view_mode">tree,graph</field>
+    </record>
+
     <!-- PROJECT RISK-->
 
     <record model="ir.actions.act_window" id="act_set_project_risk_threshold_wizard">
@@ -1140,6 +1249,10 @@
             </field>
             <xpath expr="//filter[@name='Process']" position="after">
                 <filter string="Project" name="Project" context="{'group_by': 'project_id'}"/>
+            </xpath>
+            <xpath expr="//filter[@name='untreated']" position="replace">
+                <filter name="untreated" string="Untreated"
+                        domain="[('latest_level_value', '!=', False), ('treatment_ids', '=', False)]"/>
             </xpath>
         </field>
     </record>
@@ -1375,6 +1488,8 @@
                             string="Treatment"
                             attrs="{'invisible': [
                                 '|',
+                                    ('treatment_task_count', '!=', 0),
+                                '|',
                                     ('owner', '=', False),
                                 '|',
                                     ('active', '=', False),
@@ -1389,7 +1504,7 @@
                                     type="object"
                                     class="oe_stat_button"
                                     icon="fa-tasks"
-                                    attrs="{'invisible': ['|', ('active', '=', 0), ('latest_level_value', '=', 0)]}"
+                                    attrs="{'invisible': ['|', ('treatment_task_count', '=', 0), '|', ('active', '=', False), ('latest_level_value', '=', False)]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
@@ -1402,6 +1517,7 @@
                     </div>
                     <group>
                         <field name="risk_info_id" readonly="1"/>
+                        <field name="treatment_ids" invisible="1"/>
                     </group>
                     <group col="12">
                         <group colspan="6" col="2">
@@ -1462,6 +1578,10 @@
                             <group>
                                 <field name="comment"/>
                             </group>
+                        </page>
+                        <page name="eval_timeline" string="Timeline"
+                              attrs="{'invisible': [('evaluation_ids', '=', False)]}">
+                            <field name="evaluation_ids" mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
                         </page>
                     </notebook>
                 </sheet>
