@@ -66,6 +66,22 @@ class Project(models.Model):
                     partner_ids=None, channel_ids=[channel_id], subtype_ids=None, force=False)
         return res
 
+    @api.model
+    def create(self, vals):
+        project = super(Project, self).create(vals)
+        project_process = self.env['risk_management.project_process']
+        project_process.create(
+            {
+                'name': 'Process Zero',
+                'description': """
+                    <p>This process represent the overall process of project, to be used for activities, 
+                    methods or risks in the absence of more specific processes.</p>
+                    """,
+                'project_id': project.id
+            }
+        )
+        return project
+
 
 class Task(models.Model):
     _inherit = 'project.task'
