@@ -222,6 +222,27 @@ class BaseRiskIdentification(models.AbstractModel):
             else:
                 rec.active = False
 
+    @api.depends('evaluation_ids')
+    def _compute_evaluations(self):
+        def map_time_days(evals):
+            """
+            :returns dict with keys as date and values as datetime in that date
+            :param evals: a recordset of risk evaluations
+            """
+            dates = {}
+            for evaluation in evals:
+                dates.setdefault(evaluation.create_date[:10], []).append(evaluation.create_date)
+            return dates
+
+        for rec in self:
+            if rec.evaluation_ids:
+                if any([len(val) > 1 for val in map_time_days(rec.evaluation_ids).values()]):
+                    rec.evaluations = rec.evaluation_ids.search[
+                        ('create_date', 'in', (max(timestamps) for timestamps in
+                                               map_time_days(rec.evaluation_ids).values()))]
+                else:
+                    rec.evaluations = rec.evaluation_ids
+
     def _inverse_active(self):
         for rec in self.filtered('report_date'):
             rec.review_date = fields.Date.context_today(self)
@@ -369,6 +390,8 @@ class BusinessRisk(models.Model):
 
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
+    evaluations = fields.One2many(comodel_name='risk_management.business_risk.evaluation', string='Evaluations',
+                                  compute='_compute_evaluations', store=True)
     treatment_ids = fields.One2many(comodel_name='project.project', inverse_name='risk_id')
     treatment_id = fields.Many2one(comodel_name='project.project', compute='_compute_treatment',
                                    inverse='_inverse_treatment', store=True)
@@ -481,8 +504,9 @@ class ProjectRisk(models.Model):
     process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Impacted Process')
     project_id = fields.Many2one(comodel_name='project.project', related='process_id.project_id', string='Project',
                                  readonly=True)
-    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id',
-                                     string='Evaluations')
+    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id',)
+    evaluations = fields.One2many(comodel_name='risk_management.project_risk.evaluation', string='Evaluations',
+                                  compute='_compute_evaluations', store=True)
     treatment_ids = fields.One2many(comodel_name='project.task', inverse_name='project_risk_id',
                                     string='Treatment tasks',
                                     domain=lambda self: [('project_id', '=', self.project_id.id),
