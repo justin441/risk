@@ -565,7 +565,8 @@ class BaseEvaluation(models.AbstractModel):
         return fields.Date.to_string(default_review_date)
 
     review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
-    is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')  # TODO: search method
+    is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')
+    eval_date = fields.Date(compute='_compute_eval_date', string='Evaluated on', store=True)
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):
@@ -599,6 +600,11 @@ class BaseEvaluation(models.AbstractModel):
             elif ev.risk_type == 'O':
                 ev.value = ev.value_opportunity
 
+    @api.depends('create_date')
+    def _compute_eval_date(self):
+        for rec in self:
+            rec.eval_date = rec.create_date[:10]
+
 
 class BusinessRiskEvaluation(models.Model):
     _name = 'risk_management.business_risk.evaluation'
@@ -612,13 +618,12 @@ class BusinessRiskEvaluation(models.Model):
 
     @api.model
     def create(self, vals):
-        ev = super(BusinessRiskEvaluation, self).create(vals)
-        # this overrides all the evaluations created the same day
-        same_day = self.env['risk_management.business_risk.evaluation'].search[
-            ('create_date', 'like', ev.create_date[:10])
-        ]
+        same_day = self.env['risk_management.business_risk.evaluation'].search([
+            ('eval_date', '=', fields.Date.context_today(self))
+        ])
+        # delete previous evaluations created today
         same_day.unlink()
-        return ev
+        return super(BusinessRiskEvaluation, self).create(vals)
 
 
 class ProjectRiskEvaluation(models.Model):
@@ -633,13 +638,12 @@ class ProjectRiskEvaluation(models.Model):
 
     @api.model
     def create(self, vals):
-        ev = super(ProjectRiskEvaluation, self).create(vals)
-        # this overrides all the evaluations created the same day
-        same_day = self.env['risk_management.project_risk.evaluation'].search[
-            ('create_date', 'like', ev.create_date[:10])
-        ]
+        same_day = self.env['risk_management.project_risk.evaluation'].search([
+            ('eval_date', '=', fields.Date.context_today(self))
+        ])
+        # delete previous evaluations created today
         same_day.unlink()
-        return ev
+        return super(ProjectRiskEvaluation, self).create(vals)
 
 
 # -------------------------------------- Risk Treatment -----------------------------------

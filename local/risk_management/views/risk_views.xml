@@ -223,7 +223,7 @@
             <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
                   decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
             >
-                <field name="create_date"/>
+                <field name="eval_date"/>
                 <field name="create_uid"/>
                 <field name="risk_id" invisible="1"/>
                 <field name="risk_type" invisible="1"/>
@@ -241,9 +241,10 @@
         <field name="model">risk_management.business_risk.evaluation</field>
         <field name="arch" type="xml">
             <graph string="Timeline" type="line">
-                <field name="create_date"/>
+                <field name="eval_date"/>
                 <field name="risk_id"/>
                 <field name="value" type="measure"/>
+                <field name="threshold_value" type="measure"/>
             </graph>
         </field>
     </record>
@@ -1104,7 +1105,7 @@
             <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
                   decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
             >
-                <field name="create_date"/>
+                <field name="eval_date"/>
                 <field name="create_uid"/>
                 <field name="risk_id" invisible="1"/>
                 <field name="risk_type" invisible="1"/>
@@ -1122,7 +1123,7 @@
         <field name="model">risk_management.project_risk.evaluation</field>
         <field name="arch" type="xml">
             <graph string="Timeline" type="line">
-                <field name="create_date"/>
+                <field name="eval_date"/>
                 <field name="risk_id"/>
                 <field name="value" type="measure"/>
             </graph>
