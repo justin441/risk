@@ -13,6 +13,25 @@ class Project(models.Model):
             rec.risk_count = len(rec.risk_ids.filtered('active'))
 
     @api.multi
+    def get_risk_treatment_task(self):
+        self.ensure_one()
+        task = self.env['project.task']
+        risk_treatment_task = task.search([('name', '=', '%s / Risk Treatment' % self.name),
+                                           ('project_id', '=', self.id)])
+        if not risk_treatment_task.exists():
+            risk_treatment_task = task.create({
+                'name': '%s / Risk Treatment' % self.name,
+                'description': """
+                <p>The purpose of this task is to select and implement measures to modify the risks. 
+                    These measures can include avoiding, optimizing, transferring or retaining risk</p>
+                """,
+                'priority': 1,
+                'sequence': 1,
+                'project_id': self.id,
+            })
+        return risk_treatment_task
+
+    @api.multi
     def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
         """ Subscribe to all existing risks when subscribing to a project"""
         res = super(Project, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids,
@@ -36,3 +55,4 @@ class Task(models.Model):
 
     project_risk_ids = fields.Many2many('project_risk.risk', relation='project_risk_task_ids_risk_ids_rel',
                                         column1='project_risk_ids', column2='task_ids', string='Risks')
+    project_risk_id = fields.Many2one('project_risk.risk', string='Risk')
