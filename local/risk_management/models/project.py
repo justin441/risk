@@ -27,14 +27,14 @@ class Project(models.Model):
         project_process = self.env['risk_management.project_process']
         responsible = self.env.user
         for rec in self:
-            # look for a project process with `risk management` in their name
+            # look for a project process with `risk treatment` as their name
             risk_treatment_process = project_process.sudo().search([
                 '&',
                 ('project_id', '=', rec.id),
                 ('name', 'ilike', 'risk treatment')
             ])
             if not risk_treatment_process.exists():
-                # it's assumed there is no risk management process in the current project
+                # At this point it's assumed there is no risk management process in the current project
                 risk_treatment_process = project_process.sudo().create({
                     'name': 'Risk Treatment',
                     'process_type': 'M',
