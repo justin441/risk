@@ -566,7 +566,7 @@ class BaseEvaluation(models.AbstractModel):
 
     review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')
-    eval_date = fields.Date(compute='_compute_eval_date', string='Evaluated on', store=True)
+    eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on', readonly=True)
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):
@@ -599,11 +599,6 @@ class BaseEvaluation(models.AbstractModel):
                 ev.value = ev.value_threat
             elif ev.risk_type == 'O':
                 ev.value = ev.value_opportunity
-
-    @api.depends('create_date')
-    def _compute_eval_date(self):
-        for rec in self:
-            rec.eval_date = rec.create_date[:10]
 
 
 class BusinessRiskEvaluation(models.Model):
