@@ -621,9 +621,14 @@ class BusinessRiskEvaluation(models.Model):
         same_day = self.env['risk_management.business_risk.evaluation'].search([
             ('eval_date', '=', fields.Date.context_today(self))
         ])
-        # delete previous evaluations created today
-        same_day.unlink()
-        return super(BusinessRiskEvaluation, self).create(vals)
+        # if another estimation was created the same day, just update it
+        if same_day:
+            if len(same_day) > 1:
+                # Not strictly needed but you never know, there may be more than one record in `same_day`
+                same_day[1:].unlink()
+            same_day.exists().write(vals)
+        else:
+            return super(BusinessRiskEvaluation, self).create(vals)
 
 
 class ProjectRiskEvaluation(models.Model):
@@ -641,9 +646,13 @@ class ProjectRiskEvaluation(models.Model):
         same_day = self.env['risk_management.project_risk.evaluation'].search([
             ('eval_date', '=', fields.Date.context_today(self))
         ])
-        # delete previous evaluations created today
-        same_day.unlink()
-        return super(ProjectRiskEvaluation, self).create(vals)
+        # if another estimation was created the same day, just update it
+        if same_day:
+            if len(same_day) > 1:
+                same_day[1:].unlink()
+            same_day.exists().write(vals)
+        else:
+            return super(ProjectRiskEvaluation, self).create(vals)
 
 
 # -------------------------------------- Risk Treatment -----------------------------------
