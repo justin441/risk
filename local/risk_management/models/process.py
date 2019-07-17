@@ -144,7 +144,7 @@ class BusinessProcess(models.Model):
                                       relation='risk_management_input_ids_consumers_ids_rel',
                                       column1='input_data_ids', column2='consumer_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids),"
-                                             "('int_provider_id.business_id', '=', business_id)]")
+                                             "('int_provider_id.business_id', '=', business_id),]")
     method_ids = fields.One2many('risk_management.business_process.method',
                                  inverse_name='process_id', string='Methods')
     task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
@@ -262,12 +262,57 @@ class BusinessProcessData(models.Model):
 
     int_provider_id = fields.Many2one('risk_management.business_process', string='Origin (internal)',
                                       ondelete='cascade')
-    consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',
+    ref_output_ids = fields.One2many('risk_management.business_process_data', inverse_name='ref_input_id',
+                                     domain=lambda self: [('is_customer_voice', '=', False)])
+    ref_output = fields.Many2one('risk_management.business_process_data', compute='_compute_ref_output',
+                                 string='Output Ref.', store=True, inverse='_inverse_ref_output',
+                                 domain=lambda self: [('is_customer_voice', '=', False)])
+    ref_input_id = fields.Many2one('risk_management.business_process_data',
+                                   domain=lambda self: [('is_customer_voice', '=', True)])
+
+    consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',  # change this field's name to user_process_ids
                                     relation='risk_management_input_ids_consumers_ids_rel',
                                     column1='consumer_ids', column2='input_data_ids',
-                                    domain="[('id', '!=', int_provider_id),"
-                                           "('business_id', '=', int_provider_id.business_id)]",
-                                    string="Users")
+                                    string="User processes")
+    supplier_process_id = fields.Many2one('risk_management.business_process', string='Supplier process',
+                                          related='ref_output.int_provider_id')
+
+    @api.depends('ref_output_ids')
+    def _compute_ref_output(self):
+        for rec in self:
+            if rec.ref_output_ids:
+                rec.ref_output = rec.ref_output_ids[0]
+
+    @api.multi
+    def _inverse_ref_output(self):
+        for rec in self:
+            if rec.ref_output_ids:
+                output = self.env['risk_management.business_process_data'].browse(rec.ref_output_ids[0].id)
+                output.ref_input_id = False
+                output.unlink()
+            rec.ref_output.ref_input_id = rec
+
+    @api.onchange('is_customer_voice')
+    def _onchange_is_customer_voice(self):
+        if self.is_customer_voice:
+            """Only operational processes produce and consume the data that relay the voice of the customer """
+
+            return {'domain': {
+                'int_provider_id': [('process_type', '=', 'O')],
+                'consumer_ids': [(0, '=', 1)]
+            }}
+        else:
+            return {'domain': {
+                'int_provider_id': [('process_type', '!=', False)],
+                'consumer_ids': [('id', '!=', self.int_provider_id)]
+            }}
+
+    @api.constrains('is_customer_voice', 'ref_output')
+    def _check_customer_voice_ref_output(self):
+        for rec in self:
+            if rec.is_customer_voice and not rec.ref_output:
+                raise exceptions.ValidationError('This data relay customer voice must have a counterpart from the'
+                                                 'supplier process')
 
 
 class BusinessProcessTask(models.Model):

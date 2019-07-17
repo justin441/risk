@@ -396,8 +396,10 @@ class BusinessRisk(models.Model):
         for rec in self:
             if rec.treatment_ids:
                 # delete previous reference
-                treatment = self.env['project.project'].browse(rec.treatment_ids[0].id)
+                treatment = self.env['project.project'].browse(
+                    rec.treatment_ids.sorted('create_date', reverse=True)[0].id)
                 treatment.risk_id = False
+                treatment.unlink()
             rec.treatment_id.risk_id = rec
 
     @api.depends('latest_level_value', 'treatment_id')
