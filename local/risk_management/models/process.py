@@ -266,16 +266,18 @@ class BusinessProcessData(models.Model):
                                      domain=lambda self: [('is_customer_voice', '=', False)])
     ref_output = fields.Many2one('risk_management.business_process_data', compute='_compute_ref_output',
                                  string='Output Ref.', store=True, inverse='_inverse_ref_output',
-                                 domain=lambda self: [('is_customer_voice', '=', False)])
+                                 domain=lambda self: [('is_customer_voice', '=', False),
+                                                      ('int_provider_id', '!=', False),
+                                                      ('int_provider_id', '!=', self.int_provider_id)])
     ref_input_id = fields.Many2one('risk_management.business_process_data',
                                    domain=lambda self: [('is_customer_voice', '=', True)])
-
-    consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',  # change this field's name to user_process_ids
+    # change this field's name to user_process_ids
+    consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                     relation='risk_management_input_ids_consumers_ids_rel',
                                     column1='consumer_ids', column2='input_data_ids',
                                     string="User processes")
     supplier_process_id = fields.Many2one('risk_management.business_process', string='Supplier process',
-                                          related='ref_output.int_provider_id')
+                                          related='ref_output.int_provider_id', readonly=True)
 
     @api.depends('ref_output_ids')
     def _compute_ref_output(self):
@@ -303,7 +305,7 @@ class BusinessProcessData(models.Model):
             }}
         else:
             return {'domain': {
-                'int_provider_id': [('process_type', '!=', False)],
+                'int_provider_id': [(1, '=', 1)],
                 'consumer_ids': [('id', '!=', self.int_provider_id)]
             }}
 
@@ -311,7 +313,7 @@ class BusinessProcessData(models.Model):
     def _check_customer_voice_ref_output(self):
         for rec in self:
             if rec.is_customer_voice and not rec.ref_output:
-                raise exceptions.ValidationError('This data relay customer voice must have a counterpart from the'
+                raise exceptions.ValidationError('This data relay customer voice and must have a counterpart from the'
                                                  'supplier process')
 
 
