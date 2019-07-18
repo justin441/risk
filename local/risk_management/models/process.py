@@ -46,7 +46,7 @@ class BaseProcess(models.AbstractModel):
         self.ensure_one()
         c = self.env[self._name]
         for data in self.output_data_ids:
-            c |= data.consumer_ids
+            c |= data.user_process_ids
         return c
 
     @api.depends('input_data_ids')
@@ -93,8 +93,9 @@ class BaseProcessData(models.AbstractModel):
          )
     ]
     name = fields.Char(required=True, index=True, translate=True, copy=False)
-    is_customer_voice = fields.Boolean('Consumer Voice?', default=False,
-                                       help="Does this data relay the customer voice?")
+    is_customer_voice = fields.Boolean('Consumer Voice?', compute='_compute_is_costumer_voice',
+                                       help="Does this data relay the customer voice?",
+                                       search='_search_is_customer_voice')
     ext_provider_cat_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade',
                                           domain=lambda self: [('id', 'child_of',
                                                                 self.env.ref('risk_management.process_partner').id)],
@@ -102,11 +103,11 @@ class BaseProcessData(models.AbstractModel):
     default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
         'risk_management.process_partner'), readonly=True)
 
-    @api.constrains('consumer_ids', 'int_provider_id')
+    @api.constrains('user_process_ids', 'int_provider_id')
     def _check_provider_not_in_consumers(self):
         """Data provider should not be a consumer of said data"""
         for data in self:
-            if data.int_provider_id and data.int_provider_id in data.consumer_ids:
+            if data.int_provider_id and data.int_provider_id in data.user_process_ids:
                 raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
 
 
@@ -141,8 +142,8 @@ class BusinessProcess(models.Model):
     output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
                                       string='Output data')
     input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
-                                      relation='risk_management_input_ids_consumers_ids_rel',
-                                      column1='input_data_ids', column2='consumer_ids', string="Input data",
+                                      relation='risk_management_input_ids_user_ids_rel',
+                                      column1='input_data_ids', column2='user_process_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids),"
                                              "('int_provider_id.business_id', '=', business_id),]")
     method_ids = fields.One2many('risk_management.business_process.method',
@@ -262,37 +263,63 @@ class BusinessProcessData(models.Model):
 
     int_provider_id = fields.Many2one('risk_management.business_process', string='Origin (internal)',
                                       ondelete='cascade')
-    ref_output_ids = fields.One2many('risk_management.business_process_data', inverse_name='ref_input_id',
-                                     domain=lambda self: [('is_customer_voice', '=', False)])
-    ref_output = fields.Many2one('risk_management.business_process_data', compute='_compute_ref_output',
-                                 string='Output Ref.', store=True, inverse='_inverse_ref_output',
-                                 domain=lambda self: [('is_customer_voice', '=', False),
-                                                      ('int_provider_id', '!=', False),
-                                                      ('int_provider_id', '!=', self.int_provider_id)])
-    ref_input_id = fields.Many2one('risk_management.business_process_data',
-                                   domain=lambda self: [('is_customer_voice', '=', True)])
+    ref_response_ids = fields.One2many('risk_management.business_process_data', inverse_name='ref_request_id',
+                                       domain=lambda self: [('is_customer_voice', '=', False)])
+    ref_response_id = fields.Many2one('risk_management.business_process_data', compute='_compute_ref_resp',
+                                      string='Response Ref.', store=True, inverse='_inverse_ref_resp',
+                                      domain=lambda self: [('is_customer_voice', '=', False),
+                                                           ('int_provider_id', '!=', False),
+                                                           ('int_provider_id', '!=', self.int_provider_id)])
+    ref_request_id = fields.Many2one('risk_management.business_process_data',
+                                     domain=lambda self: [('is_customer_voice', '=', True)])
     # change this field's name to user_process_ids
-    consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',
-                                    relation='risk_management_input_ids_consumers_ids_rel',
-                                    column1='consumer_ids', column2='input_data_ids',
-                                    string="User processes")
+    user_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
+                                        relation='risk_management_input_ids_user_ids_rel',
+                                        column1='user_process_ids', column2='input_data_ids',
+                                        string="User processes")
     supplier_process_id = fields.Many2one('risk_management.business_process', string='Supplier process',
-                                          related='ref_output.int_provider_id', readonly=True)
+                                          related='ref_response_id.int_provider_id', readonly=True)
+
+    @api.depends('ext_provider_id')
+    def _compute_is_customer_voice(self):
+        customers = self.env[
+            'res.partner.category'
+        ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
+        for rec in self:
+            if (rec.ext_provider_id and rec.ext_provider_id in customers) or rec.ref_request_id.is_customer_voice:
+                rec.is_customer_voice = True
+
+    def _search_is_customer_voice(self, operator, value):
+        customers = self.env[
+            'res.partner.category'
+        ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
+        if operator not in ('=', '!=') or value not in(0, 1):
+            recs = self
+        if operator == '=':
+            if value:
+                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id in customers)
+            else:
+                recs = self.filtered(lambda rec: not rec.ext_provider_id or rec.ext_provider_id not in customers)
+        else:
+            if value:
+                recs = self.filtered(lambda rec: not rec.ext_provider_id or rec.ext_provider_id not in customers)
+            else:
+                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id in customers)
+        return [('id', 'in', [rec.id for rec in recs])]
 
     @api.depends('ref_output_ids')
-    def _compute_ref_output(self):
+    def _compute_ref_resp(self):
         for rec in self:
-            if rec.ref_output_ids:
-                rec.ref_output = rec.ref_output_ids[0]
+            if rec.ref_response_ids:
+                rec.ref_response_id = rec.ref_response_ids[0]
 
     @api.multi
-    def _inverse_ref_output(self):
+    def _inverse_ref_resp(self):
         for rec in self:
-            if rec.ref_output_ids:
-                output = self.env['risk_management.business_process_data'].browse(rec.ref_output_ids[0].id)
-                output.ref_input_id = False
+            if rec.ref_response_ids:
+                output = self.env['risk_management.business_process_data'].browse(rec.ref_response_ids[0].id)
                 output.unlink()
-            rec.ref_output.ref_input_id = rec
+            rec.ref_response_id.ref_request_id = rec
 
     @api.onchange('is_customer_voice')
     def _onchange_is_customer_voice(self):
@@ -301,20 +328,29 @@ class BusinessProcessData(models.Model):
 
             return {'domain': {
                 'int_provider_id': [('process_type', '=', 'O')],
-                'consumer_ids': [(0, '=', 1)]
+                'user_process_ids': [(0, '=', 1)]
             }}
         else:
             return {'domain': {
                 'int_provider_id': [(1, '=', 1)],
-                'consumer_ids': [('id', '!=', self.int_provider_id)]
+                'user_process_ids': [('id', '!=', self.int_provider_id)]
             }}
 
-    @api.constrains('is_customer_voice', 'ref_output')
-    def _check_customer_voice_ref_output(self):
+    @api.constrains('is_customer_voice',
+                    'ref_response_id',
+                    'int_provider_id',
+                    'ext_provider_id')
+    def _check_customer_voice_(self):
         for rec in self:
-            if rec.is_customer_voice and not rec.ref_output:
-                raise exceptions.ValidationError('This data relay customer voice and must have a counterpart from the'
-                                                 'supplier process')
+            if rec.ext_provider_id:
+                pass
+
+    @api.onchange('ext_provider_id')
+    def _onchange_ext_provider(self):
+        """if a data comes from an external partner from the customer category it's considered customer's voice voice"""
+        if self.ext_provider_id:
+            self.is_customer_voice = True
+
 
 
 class BusinessProcessTask(models.Model):
@@ -359,9 +395,9 @@ class ProjectProcessData(models.Model):
 
     int_provider_id = fields.Many2one('risk_management.project_process', string='Origin (internal)',
                                       ondelete='cascade')
-    consumer_ids = fields.Many2many(comodel_name='risk_management.project_process',
-                                    relation='risk_management_project_input_ids_consumers_ids_rel',
-                                    column1='consumer_ids', column2='input_data_ids',
+    user_process_ids = fields.Many2many(comodel_name='risk_management.project_process',
+                                    relation='risk_management_project_input_ids_user_ids_rel',
+                                    column1='user_process_ids', column2='input_data_ids',
                                     domain="[('id', '!=', int_provider_id),"
                                            "('project_id', '=', int_provider_id.project_id)]",
                                     string="Users")
@@ -387,8 +423,8 @@ class ProjectProcess(models.Model):
     output_data_ids = fields.One2many('risk_management.project_process_data', inverse_name='int_provider_id',
                                       string='Output data')
     input_data_ids = fields.Many2many('risk_management.project_process_data',
-                                      relation='risk_management_project_input_ids_consumers_ids_rel',
-                                      column1='input_data_ids', column2='consumer_ids', string='Input Data',
+                                      relation='risk_management_project_input_ids_user_ids_rel',
+                                      column1='input_data_ids', column2='user_process_ids', string='Input Data',
                                       domain="[('id', 'not in', output_data_ids),"
                                              "('int_provider_id.project_id', '=', project_id)]"
                                       )
