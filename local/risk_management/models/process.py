@@ -32,14 +32,14 @@ class BaseProcess(models.AbstractModel):
     @api.multi
     def get_input_int_providers(self):
         self.ensure_one()
-        int_data = self.input_data_ids.filtered('int_provider_id')  # filter out data of external origin
-        return int_data.mapped('int_provider_id')
+        int_data = self.input_data_ids.filtered('business_process_id')  # filter out data of external origin
+        return int_data.mapped('business_process_id')
 
     @api.multi
     def get_input_ext_provider_cats(self):
         self.ensure_one()
-        ext_data = self.input_data_ids.filtered('ext_provider_cat_id')  # filter out data of internal origin
-        return ext_data.mapped('ext_provider_cat_id')
+        ext_data = self.input_data_ids.filtered('partner_id')  # filter out data of internal source
+        return ext_data.mapped('partner_id')
 
     @api.multi
     def get_output_users(self):
@@ -83,32 +83,32 @@ class BaseProcessData(models.AbstractModel):
     _sql_constraints = [
         (
             'data_name_unique',
-            'UNIQUE(name, int_provider_id, ext_provider_cat_id)',
+            'UNIQUE(name, business_process_id, partner_id)',
             'The process data name must be unique within the same process.'
         ),
-        ('check_only_one_provider',
-         'CHECK((ext_provider_cat_id IS NOT NULL AND int_provider_id IS NULL) OR'
-         '(ext_provider_cat_id IS NULL and int_provider_id IS NOT NULL))',
-         'A process can only have one provider.'
+        ('check_only_one_source',
+         'CHECK((partner_id IS NOT NULL AND business_process_id IS NULL) OR'
+         '(partner_id IS NULL and business_process_id IS NOT NULL))',
+         'A process can only have one source.'
          )
     ]
     name = fields.Char(required=True, index=True, translate=True, copy=False)
     is_customer_voice = fields.Boolean('Consumer Voice?', compute='_compute_is_costumer_voice',
                                        help="Does this data relay the customer voice?",
                                        search='_search_is_customer_voice')
-    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade',
-                                          domain=lambda self: [('id', 'child_of',
-                                                                self.env.ref('risk_management.process_partner').id)],
-                                          help='Must be a child of `Process partner` category')
+    partner_id = fields.Many2one('res.partner.category', string='External Source', ondelete='cascade',
+                                 domain=lambda self: [('id', 'child_of',
+                                                       self.env.ref('risk_management.process_partner').id)],
+                                 help='Must be a child of `Process partner` category')
     default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
         'risk_management.process_partner'), readonly=True)
 
-    @api.constrains('user_process_ids', 'int_provider_id')
+    @api.constrains('user_process_ids', 'business_process_id')
     def _check_provider_not_in_consumers(self):
-        """Data provider should not be a consumer of said data"""
+        """Data source should not be a user of said data"""
         for data in self:
-            if data.int_provider_id and data.int_provider_id in data.user_process_ids:
-                raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
+            if data.business_process_id and data.business_process_id in data.user_process_ids:
+                raise exceptions.ValidationError("The data source cannot be a user of the data")
 
 
 class BaseProcessMethod(models.AbstractModel):
@@ -139,13 +139,13 @@ class BusinessProcess(models.Model):
                                   default=lambda self: self.env.user.company_id,
                                   readonly=True, copy=False)
     task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
-    output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
+    output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='business_process_id',
                                       string='Output data')
     input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
                                       relation='risk_management_input_ids_user_ids_rel',
                                       column1='input_data_ids', column2='user_process_ids', string="Input data",
                                       domain="[('id', 'not in', output_data_ids),"
-                                             "('int_provider_id.business_id', '=', business_id),]")
+                                             "('business_process_id.business_id', '=', business_id),]")
     method_ids = fields.One2many('risk_management.business_process.method',
                                  inverse_name='process_id', string='Methods')
     task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
@@ -261,35 +261,31 @@ class BusinessProcessData(models.Model):
     _description = 'Business Process input or output'
     _inherit = ['risk_management.base_process_data']
 
-    int_provider_id = fields.Many2one('risk_management.business_process', string='Origin (internal)',
-                                      ondelete='cascade')
+    business_process_id = fields.Many2one('risk_management.business_process', string='Internal source',
+                                          ondelete='cascade')
     ref_response_ids = fields.One2many('risk_management.business_process_data', inverse_name='ref_request_id',
                                        domain=lambda self: [('is_customer_voice', '=', False)])
-    ref_response_id = fields.Many2one('risk_management.business_process_data', compute='_compute_ref_resp',
-                                      string='Response Ref.', store=True, inverse='_inverse_ref_resp',
-                                      domain=lambda self: [('is_customer_voice', '=', False),
-                                                           ('int_provider_id', '!=', False),
-                                                           ('int_provider_id', '!=', self.int_provider_id)])
     ref_request_id = fields.Many2one('risk_management.business_process_data',
                                      domain=lambda self: [('is_customer_voice', '=', True)])
-    # change this field's name to user_process_ids
     user_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                         relation='risk_management_input_ids_user_ids_rel',
                                         column1='user_process_ids', column2='input_data_ids',
-                                        string="User processes")
-    supplier_process_id = fields.Many2one('risk_management.business_process', string='Supplier process',
-                                          related='ref_response_id.int_provider_id', readonly=True)
+                                        string="User processes", domain=lambda self: [
+            ('id', '!=', self.business_process_id)
+        ])
 
-    @api.depends('ext_provider_id')
+    @api.depends('partner_id', 'ref_request_id')
     def _compute_is_customer_voice(self):
         customers = self.env[
             'res.partner.category'
         ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
         for rec in self:
             if (
-                    rec.ext_provider_id and rec.ext_provider_id.id in customers.ids
+                    rec.partner_id and rec.partner.id in customers.ids
             ) or rec.ref_request_id.is_customer_voice:
                 rec.is_customer_voice = True
+            else:
+                rec.is_customer_voice = False
 
     def _search_is_customer_voice(self, operator, value):
         customers = self.env[
@@ -300,59 +296,17 @@ class BusinessProcessData(models.Model):
             recs = self
         if operator == '=':
             if value:
-                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id.id in customers.ids)
+                recs = self.filtered(lambda rec: rec.partner_id and rec.partner_id.id in customers.ids)
             else:
-                recs = self.filtered(lambda rec: not rec.ext_provider_id.id or rec.ext_provider_id.id not in customers.ids)
+                recs = self.filtered(
+                    lambda rec: not rec.partner_id.id or rec.partner_id.id not in customers.ids)
         else:
             if value:
-                recs = self.filtered(lambda rec: not rec.ext_provider_id.id or rec.ext_provider_id.id not in customers.ids)
+                recs = self.filtered(
+                    lambda rec: not rec.ext_provider_id.id or rec.ext_provider_id.id not in customers.ids)
             else:
-                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id.id in customers.ids)
+                recs = self.filtered(lambda rec: rec.partner_id and rec.partner_id.id in customers.ids)
         return [('id', 'in', [rec.id for rec in recs])]
-
-    @api.depends('ref_output_ids')
-    def _compute_ref_resp(self):
-        for rec in self:
-            if rec.ref_response_ids:
-                rec.ref_response_id = rec.ref_response_ids[0]
-
-    @api.multi
-    def _inverse_ref_resp(self):
-        for rec in self:
-            if rec.ref_response_ids:
-                output = self.env['risk_management.business_process_data'].browse(rec.ref_response_ids[0].id)
-                output.unlink()
-            rec.ref_response_id.ref_request_id = rec
-
-    @api.onchange('is_customer_voice')
-    def _onchange_is_customer_voice(self):
-        if self.is_customer_voice:
-            """Only operational processes produce and consume the data that relay the voice of the customer """
-
-            return {'domain': {
-                'int_provider_id': [('process_type', '=', 'O')],
-                'user_process_ids': [(0, '=', 1)]
-            }}
-        else:
-            return {'domain': {
-                'int_provider_id': [(1, '=', 1)],
-                'user_process_ids': [('id', '!=', self.int_provider_id)]
-            }}
-
-    @api.constrains('is_customer_voice',
-                    'ref_response_id',
-                    'int_provider_id',
-                    'ext_provider_id')
-    def _check_customer_voice_(self):
-        for rec in self:
-            if rec.ext_provider_id:
-                pass
-
-    @api.onchange('ext_provider_id')
-    def _onchange_ext_provider(self):
-        """if a data comes from an external partner from the customer category it's considered customer's voice voice"""
-        if self.ext_provider_id:
-            self.is_customer_voice = True
 
 
 class BusinessProcessTask(models.Model):
@@ -383,11 +337,11 @@ class BusinessProcessMethod(models.Model):
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
     output_ref_id = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
                                     domain=lambda self: [
-                                        ('int_provider_id.business_id', '=', self.process_id.business_id.id),
-                                        ('int_provider_id.process_type', '=', 'M')
+                                        ('business_process_id.business_id', '=', self.process_id.business_id.id),
+                                        ('business_process_id.process_type', '=', 'M')
                                     ],
                                     help='Output data reference')
-    author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)
+    author_name = fields.Char('From process', related='output_ref_id.business_process_id.name', readonly=True)
 
 
 class ProjectProcessData(models.Model):
