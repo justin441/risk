@@ -286,25 +286,28 @@ class BusinessProcessData(models.Model):
             'res.partner.category'
         ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
         for rec in self:
-            if (rec.ext_provider_id and rec.ext_provider_id in customers) or rec.ref_request_id.is_customer_voice:
+            if (
+                    rec.ext_provider_id and rec.ext_provider_id.id in customers.ids
+            ) or rec.ref_request_id.is_customer_voice:
                 rec.is_customer_voice = True
 
     def _search_is_customer_voice(self, operator, value):
         customers = self.env[
             'res.partner.category'
         ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
-        if operator not in ('=', '!=') or value not in(0, 1):
+
+        if operator not in ('=', '!=') or value not in (0, 1):
             recs = self
         if operator == '=':
             if value:
-                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id in customers)
+                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id.id in customers.ids)
             else:
-                recs = self.filtered(lambda rec: not rec.ext_provider_id or rec.ext_provider_id not in customers)
+                recs = self.filtered(lambda rec: not rec.ext_provider_id.id or rec.ext_provider_id.id not in customers.ids)
         else:
             if value:
-                recs = self.filtered(lambda rec: not rec.ext_provider_id or rec.ext_provider_id not in customers)
+                recs = self.filtered(lambda rec: not rec.ext_provider_id.id or rec.ext_provider_id.id not in customers.ids)
             else:
-                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id in customers)
+                recs = self.filtered(lambda rec: rec.ext_provider_id and rec.ext_provider_id.id in customers.ids)
         return [('id', 'in', [rec.id for rec in recs])]
 
     @api.depends('ref_output_ids')
@@ -352,7 +355,6 @@ class BusinessProcessData(models.Model):
             self.is_customer_voice = True
 
 
-
 class BusinessProcessTask(models.Model):
     _name = 'risk_management.business_process.task'
     _description = 'An activity in a process'
@@ -396,11 +398,11 @@ class ProjectProcessData(models.Model):
     int_provider_id = fields.Many2one('risk_management.project_process', string='Origin (internal)',
                                       ondelete='cascade')
     user_process_ids = fields.Many2many(comodel_name='risk_management.project_process',
-                                    relation='risk_management_project_input_ids_user_ids_rel',
-                                    column1='user_process_ids', column2='input_data_ids',
-                                    domain="[('id', '!=', int_provider_id),"
-                                           "('project_id', '=', int_provider_id.project_id)]",
-                                    string="Users")
+                                        relation='risk_management_project_input_ids_user_ids_rel',
+                                        column1='user_process_ids', column2='input_data_ids',
+                                        domain="[('id', '!=', int_provider_id),"
+                                               "('project_id', '=', int_provider_id.project_id)]",
+                                        string="Users")
 
 
 class ProjectProcess(models.Model):
