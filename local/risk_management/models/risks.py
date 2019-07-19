@@ -415,7 +415,7 @@ class BusinessRisk(models.Model):
                 rec.mgt_stage = False
 
     @api.multi
-    def get_treatment(self):
+    def get_treatment(self):  # TODO rewrite
         """returns the treatment tasks view. If the risk treatment project does not exist, creates one. If there is no
         risk treatment process in the treatment project, also creates one.
         """
@@ -559,9 +559,11 @@ class BusinessRiskTreatment(models.Model):
     _inherit = ['project.project']
 
     risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk')
-
+    # todo: delete this and add business_risk_id to project
 
 # -------------------------------------- Wizards -------------------------------------------
+
+    # todo: create a wizard directory
 
 
 class BaseRiskWizard(models.AbstractModel):
