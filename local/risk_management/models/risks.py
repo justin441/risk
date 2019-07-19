@@ -475,84 +475,6 @@ class BusinessRisk(models.Model):
         return groups
 
 
-class ProjectRisk(models.Model):
-    _name = 'risk_management.project_risk'
-    _description = 'Project risk'
-    _inherit = ['risk_management.base_identification']
-
-    process_id = fields.Many2one(comodel_name='risk_management.project_process', string='Impacted Process')
-    project_id = fields.Many2one(comodel_name='project.project', related='process_id.project_id', string='Project',
-                                 readonly=True)
-    evaluation_ids = fields.One2many(comodel_name='risk_management.project_risk.evaluation', inverse_name='risk_id',)
-    treatment_ids = fields.One2many(comodel_name='project.task', inverse_name='project_risk_id',
-                                    string='Treatment tasks',
-                                    domain=lambda self: [('project_id', '=', self.project_id.id),
-                                                         ('process_id', 'ilike', 'risk treatment')])
-    treatment_task_count = fields.Integer(compute='_compute_treatment_count', string='Treatment tasks', store=True)
-
-    @api.depends('latest_level_value', 'treatment_ids')
-    def _compute_stage(self):
-        for rec in self:
-            if rec.active and not rec.latest_level_value:
-                rec.mgt_stage = '1'
-            elif rec.latest_level_value and not rec.treatment_ids:
-                rec.mgt_stage = '2'
-            elif rec.treatment_ids:
-                rec.mgt_stage = '3'
-            else:
-                rec.mgt_stage = False
-
-    @api.depends('treatment_ids')
-    def _compute_treatment_count(self):
-        for rec in self:
-            rec.treatment_task_count = len(rec.treatment_ids)
-
-    @api.multi
-    def action_add_treatment_task(self):
-        for rec in self:
-            project = rec.project_id
-            treatment_process = project.get_or_add_risk_treatment_proc()
-            return {
-                'name': _('Treatment tasks'),
-                'type': 'ir.actions.act_window',
-                'res_model': 'project.task',
-                'views': [
-                    [False, "kanban"], [False, "form"], [False, "tree"],
-                    [False, "calendar"], [False, "pivot"], [False, "graph"]
-                ],
-                'context': {
-                    'search_default_project_id': project.id,
-                    'search_default_process_id': treatment_process.id,
-                    'search_default_user_id': self.env.user.id,
-                    'default_project_id': project.id,
-                    'default_process_id': treatment_process.id,
-                    'default_project_risk_id': rec.id,
-                    'default_user_id': rec.owner.id if rec.owner else False,
-                    'risk_model': rec._name
-                }
-            }
-
-    @api.multi
-    def _track_subtype(self, init_values):
-        self.ensure_one()
-        if 'active' in init_values and self.active:
-            return 'risk_management.mt_project_risk_new'
-        elif 'owner' in init_values and self.owner:
-            return 'risk_management.mt_project_risk_new'
-        elif 'state' in init_values:
-            return 'risk_management.mt_project_risk_status'
-        return super(ProjectRisk, self)._track_subtype(init_values)
-
-    @api.multi
-    def _notification_recipients(self, message, groups):
-        groups = super(ProjectRisk, self)._notification_recipients(message, groups)
-
-        for group_name, group_method, group_data in groups:
-            group_data['has_button_access'] = True
-
-        return groups
-
-
 # -------------------------------------- Risk evaluation ----------------------------------
 
 
@@ -627,30 +549,6 @@ class BusinessRiskEvaluation(models.Model):
             same_day.exists().write(vals)
         else:
             return super(BusinessRiskEvaluation, self).create(vals)
-
-
-class ProjectRiskEvaluation(models.Model):
-    _name = 'risk_management.project_risk.evaluation'
-    _description = 'Project risk evaluation'
-    _inherit = ['risk_management.base_evaluation']
-
-    risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Risk', required=True)
-    risk_type = fields.Selection(related='risk_id.risk_type', readonly=True)
-    threshold_value = fields.Integer(related='risk_id.threshold_value', store=True, readonly=True)
-    value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
-
-    @api.model
-    def create(self, vals):
-        same_day = self.env['risk_management.project_risk.evaluation'].search([
-            ('eval_date', '=', fields.Date.context_today(self))
-        ])
-        # if another estimation was created the same day, just update it
-        if same_day:
-            if len(same_day) > 1:
-                same_day[1:].unlink()
-            same_day.exists().write(vals)
-        else:
-            return super(ProjectRiskEvaluation, self).create(vals)
 
 
 # -------------------------------------- Risk Treatment -----------------------------------
