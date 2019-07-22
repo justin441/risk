@@ -24,23 +24,22 @@
         <!--Process Data-->
         <record id="data00" model="risk_management.business_process_data">
             <field name="name">Customer quote</field>
-            <field name="int_provider_id" ref="process01"/>
+            <field name="business_process_id" ref="process01"/>
         </record>
         <record id="data01" model="risk_management.business_process_data">
             <field name="name">Customer order form</field>
-            <field name="int_provider_id" ref="process01"/>
+            <field name="business_process_id" ref="process01"/>
         </record>
         <record id="data02" model="risk_management.business_process_data">
             <field name="name">Business plan</field>
-            <field name="int_provider_id" ref="process00"/>
+            <field name="business_process_id" ref="process00"/>
         </record>
         <record id="data03" model="risk_management.business_process_data">
             <field name="name">Marketing plan</field>
-            <field name="int_provider_id" ref="process00"/>
+            <field name="business_process_id" ref="process00"/>
         </record>
 
-        <!-- TODO: add processes of all 3 types -->
-        <!-- TODO: add demo data for project process using examples from PMBOK -->
+        <!-- TODO: add processes of all 4 types -->
 
         <!-- risk infos -->
         <record id="risk_info_1" model="risk_management.risk.info">

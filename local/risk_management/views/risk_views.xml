@@ -25,18 +25,33 @@
                             <field name="name" placeholder="Name"/>
                         </group>
                         <group colspan="2" col="2">
-                            <field name="is_customer_voice"/>
-                        </group>
-                        <group colspan="4" col="2">
-                            <field name="default_partner_cat_parent_id" invisible="1"/>
-                            <field name="int_provider_id"
-                                   attrs="{'invisible': [('ext_provider_cat_id', '!=', False)], 'required': [('ext_provider_cat_id', '=', False)],}"/>
-                            <field name="ext_provider_cat_id"
-                                   attrs="{'invisible': [('int_provider_id', '!=', False)], 'required': [('int_provider_id', '=', False)]}"
-                                   context="{'default_parent_id': default_partner_cat_parent_id}"
-                            />
+                            <label for="is_customer_voice" class="oe_read_only"/>
+                            <field name="is_customer_voice" class="oe_read_only" nolabel="1"/>
                         </group>
                     </group>
+                    <group>
+                        <field name="default_partner_cat_parent_id" invisible="1"/>
+                        <field name="business_process_id"
+                               attrs="{'invisible': [('source_part_cat_id', '!=', False)], 'required': [('source_part_cat_id', '=', False)],}"/>
+                        <field name="source_part_cat_id"
+                               attrs="{'invisible': [('business_process_id', '!=', False)], 'required': [('business_process_id', '=', False)]}"
+                               context="{'default_parent_id': default_partner_cat_parent_id}"/>
+                        <field name="ref_request_ids" widget="many2many_tags"/>
+                        <field name="channel_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Description" name="description_page">
+                            <field name="description" type="html"/>
+                            <div class="oe_clear"/>
+                        </page>
+                        <page string="Recipients" name="recipient_page">
+                            <group>
+                                <field name="dest_partner_ids" widget="many2many_tags"/>
+                                <field name="user_process_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                    </notebook>
+
                 </sheet>
             </form>
         </field>
@@ -46,10 +61,10 @@
         <field name="name">process_data.tree</field>
         <field name="model">risk_management.business_process_data</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <tree>
                 <field name="name"/>
                 <field name="is_customer_voice"/>
-                <field name="consumer_ids" readonly="1" widget="many2many_tags"/>
+                <field name="" readonly="1" widget="many2many_tags"/>
             </tree>
         </field>
     </record>
@@ -220,7 +235,8 @@
         <field name="name">business_risk.evaluation.tree</field>
         <field name="model">risk_management.business_risk.evaluation</field>
         <field name="arch" type="xml">
-            <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
+            <tree create="false"
+                  decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
                   decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
             >
                 <field name="eval_date"/>
@@ -591,13 +607,13 @@
                             class="btn-success"
                             string="Treatment"
                             attrs="{'invisible': [
-                            '|',
                                 '|',
-                                    ('treatment_id', '!=', False),
-                                    ('owner', '=', False),
-                                '|',
-                                    ('active', '=', False),
-                                    ('latest_level_value', '=', False)]}"
+                                    '|',
+                                        ('treatment_id', '!=', False),
+                                        ('owner', '=', False),
+                                    '|',
+                                        ('active', '=', False),
+                                        ('latest_level_value', '=', False)]}"
                     />
                     <field name="mgt_stage" widget="statusbar"/>
                 </header>
@@ -688,7 +704,8 @@
                         </page>
                         <page name="eval_timeline" string="Timeline"
                               attrs="{'invisible': [('evaluation_ids', '=', False)]}">
-                            <field name="evaluation_ids" mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
+                            <field name="evaluation_ids"
+                                   mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
                         </page>
                     </notebook>
                 </sheet>
@@ -1102,7 +1119,8 @@
         <field name="name">project_risk.evaluation.tree</field>
         <field name="model">risk_management.project_risk.evaluation</field>
         <field name="arch" type="xml">
-            <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
+            <tree create="false"
+                  decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
                   decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
             >
                 <field name="eval_date"/>
@@ -1488,13 +1506,13 @@
                             class="btn-success"
                             string="Treatment"
                             attrs="{'invisible': [
-                                '|',
-                                    ('treatment_task_count', '!=', 0),
-                                '|',
-                                    ('owner', '=', False),
-                                '|',
-                                    ('active', '=', False),
-                                    ('latest_level_value', '=', False)]}"
+                                    '|',
+                                        ('treatment_task_count', '!=', 0),
+                                    '|',
+                                        ('owner', '=', False),
+                                    '|',
+                                        ('active', '=', False),
+                                        ('latest_level_value', '=', False)]}"
                     />
                     <field name="mgt_stage" widget="statusbar"/>
                 </header>
@@ -1582,7 +1600,8 @@
                         </page>
                         <page name="eval_timeline" string="Timeline"
                               attrs="{'invisible': [('evaluation_ids', '=', False)]}">
-                            <field name="evaluation_ids" mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
+                            <field name="evaluation_ids"
+                                   mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
                         </page>
                     </notebook>
                 </sheet>
@@ -1745,9 +1764,9 @@
             'search_default_project_id': [active_id]}
         </field>
         <field name="view_ids" eval="[(5, 0, 0),
-                                      (0, 0, {'view_mode': 'tree', 'view_id': ref('project_process_all')}),
-                                      (0, 0, {'view_mode': 'form', 'view_id': ref('project_process_form')}),
-                                      (0, 0, {'view_mode': 'kanban', 'view_id': ref('project_process_kanban_view')})]"
+                                          (0, 0, {'view_mode': 'tree', 'view_id': ref('project_process_all')}),
+                                          (0, 0, {'view_mode': 'form', 'view_id': ref('project_process_form')}),
+                                          (0, 0, {'view_mode': 'kanban', 'view_id': ref('project_process_kanban_view')})]"
         />
         <field name="search_view_id" ref="project_process_search"/>
         <field name="help" type="html">
@@ -1762,9 +1781,9 @@
         <field name="res_model">risk_management.project_process</field>
         <field name="view_mode">kanban,tree,form</field>
         <field name="view_ids" eval="[(5, 0, 0),
-                                      (0, 0, {'view_mode': 'tree', 'view_id': ref('project_process_all')}),
-                                      (0, 0, {'view_mode': 'form', 'view_id': ref('project_process_form')}),
-                                      (0, 0, {'view_mode': 'kanban', 'view_id': ref('project_process_kanban_view')})]"
+                                          (0, 0, {'view_mode': 'tree', 'view_id': ref('project_process_all')}),
+                                          (0, 0, {'view_mode': 'form', 'view_id': ref('project_process_form')}),
+                                          (0, 0, {'view_mode': 'kanban', 'view_id': ref('project_process_kanban_view')})]"
         />
         <field name="context">
             {'search_default_my_processes':1}

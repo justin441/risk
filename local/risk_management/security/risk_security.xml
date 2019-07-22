@@ -28,7 +28,7 @@
         <record id="business_process_comp_rule" model="ir.rule">
             <field name="name">Business Process: Multi-company</field>
             <field name="model_id" ref="model_risk_management_business_process"/>
-            <field name="domain_force">[('business_id', 'child_of', [user.company_id.id])]</field>
+            <field name="domain_force">[('company_id', 'child_of', [user.company_id.id])]</field>
             <field name="global" eval="True"/>
         </record>
 
@@ -39,9 +39,9 @@
                 [
                     '|',
                         '&amp;',
-                            ('int_provider_id', '=', False),
-                            ('write_uid', '=', user.id),
-                        ('int_provider_id.business_id', 'child_of', [user.company_id.id])]
+                            ('business_process_id', '=', False),
+                            ('create_uid', '=', user.id),
+                        ('business_process_id.company_id', 'child_of', [user.company_id.id])]
             </field>
             <field name="global" eval="True"/>
         </record>
@@ -49,7 +49,7 @@
         <record id="business_process_method_comp_rule" model="ir.rule">
             <field name="name">Business Process Method: Multi-company</field>
             <field name="model_id" ref="model_risk_management_business_process_data"/>
-            <field name="domain_force">[('process_id.business_id', 'child_of', [user.company_id.id])]</field>
+            <field name="domain_force">[('process_id.company_id', 'child_of', [user.company_id.id])]</field>
             <field name="global" eval="True"/>
         </record>
 
@@ -87,69 +87,22 @@
             <field name="groups" eval="[(4,ref('risk_management.group_risk_manager'))]"/>
         </record>
 
-        <record id="project_risk_change_rule" model="ir.rule">
-            <field name="name">Change Project Risk</field>
-            <field name="model_id" ref="model_risk_management_project_risk"/>
-            <field name="domain_force">[('write_uid', '=', user.id)]</field>
-            <field name="groups" eval="[(4,ref('base.group_user'))]"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_read" eval="False"/>
-        </record>
+<!--        <record id="project_risk_change_rule" model="ir.rule">-->
+<!--            <field name="name">Change Project Risk</field>-->
+<!--            <field name="model_id" ref="model_risk_management_project_risk"/>-->
+<!--            <field name="domain_force">[('write_uid', '=', user.id)]</field>-->
+<!--            <field name="groups" eval="[(4,ref('base.group_user'))]"/>-->
+<!--            <field name="perm_create" eval="False"/>-->
+<!--            <field name="perm_read" eval="False"/>-->
+<!--        </record>-->
 
-        <record id="project_risk_change_risk_manager_rule" model="ir.rule">
-            <field name="name">Change Project Risk: Risk managers</field>
-            <field name="model_id" ref="model_risk_management_project_risk"/>
-            <field name="domain_force">[(1, '=', 1)]</field>
-            <field name="groups" eval="[(4,ref('risk_management.group_risk_manager'))]"/>
-        </record>
-
-        <record id="project_process_mgt_rule" model="ir.rule">
-            <field name="name">Manage Project Process</field>
-            <field name="model_id" ref="model_risk_management_project_process"/>
-            <field name="domain_force">
-                [
-                    '|'
-                        ('project_id', '=', False),
-                        ('project_id.user_id', '=', user.id)
-                ]
-            </field>
-            <field name="perm_read" eval="False"/>
-            <field name="global" eval="True"/>
-        </record>
-
-        <record id="project_process_data_mgt_rule" model="ir.rule">
-            <field name="name">Manage Project Process Data</field>
-            <field name="model_id" ref="model_risk_management_project_process_data"/>
-            <field name="domain_force">
-                [
-                    '|',
-                        '&amp;',
-                            ('int_provider_id', '=', False),
-                            ('write_uid', '=', user.id),
-                        '|',
-
-                            ('int_provider_id.project_id', '=', False),
-                            ('int_provider_id.project_id.user_id', '=', user.id)
-                ]
-            </field>
-            <field name="perm_read" eval="False"/>
-            <field name="global" eval="True"/>
-        </record>
-
-        <record id="project_process_method_mgt_rule" model="ir.rule">
-            <field name="name">Manage Project Process Method</field>
-            <field name="model_id" ref="model_risk_management_project_process_method"/>
-            <field name="domain_force">
-                [
-                    '|'
-                        ('process_id.project_id', '=', False),
-                        ('process_id.project_id.user_id', '=', user.id)
-                ]
-            </field>
-            <field name="perm_read" eval="False"/>
-            <field name="global" eval="True"/>
-        </record>
-
+<!--        <record id="project_risk_change_risk_manager_rule" model="ir.rule">-->
+<!--            <field name="name">Change Project Risk: Risk managers</field>-->
+<!--            <field name="model_id" ref="model_risk_management_project_risk"/>-->
+<!--            <field name="domain_force">[(1, '=', 1)]</field>-->
+<!--            <field name="groups" eval="[(4,ref('risk_management.group_risk_manager'))]"/>-->
+<!--        </record>-->
+<!--        todo: copy to project_risk/security-->
 
     </data>
 </odoo>
