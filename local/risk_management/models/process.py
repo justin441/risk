@@ -226,7 +226,9 @@ class BaseProcessData(models.AbstractModel):
                                          domain=lambda self: [('id', 'child_of',
                                                               self.env.ref('risk_management.process_partner').id)],
                                          help='Must be a child of `Process partner` category')
-    channel_id = fields.Many2many('risk_management.business_process.channel', string='Authorized Channel')
+    channel_ids = fields.Many2many('risk_management.business_process.channel', string='Authorized Channels',
+                                   relation='risk_management_data_channel_rel', column1='channel_ids',
+                                   column2='data_ids')
     dest_partner_ids = fields.Many2many('res.partner.category', string='External Recipients',
                                         domain=lambda self: [('id', 'child_of',
                                                              self.env.ref('risk_management.process_partner').id)],
@@ -249,6 +251,7 @@ class BusinessProcessData(models.Model):
 
     business_process_id = fields.Many2one('risk_management.business_process', string='Internal source',
                                           ondelete='cascade')
+    origin_id = fields.Reference(selection='_referencable_models', str='Origin', compute='_compute_origin')
     ref_input_ids = fields.Many2many('risk_management.business_process.input_output',
                                      relation='risk_management_data_ref_rel', column1='ref_input_ids',
                                      column2='ref_output_ids', string="Input Ref.",
@@ -321,6 +324,9 @@ class ProcessDataChannel(models.Model):
     ]
 
     name = fields.Char(required=True, index=True, Translate=True)
+    data_ids = fields.Many2many('risk_management.business_process.input_output',
+                                relation='risk_management_data_channel_rel', column1='data_ids',
+                                column2='channel_ids')
 
 
 class BusinessProcessTask(models.Model):

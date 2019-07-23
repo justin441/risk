@@ -37,7 +37,7 @@
                                attrs="{'invisible': [('business_process_id', '!=', False)], 'required': [('business_process_id', '=', False)]}"
                                context="{'default_parent_id': default_partner_cat_parent_id}"/>
                         <field name="ref_request_ids" widget="many2many_tags"/>
-                        <field name="channel_id"/>
+                        <field name="channel_ids" widget="many2many_tags"/>
                     </group>
                     <notebook>
                         <page string="Description" name="description_page">
@@ -64,7 +64,8 @@
             <tree>
                 <field name="name"/>
                 <field name="is_customer_voice"/>
-                <field name="" readonly="1" widget="many2many_tags"/>
+                <field name="dest_partner_ids" readonly="1" widget="many2many_tags" attrs="{'invisible': [('dest_partner_ids', '=', False}"/>
+                <field name="user_process_ids" readonly="1" widget="many2many_tags" attrs="{'invisible': [('user_process_ids', '=', False}"/>
             </tree>
         </field>
     </record>
