@@ -368,7 +368,8 @@ class BusinessRisk(models.Model):
     ]
 
     process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process')
-    evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation', inverse_name='risk_id')
+    evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
+                                     inverse_name='business_risk_id')
     treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id', string='Treatment tasks')
     treatment_task_id = fields.Many2one('project.task', compute='_compute_treatment_task_id',
                                         inverse='_inverse_treatment_task_id')
@@ -503,13 +504,16 @@ class BaseEvaluation(models.AbstractModel):
                 recs = self.search(['review_date', '<', fields.Date.today()])
         return [('id', 'in', [rec.id for rec in recs])]
 
-    @api.depends('risk_id')
+    @api.depends('business_risk_id',
+                 'detectability',
+                 'occurrence',
+                 'severity')
     def _compute_eval_value(self):
-        for ev in self:
-            if ev.risk_type == 'T':
-                ev.value = ev.value_threat
-            elif ev.risk_type == 'O':
-                ev.value = ev.value_opportunity
+        for rec in self:
+            if rec.risk_type == 'T':
+                rec.value = rec.value_threat
+            elif rec.risk_type == 'O':
+                rec.value = rec.value_opportunity
 
 
 class BusinessRiskEvaluation(models.Model):
@@ -517,20 +521,21 @@ class BusinessRiskEvaluation(models.Model):
     _description = 'Business risk evaluation'
     _inherit = ['risk_management.base_evaluation']
 
-    risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk', required=True)
-    risk_type = fields.Selection(related='risk_id.risk_type', readonly=True)
-    threshold_value = fields.Integer(related='risk_id.threshold_value', store=True, readonly=True)
+    business_risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk', required=True)
+    risk_type = fields.Selection(related='business_risk_id.risk_type', readonly=True)
+    threshold_value = fields.Integer(related='business_risk_id.threshold_value', store=True, readonly=True)
     value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
     @api.model
     def create(self, vals):
         same_day = self.env['risk_management.business_risk.evaluation'].search([
-            ('eval_date', '=', fields.Date.context_today(self))
+            ('eval_date', '=', fields.Date.context_today(self)),
+            ('business_risk_id', '=', vals['business_risk_id'])
         ])
         # if another estimation was created the same day, just update it
         if same_day:
             if len(same_day) > 1:
-                # Not strictly needed but you never know, there may be more than one record in `same_day`
+                # Hardly necessary, but you never know, there may be more than one record in `same_day`
                 same_day[1:].unlink()
             same_day.exists().write(vals)
         else:
