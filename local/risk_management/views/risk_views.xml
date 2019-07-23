@@ -16,9 +16,9 @@
     <!-- views-->
     <record model="ir.ui.view" id="process_data_form">
         <field name="name">business_process_data.form</field>
-        <field name="model">risk_management.business_process_data</field>
+        <field name="model">risk_management.business_process.input_output</field>
         <field name="arch" type="xml">
-            <form>
+            <form string="Input/Output">
                 <sheet>
                     <group col="6">
                         <group colspan="4" col="2">
@@ -51,45 +51,54 @@
                             </group>
                         </page>
                     </notebook>
-
                 </sheet>
             </form>
         </field>
     </record>
 
-    <record model="ir.ui.view" id="process_output_data_list">
+    <record model="ir.ui.view" id="process_input_data_list">
         <field name="name">process_data.tree</field>
-        <field name="model">risk_management.business_process_data</field>
+        <field name="model">risk_management.business_process.input_output</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree create="false" edit="false" delete="false">
+                <field name="origin_id"/>
                 <field name="name"/>
                 <field name="is_customer_voice"/>
-                <field name="dest_partner_ids" readonly="1" widget="many2many_tags" attrs="{'invisible': [('dest_partner_ids', '=', False}"/>
-                <field name="user_process_ids" readonly="1" widget="many2many_tags" attrs="{'invisible': [('user_process_ids', '=', False}"/>
+                <field name="dest_partner_ids" readonly="1" widget="many2many_tags"
+                       attrs="{'invisible': [('dest_partner_ids', '=', False}"/>
+                <field name="user_process_ids" readonly="1" widget="many2many_tags"
+                       attrs="{'invisible': [('user_process_ids', '=', False}"/>
             </tree>
         </field>
     </record>
 
-    <record model="ir.ui.view" id="process_data_list">
+    <record model="ir.ui.view" id="process_output_data_list">
         <field name="name">process_data.tree</field>
-        <field name="model">risk_management.business_process_data</field>
+        <field name="model">risk_management.business_process.input_output</field>
         <field name="arch" type="xml">
-            <tree>
-                <field name="name" context="{'form_view_ref':'risk_management.process_data_form'}"/>
+            <tree create="false">
+<!--                TODO add default_business_process_id in the context-->
+                <field name="name"/>
                 <field name="is_customer_voice"/>
+                <field name="dest_partner_ids" widget="many2many_tags"
+                       attrs="{'invisible': [('dest_partner_ids', '=', False}"/>
+                <field name="user_process_ids" widget="many2many_tags"
+                       attrs="{'invisible': [('user_process_ids', '=', False}"/>
             </tree>
         </field>
     </record>
+
     <record model="ir.ui.view" id="process_data_search">
         <field name="name">process_data.search</field>
-        <field name="model">risk_management.business_process_data</field>
+        <field name="model">risk_management.business_process.input_output</field>
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
-                <field name="int_provider_id" string="Internal"/>
-                <field name="ext_provider_cat_id" string="External"/>
-                <filter name="int_provider" string="Internal" domain="[('int_provider_id', '!=', False)]"/>
-                <filter name="ext_provider" string="External" domain="[('ext_provider_cat_id', '!=', False)]"/>
+                <field name="business_process_id" string="Business Process"/>
+                <field name="source_part_cat_id" string="Partner Cat."/>
+                <field name="description" string="Description"/>
+                <filter name="int_provider" string="Internal" domain="[('business_process_id', '!=', False)]"/>
+                <filter name="ext_provider" string="External" domain="[('source_part_cat_id', '!=', False)]"/>
                 <filter name="client_voice" string="Customer Voice" domain="[('is_customer_voice', '=', True)]"/>
             </search>
         </field>
@@ -104,6 +113,7 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
+                <field name="business_process_id"/>
                 <field name="owner_id"/>
             </tree>
         </field>
@@ -117,14 +127,55 @@
                 <field name="name" string="Tasks"/>
                 <field name="owner_id"/>
                 <field name="description"/>
-                <field name="process_id"/>
+                <field name="business_process_id"/>
                 <filter name="my_tasks" string="My tasks"
-                        domain="['|', ('owner_id', '=', uid), ('process_id.responsible_id', '=', uid)]"/>
+                        domain="['|', ('owner_id', '=', uid), ('business_process_id.responsible_id', '=', uid)]"/>
                 <filter string="Unassigned" name="unassigned" domain="[('owner_id', '=', False)]"/>
-                <!-- TODO: add `group_by`-->
+                <group expand="0" string="Group By">
+                    <filter string="Process" name="process" context="{'group_by': 'business_process_id'}"/>
+                    <filter string="Owner" name="owner" context="{'group_by': 'owner_id'}"/>
+                    <filter string="Manager" name="manager" context="{'group_by': 'manager_id'}"/>
+                </group>
+
             </search>
         </field>
     </record>
+
+    <record model="ir.ui.view" id="process_task_form">
+        <field name="name">business_process.task.form</field>
+        <field name="model">risk_management.business_process.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header string="Task">
+                    <button name="action_assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
+                            attrs="{'invisible' : [('owner_id', '!=', False)]}"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1 class="o_row">
+                            <field name="name" placeholder="Task Title..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="business_process_id"/>
+                        <field name="owner_id"/>
+                    </group>
+                    <group>
+                        <field name="sequence" groups="base.group_no_one"/>
+                        <label for="manager_id" class="oe_read_only"/>
+                        <field name="manager_id" class="oe_read_only" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page name="description_page" string="Description">
+                            <field name="description" type="html"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
 
     <!-- actions-->
     <record model="ir.actions.act_window" id="act_business_process_2_process_task_all">
@@ -132,8 +183,8 @@
         <field name="res_model">risk_management.business_process.task</field>
         <field name="view_mode">tree,form</field>
         <field name="context">{
-            'default_process_id': active_id,
-            'search_default_process_id': [active_id],
+            'default_business_process_id': active_id,
+            'search_default_business_process_id': [active_id],
             }
         </field>
         <field name="search_view_id" ref="process_task_search"/>
@@ -152,6 +203,8 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
+                <field name="business_process_id" invisible="context.get('search_default_business_process_id', False)"/>
+                <field name="author_name"/>
             </tree>
         </field>
     </record>
@@ -162,11 +215,13 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name" string="Methods"/>
-                <field name="output_ref_id"/>
                 <field name="process_id" string="Process"/>
                 <field name="author_name"/>
-                <filter name="my_methods" string="My Methods" domain="[('process_id.responsible_id', '=', uid)]"/>
-                <!-- TODO: add `group_by`-->
+                <filter name="my_methods" string="My Methods" domain="[('business_process_id.responsible_id', '=', uid)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Business Process" name="process" context="{'group_by': 'business_process_id'}"/>
+                    <filter string="Origin" name="origin" context="{'group_by': 'author_name'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -175,23 +230,24 @@
         <field name="name">process_method.form</field>
         <field name="model">risk_management.business_process.method</field>
         <field name="arch" type="xml">
-            <form string="Method">
+            <form string="Method / Business rule ">
                 <sheet>
-                    <div class="oe_left oe_title">
+                    <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
                         <h1>
-                            <field name="name"/>
+                            <field name="name" placeholder="Method name"/>
                         </h1>
                     </div>
                     <group>
-                        <field name="process_id"
+                        <field name="business_process_id"
                                context="{'form_view_ref': 'risk_management.business_process_form_view'}"/>
                         <field name="output_ref_id"/>
-                        <field name="author_name" string="Origin"/>
+                        <label for="author_name" class="oe_read_only"/>
+                        <field name="author_name" string="Origin" class="oe_read_only" nolabel="1"/>
                     </group>
                     <notebook>
                         <page name="content_page" string="Details">
-                            <field name="content"/>
+                            <field name="content" type="html"/>
                             <div class="oe_clear"/>
                         </page>
                     </notebook>
@@ -205,7 +261,7 @@
         <field name="name">Methods</field>
         <field name="res_model">risk_management.business_process.method</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">{'default_process_id': active_id, 'search_default_process_id': [active_id],
+        <field name="context">{'default_business_process_id': active_id, 'search_default_business_process_id': [active_id],
             }
         </field>
         <field name="search_view_id" ref="process_method_search"/>
