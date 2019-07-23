@@ -22,15 +22,14 @@ class BaseProcess(models.AbstractModel):
                                                ('PM', 'Project Management')], default='O',
                                     required=True, string='Process type', track_visibility='onchange')
     description = fields.Html(translate=True, string="Description", track_visibility='onchange', index=True)
-    responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
-                                     default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
     sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True, compute_sudo=True)
+    color = fields.Integer(string='Color Index')
 
 
 class BusinessProcess(models.Model):
     _name = 'risk_management.business_process'
-    _description = 'A Business process'
+    _description = 'Business process'
     _inherit = ['risk_management.base_process']
     _sql_constraints = [
         ('process_name_unique_for_company',
@@ -38,19 +37,21 @@ class BusinessProcess(models.Model):
          'The process name must be unique.')
     ]
 
-    task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
+    task_ids = fields.One2many('risk_management.business_process.task', inverse_name='business_process_id',
+                               string='Tasks')
     output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='business_process_id',
                                       string='Output data')
     input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
                                       relation='risk_management_input_ids_user_ids_rel',
-                                      column1='input_data_ids', column2='user_process_ids', string="Input data",
+                                      column1='business_process_id', column2='input_id', string="Input data",
                                       domain=lambda self: [('id', 'not in', self.output_data_ids.ids),
                                                            ('business_process_id.company_id', '=',
                                                             self.company_id.id)])
     method_ids = fields.One2many('risk_management.business_process.method',
-                                 inverse_name='process_id', string='Methods')
+                                 inverse_name='business_process_id', string='Methods')
     task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
-    risk_ids = fields.One2many('risk_management.business_risk', inverse_name='process_id', string='Identified risks')
+    risk_ids = fields.One2many('risk_management.business_risk', inverse_name='business_process_id',
+                               string='Identified risks')
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
     module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
                              domain=[('state', '=', 'installed')], track_visibility='always',
@@ -59,6 +60,11 @@ class BusinessProcess(models.Model):
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
                              help='Is this a core business process? It is if it processes customer data.')
     risk_treatment_project_id = fields.Many2one('project.project', string='Risk treatment project')
+    responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
+                                     default=lambda self: self.env.user, index=True, track_visibility='onchange',
+                                     domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
+    user_ids = fields.Many2many('res.users', 'risk_management_users_process_rel', 'business_process_id', 'user_id',
+                                string='Staff', domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -201,8 +207,8 @@ class BusinessProcess(models.Model):
         return self.risk_treatment_project_id.exists().id
 
 
-class BaseProcessData(models.AbstractModel):
-    _name = 'risk_management.base_process_data'
+class BaseProcessIO(models.AbstractModel):
+    _name = 'risk_management.base_process_io'
     _inherits = {'account.analytic.account': "analytic_account_id"}
     _order = "sequence, name, id"
     _sql_constraints = [
@@ -224,15 +230,15 @@ class BaseProcessData(models.AbstractModel):
                                        search='_search_is_customer_voice')
     source_part_cat_id = fields.Many2one('res.partner.category', string='External Source', ondelete='cascade',
                                          domain=lambda self: [('id', 'child_of',
-                                                              self.env.ref('risk_management.process_partner').id)],
+                                                               self.env.ref('risk_management.process_partner').id)],
                                          help='Must be a child of `Process partner` category')
     channel_ids = fields.Many2many('risk_management.business_process.channel', string='Authorized Channels',
-                                   relation='risk_management_data_channel_rel', column1='channel_ids',
-                                   column2='data_ids')
+                                   relation='risk_management_data_channel_rel', column1='data_id',
+                                   column2='channel_id')
     dest_partner_ids = fields.Many2many('res.partner.category', string='External Recipients',
                                         domain=lambda self: [('id', 'child_of',
-                                                             self.env.ref('risk_management.process_partner').id)],
-                                        help='Must be a child of `Process partner` category',)
+                                                              self.env.ref('risk_management.process_partner').id)],
+                                        help='Must be a child of `Process partner` category', )
     default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
         'risk_management.process_partner'), readonly=True)
 
@@ -244,23 +250,26 @@ class BaseProcessData(models.AbstractModel):
                 raise exceptions.ValidationError("The data source cannot be a user of the data")
 
 
-class BusinessProcessData(models.Model):
+class BusinessProcessIO(models.Model):
     _name = 'risk_management.business_process.input_output'
     _description = 'Business Process input or output'
-    _inherit = ['risk_management.base_process_data']
+    _inherit = ['risk_management.base_process_io']
 
     business_process_id = fields.Many2one('risk_management.business_process', string='Internal source',
-                                          ondelete='cascade')
-    origin_id = fields.Reference(selection='_referencable_models', str='Origin', compute='_compute_origin')
+                                          ondelete='cascade',
+                                          default=lambda self: self.env.context.get('default_business_process_id'))
+    origin_id = fields.Reference(selection=[('res.partner.category', 'Partner Tags'),
+                                            ('risk_management.business_process', 'Business Process')],
+                                 str='Origin', compute='_compute_origin', store=True)
     ref_input_ids = fields.Many2many('risk_management.business_process.input_output',
-                                     relation='risk_management_data_ref_rel', column1='ref_input_ids',
-                                     column2='ref_output_ids', string="Input Ref.",
+                                     relation='risk_management_data_ref_rel', column1='input_id',
+                                     column2='output_id', string="Input Ref.",
                                      domain=lambda self: [('id', 'in', self.business_process_id.input_data_ids.ids)])
     ref_output_ids = fields.Many2many('risk_management.business_process.input_output', 'risk_management_data_ref_rel',
-                                      column1='ref_output_ids', column2='ref_input_ids')
+                                      column1='output_id', column2='input_id', string='Referenced By')
     user_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                         relation='risk_management_input_ids_user_ids_rel',
-                                        column1='user_process_ids', column2='input_data_ids',
+                                        column1='input_id', column2='business_process_id',
                                         string="Recipient processes")
 
     @api.depends('source_part_cat_id', 'ref_input_ids')
@@ -313,6 +322,14 @@ class BusinessProcessData(models.Model):
                                      ('company_id', '=', self.business_process_id.company_id.id)]
             }}
 
+    @api.depends('source_part_cat_id', 'business_process_id')
+    def _compute_origin(self):
+        for rec in self:
+            if rec.business_process_id:
+                rec.origin_id = rec.business_process_id
+            elif rec.source_part_cat_id:
+                rec.origin_id = rec.source_part_cat_id.id
+
 
 class ProcessDataChannel(models.Model):
     _name = 'risk_management.business_process.channel'
@@ -325,8 +342,8 @@ class ProcessDataChannel(models.Model):
 
     name = fields.Char(required=True, index=True, Translate=True)
     data_ids = fields.Many2many('risk_management.business_process.input_output',
-                                relation='risk_management_data_channel_rel', column1='data_ids',
-                                column2='channel_ids')
+                                relation='risk_management_data_channel_rel', column1='channel_id',
+                                column2='data_id', string='Process Data')
 
 
 class BusinessProcessTask(models.Model):
@@ -336,18 +353,27 @@ class BusinessProcessTask(models.Model):
     _sql_constraints = [
         (
             'task_name_unique',
-            'UNIQUE(name, process_id)',
+            'UNIQUE(name, business_process_id)',
             'A task with the same name already exists in this process.'
         )
     ]
 
     name = fields.Char(required=True, translate=True, index=True)
     description = fields.Text(translate=True, index=True)
-    owner_id = fields.Many2one('res.users', ondelete="set null")
-    sequence = fields.Integer(default=10)
-    process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
-    manager_id = fields.Many2one('res.users', related='process_id.responsible_id', readonly=True,
+    owner_id = fields.Many2one('res.users', ondelete="set null",
+                               domain=lambda self: [('id', 'in', self.business_process_id.user_ids.ids)],
+                               string='Assigned To')
+    sequence = fields.Integer(default=10, index=True, string='Sequence')
+    business_process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process",
+                                          index=True,
+                                          default=lambda self: self.env.context.get('default_business_process_id'))
+    manager_id = fields.Many2one('res.users', related='business_process_id.responsible_id', readonly=True,
                                  related_sudo=False, string='Process Manager')
+
+    def action_assign_to_me(self):
+        self.write({'owner_id': self.env.user.id})
+
+    # TODO: add frequency field, generate todo lists
 
 
 class BusinessProcessMethod(models.Model):
@@ -356,17 +382,18 @@ class BusinessProcessMethod(models.Model):
     _sql_constraints = [
         (
             'method_name_unique',
-            'UNIQUE(name, process_id)',
+            'UNIQUE(name, business_process_id)',
             'A procedure with the same name already exist on this process'
         )
     ]
 
     name = fields.Char(translate=True, string='Title', required=True, copy=False, index=True)
     content = fields.Html(translate=True)
-    process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process',
+                                          required=True)
     output_ref_id = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
                                     domain=lambda self: [
-                                        ('business_process_id.company_id', '=', self.process_id.company_id.id),
+                                        ('business_process_id.company_id', '=', self.business_process_id.company_id.id),
                                         ('business_process_id.process_type', '=', 'M')
                                     ],
                                     help='Output Reference', required=True)
