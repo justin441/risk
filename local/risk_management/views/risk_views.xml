@@ -334,7 +334,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="risk_info_id"/>
-                <field name="process_id"/>
+                <field name="business_process_id"/>
                 <field name="risk_info_description"/>
                 <field name="risk_info_cause"/>
                 <field name="risk_info_consequence"/>
@@ -345,12 +345,12 @@
                 <separator/>
                 <filter name="inactive" string="Latent" domain="[('active', '=', 0)]"/>
                 <separator/>
-                <filter name="threats" string="Threat" domain="[('risk_type', '=', 'T')]"/>
+                <filter name="threats" string="ThreatS" domain="[('risk_type', '=', 'T')]"/>
                 <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
                 <separator/>
                 <filter name="unevaluated" string="Un-evaluated" domain="[('latest_level_value', '=', False)]"/>
                 <filter name="untreated" string="Untreated"
-                        domain="[('latest_level_value', '!=', False), ('treatment_id', '=', False)]"/>
+                        domain="[('latest_level_value', '!=', False), ('treatment_task_id', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Category" name="Category" context="{'group_by': 'risk_info_category'}"/>
                     <filter string="Process" name="Process" context="{'group_by': 'process_id'}"/>
@@ -374,10 +374,10 @@
                 <field name="report_date"/>
                 <field name="state" invisible="1"/>
                 <field name="active" invisible="1"/>
-                <field name="process_id"/>
+                <field name="business_process_id" invisible="context.get('search_default_business_process_id', False)"/>
                 <field name="review_date"/>
                 <field name="threshold_value"/>
-                <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', 0)] }"/>
+                <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', False)] }"/>
             </tree>
         </field>
     </record>
@@ -389,7 +389,7 @@
             <kanban default_group_by="mgt_stage" class="o_kanban_small_column o_kanban_project_tasks"
                     group_create="false" group_delete="false" group_edit="false" create="false">
                 <field name="name"/>
-                <field name="process_id"/>
+                <field name="business_process_id"/>
                 <field name="risk_info_id"/>
                 <field name="risk_type"/>
                 <field name="report_date"/>
@@ -409,8 +409,8 @@
                                         </strong>
                                         <br/>
                                         <small class="o_kanban_record_subtitle text-muted">
-                                            <field name="process_id"
-                                                   invisible="context.get('default_process_id', False)"/>
+                                            <field name="business_process_id"
+                                                   invisible="context.get('default_business_process_id', False)"/>
                                             <t t-if="record.review_date.raw_value and record.review_date.raw_value lt (new Date())"
                                                t-set="red">oe_kanban_text_red
                                             </t>
@@ -1608,7 +1608,7 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
-                <field name="risk_count"></field>
+                <field name="risk_count"/>
             </tree>
         </field>
     </record>
