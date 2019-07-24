@@ -64,7 +64,8 @@ class BusinessProcess(models.Model):
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange',
                                      domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
     user_ids = fields.Many2many('res.users', 'risk_management_users_process_rel', 'business_process_id', 'user_id',
-                                string='Staff', domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
+                                string='Staff', domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)],
+                                track_visilibity='always')
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -171,6 +172,13 @@ class BusinessProcess(models.Model):
                 else:
                     rec.sequence = default + 100
 
+    @api.model
+    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
+        user_field_lst = super(BusinessProcess, self)._message_get_auto_subscribe_fields(updated_fields,
+                                                                                         auto_follow_fields=None)
+        user_field_lst.extend(['user_ids', 'responsible_id'])
+        return user_field_lst
+
     @api.multi
     def _notification_recipients(self, message, groups):
         groups = super(BusinessProcess, self)._notification_recipients(message, groups)
@@ -197,6 +205,11 @@ class BusinessProcess(models.Model):
                 ).message_subscribe(
                     partner_ids=None, channel_ids=[channel_id], subtype_ids=None, force=False)
         return res
+
+    def message_unsubscribe(self, partner_ids=None, channel_ids=None):
+        """ Unsubscribe from all existing risks when unsubscribing from a business process """
+        self.mapped('risk_ids').message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
+        return super(BusinessProcess, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
 
     @api.multi
     def get_risk_treatment_project_id(self):
