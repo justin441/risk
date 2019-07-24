@@ -105,12 +105,12 @@ class BaseRiskCriteria(models.AbstractModel):
         scores = [str(x) for x in range(1, 6)]
         return list(zip(scores, levels))
 
-    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='3', required=True,
+    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='1', required=True,
                                      help='What is the ability of the company to detect'
                                           ' this failure (or gain) if it were to occur?')
-    occurrence = fields.Selection(selection=_get_occurrence, default='3', string='Occurrence', required=True,
+    occurrence = fields.Selection(selection=_get_occurrence, default='1', string='Occurrence', required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
-    severity = fields.Selection(selection=_get_severity, default='3', string='Impact', required=True,
+    severity = fields.Selection(selection=_get_severity, default='1', string='Impact', required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
 
@@ -134,7 +134,7 @@ class BaseRiskCriteria(models.AbstractModel):
         """
         if the risk is an opportunity, invert the value of self.detectability before computing the product of
         the scores; ie a `continuous` capacity to detect an opportunity corresponds to 5. This is the contrary of the
-        threat case where the greater the ability to detect the threat occurrence the less the risk factor
+        threat case where the higher the ability to detect the threat occurrence the less the risk factor
         """
         inv_detectability_score = [str(x) for x in range(1, 6)]
         opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
@@ -178,8 +178,8 @@ class BaseRiskIdentification(models.AbstractModel):
                                      track_visibility="onchange")
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True,
                                         track_visibility="onchange")
-    max_level_value = fields.Integer(default=125, readonly=True)
-    last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date')
+    max_level_value = fields.Integer(default=125, readonly=True, string='Max. Level')
+    last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date', string='Last Evaluation Date')
     review_date = fields.Date(default=_compute_default_review_date, string="Review Date", track_visibility="onchange")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
                             track_visibility="onchange")
@@ -194,7 +194,7 @@ class BaseRiskIdentification(models.AbstractModel):
     @api.depends('uuid')
     def _compute_name(self):
         for rec in self:
-            rec.name = _('risk') + '#%s' % rec.uuid[:8]
+            rec.name = _('risk ') + '#%s' % rec.uuid[:8]
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -211,7 +211,7 @@ class BaseRiskIdentification(models.AbstractModel):
                 rec.last_evaluate_date = False
             else:
                 last_evaluation = rec.evaluation_ids.sorted()[0]
-                rec.last_evaluate_date = last_evaluation.create_date
+                rec.last_evaluate_date = last_evaluation.eval_date
 
     @api.depends('review_date')
     def _compute_active(self):
@@ -362,12 +362,12 @@ class BusinessRisk(models.Model):
     _sql_constraints = [
         (
             'unique_risk_process',
-            'UNIQUE(risk_info_id, process_id, risk_type)',
+            'UNIQUE(risk_info_id, business_process_id, risk_type)',
             'This risk has already been reported.'
         )
     ]
 
-    process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process')
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
     treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id', string='Treatment tasks')
@@ -418,7 +418,7 @@ class BusinessRisk(models.Model):
         """
         self.ensure_one()
         if not self.treatment_task_id:
-            risk_treatment_project_id = self.sudo().process_id.get_risk_treatment_project_id()
+            risk_treatment_project_id = self.sudo().business_process_id.get_risk_treatment_project_id()
             self.treatment_task_id = self.env['project.task'].create({
                 'name': 'Treatment of risk %s' % self.name,
                 'project_id': risk_treatment_project_id
@@ -436,7 +436,7 @@ class BusinessRisk(models.Model):
                 'search_default_parent_id': self.treatment_task_id.id,
                 'default_parent_id': self.treatment_task_id.id,
                 'default_business_risk_id': self.id,
-                'default_project_id': self.process_id.risk_treatment_project_id.id,
+                'default_project_id': self.business_process_id.risk_treatment_project_id.id,
                 'default_target_criterium': 'O'
             }
         }
