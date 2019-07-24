@@ -24,7 +24,7 @@ class BaseProcess(models.AbstractModel):
     description = fields.Html(translate=True, string="Description", track_visibility='onchange', index=True)
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
     sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True, compute_sudo=True)
-    color = fields.Integer(string='Color Index')
+    color = fields.Integer(string='Color Index', compute='_compute_color', inverse='_inverse_color')
 
 
 class BusinessProcess(models.Model):
@@ -101,6 +101,26 @@ class BusinessProcess(models.Model):
             elif data.business_process_id:
                 src['internal'] |= data.business_process_id
         return src
+
+    @api.depends('process_type', 'is_core')
+    def _compute_color(self):
+        for rec in self:
+            if rec.process_type == 'O' or rec.is_core:
+                rec.color = 1
+            elif rec.process_type == 'M':
+                rec.color = 2
+            elif rec.process_type == 'S':
+                rec.color = 3
+            else:
+                rec.color = 4
+
+    def _inverse_color(self):
+        for rec in self:
+            if rec.is_core or rec.process_type == 'O':
+                recs = self.env[self._name].search(['|', ('process_type', '=', 'O'), ('is_core', '=', True)])
+            else:
+                recs = self.env[self._name].search([('process_type', '=', rec.process_type)])
+            recs.write({'color': rec.color})
 
     @api.depends('task_ids')
     def _compute_task_count(self):
