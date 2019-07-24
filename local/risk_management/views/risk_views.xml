@@ -220,7 +220,8 @@
         <field name="name">business_risk.evaluation.tree</field>
         <field name="model">risk_management.business_risk.evaluation</field>
         <field name="arch" type="xml">
-            <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
+            <tree create="false"
+                  decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
                   decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
             >
                 <field name="eval_date"/>
@@ -474,6 +475,20 @@
                             <div class="oe_kanban_content">
                                 <div class="o_kanbab_record_top">
                                     <div class="o_kanban_record_headings">
+                                        <t t-if="record.risk_type.raw_value=='O'">
+                                            <strong>
+                                                <i class="text-success fa fa-leaf"/>
+                                                <t t-raw="record.risk_type.value"/>
+                                            </strong>
+                                            <br/>
+                                        </t>
+                                        <t t-else="record.risk_type.raw_value=='T'">
+                                            <strong>
+                                                <i class="text-danger fa fa-exclamation-triangle"/>
+                                                <t t-raw="record.risk_type.value"/>
+                                            </strong>
+                                            <br/>
+                                        </t>
                                         <strong class="o_kanban_record_title">
                                             <field name="name"/>
                                         </strong>
@@ -506,25 +521,12 @@
                                     </div>
                                 </div>
                                 <div class="o_kanban_record_body">
-                                    <t t-if="record.risk_type.raw_value=='O'">
-                                        <strong>
-                                            <i class="text-success fa fa-leaf"/>
-                                            <t t-raw="record.risk_type.value"/>
-                                        </strong>
-                                        <br/>
-                                    </t>
-                                    <t t-else="record.risk_type.raw_value=='T'">
-                                        <strong>
-                                            <i class="text-danger fa fa-exclamation-triangle"/>
-                                            <t t-raw="record.risk_type.value"/>
-                                        </strong>
-                                        <br/>
-                                    </t>
                                     <field name="risk_info_id"/>
+                                    <field name="state" widget="label_selection"
+                                           options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                                 </div>
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
-                                        <field name="state"/>
                                         <field name="activity_ids" widget="kanban_activity"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
@@ -688,7 +690,8 @@
                         </page>
                         <page name="eval_timeline" string="Timeline"
                               attrs="{'invisible': [('evaluation_ids', '=', False)]}">
-                            <field name="evaluation_ids" mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
+                            <field name="evaluation_ids"
+                                   mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
                         </page>
                     </notebook>
                 </sheet>
@@ -1102,7 +1105,8 @@
         <field name="name">project_risk.evaluation.tree</field>
         <field name="model">risk_management.project_risk.evaluation</field>
         <field name="arch" type="xml">
-            <tree create="false" decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
+            <tree create="false"
+                  decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
                   decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
             >
                 <field name="eval_date"/>
@@ -1311,7 +1315,7 @@
         <field name="name">project_risk.kanban</field>
         <field name="model">risk_management.project_risk</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="mgt_stage" class="o_kanban_small_column o_kanban_project_tasks"
+            <kanban default_group_by="mgt_stage" class="o_kanban_small_column"
                     group_create="false" group_delete="false" group_edit="false" create="false">
                 <field name="name"/>
                 <field name="process_id"/>
@@ -1330,6 +1334,20 @@
                             <div class="oe_kanban_content">
                                 <div class="o_kanbab_record_top">
                                     <div class="o_kanban_record_headings">
+                                        <t t-if="record.risk_type.raw_value=='O'">
+                                            <strong>
+                                                <i class="text-success fa fa-leaf"/>
+                                                <t t-raw="record.risk_type.value"/>
+                                            </strong>
+                                            <br/>
+                                        </t>
+                                        <t t-else="record.risk_type.raw_value=='T'">
+                                            <strong>
+                                                <i class="text-danger fa fa-exclamation-triangle"/>
+                                                <t t-raw="record.risk_type.value"/>
+                                            </strong>
+                                            <br/>
+                                        </t>
                                         <strong class="o_kanban_record_title">
                                             <field name="name"/>
                                         </strong>
@@ -1364,20 +1382,6 @@
                                     </div>
                                 </div>
                                 <div class="o_kanban_record_body">
-                                    <t t-if="record.risk_type.raw_value=='O'">
-                                        <strong>
-                                            <i class="text-success fa fa-leaf"/>
-                                            <t t-raw="record.risk_type.value"/>
-                                        </strong>
-                                        <br/>
-                                    </t>
-                                    <t t-else="record.risk_type.raw_value=='T'">
-                                        <strong>
-                                            <i class="text-danger fa fa-exclamation-triangle"/>
-                                            <t t-raw="record.risk_type.value"/>
-                                        </strong>
-                                        <br/>
-                                    </t>
                                     <field name="risk_info_id"/>
                                 </div>
                                 <div class="o_kanban_record_bottom">
@@ -1582,7 +1586,8 @@
                         </page>
                         <page name="eval_timeline" string="Timeline"
                               attrs="{'invisible': [('evaluation_ids', '=', False)]}">
-                            <field name="evaluation_ids" mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
+                            <field name="evaluation_ids"
+                                   mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
                         </page>
                     </notebook>
                 </sheet>
