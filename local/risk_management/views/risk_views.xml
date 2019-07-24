@@ -404,6 +404,20 @@
                             <div class="oe_kanban_content">
                                 <div class="o_kanbab_record_top">
                                     <div class="o_kanban_record_headings">
+                                        <t t-if="record.risk_type.raw_value=='O'">
+                                            <strong>
+                                                <i class="text-success fa fa-leaf"/>
+                                                <t t-raw="record.risk_type.value"/>
+                                            </strong>
+                                            <br/>
+                                        </t>
+                                        <t t-else="record.risk_type.raw_value=='T'">
+                                            <strong>
+                                                <i class="text-danger fa fa-exclamation-triangle"/>
+                                                <t t-raw="record.risk_type.value"/>
+                                            </strong>
+                                            <br/>
+                                        </t>
                                         <strong class="o_kanban_record_title">
                                             <field name="name"/>
                                         </strong>
@@ -436,25 +450,12 @@
                                     </div>
                                 </div>
                                 <div class="o_kanban_record_body">
-                                    <t t-if="record.risk_type.raw_value=='O'">
-                                        <strong>
-                                            <i class="text-success fa fa-leaf"/>
-                                            <t t-raw="record.risk_type.value"/>
-                                        </strong>
-                                        <br/>
-                                    </t>
-                                    <t t-else="record.risk_type.raw_value=='T'">
-                                        <strong>
-                                            <i class="text-danger fa fa-exclamation-triangle"/>
-                                            <t t-raw="record.risk_type.value"/>
-                                        </strong>
-                                        <br/>
-                                    </t>
                                     <field name="risk_info_id"/>
+                                    <field name="state" widget="label_selection"
+                                           options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                                 </div>
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
-                                        <field name="state"/>
                                         <field name="activity_ids" widget="kanban_activity"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
