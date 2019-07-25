@@ -59,7 +59,9 @@ class BusinessProcess(models.Model):
                                   'process.')
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
                              help='Is this a core business process? It is if it processes customer data.')
-    risk_treatment_project_id = fields.Many2one('project.project', string='Risk treatment project')
+    risk_treatment_project_id = fields.Many2one('project.project', string='Risk treatment project',
+                                                computed='_compute_project_id', store=True)
+
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange',
                                      domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
@@ -231,13 +233,22 @@ class BusinessProcess(models.Model):
         self.mapped('risk_ids').message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
         return super(BusinessProcess, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
 
-    @api.multi
-    def get_risk_treatment_project_id(self):
-        if not self.risk_treatment_project_id:
-            risk_treatment_project = self.env['project.project'].name_create(
-                'Treatment of risks related to %s process' % self.name)
-            self.risk_treatment_project_id = risk_treatment_project
-        return self.risk_treatment_project_id.exists().id
+    @api.depends('risk_ids')
+    def _compute_project_id(self):
+        """Adds a project to address process risks as soon as a risk is added to the process"""
+        for rec in self:
+            if rec.risk_ids.exists() and not rec.risk_treatment_project_id:
+                project = self.env['project.project']
+                risk_treatment_project = project.sudo().create({
+                    'name': 'Treatment of risks related to %s process' % self.name,
+                    'user_id': rec.responsible_id.id if rec.responsible_id else False
+                })
+                rec.risk_treatment_project_id = risk_treatment_project
+
+    @api.onchange('responsible_id')
+    def _onchange_responsible_id(self):
+        if self.risk_treatment_project_id:
+            self.risk_treatment_project_id = self.responsible_id
 
 
 class BaseProcessIO(models.AbstractModel):
