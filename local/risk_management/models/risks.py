@@ -5,6 +5,7 @@ import logging
 from odoo import models, fields, api, exceptions, _
 
 RISK_REPORT_DEFAULT_MAX_AGE = 90
+RISK_ACT_DELAY = 15
 RISK_EVALUATION_DEFAULT_MAX_AGE = 30
 
 _logger = logging.getLogger(__name__)
@@ -159,10 +160,21 @@ class BaseRiskIdentification(models.AbstractModel):
         default_review_date = create_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
+    @api.model
+    def _get_stage_select(self):
+        return [
+            ('1', 'Identification'),
+            ('2', 'Id. done'),
+            ('3', 'Evaluation'),
+            ('4', 'Eval. done'),
+            ('5', 'Ongoing treatment'),
+            ('6', 'Done')
+        ]
+
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
     name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
-                                 require=True, track_visibility="onchange")
+                                 require=True, track_visibility="onchange", states={'A': 'readonly', 'N': 'readonly'})
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Name')
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
                                      store=True)
@@ -174,6 +186,8 @@ class BaseRiskIdentification(models.AbstractModel):
     risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
     report_date = fields.Date(string='Reported On', default=lambda self: fields.Date.context_today(self))
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
+    is_confirmed = fields.Boolean('Confirmed', states={'A': 'readonly', 'N': 'readonly'},
+                                  groups=['risk_management.group_risk_manager'], track_visibility="onchange")
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True,
                                      track_visibility="onchange")
     latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True,
@@ -188,8 +202,8 @@ class BaseRiskIdentification(models.AbstractModel):
     state = fields.Selection(selection=[('U', 'Unknown status'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                              compute='_compute_status', string='Status', search='_search_status',
                              track_visibility="onchange")
-    mgt_stage = fields.Selection([('1', 'Identification done'), ('2', 'Evaluation done'), ('3', 'Ongoing treatment')],
-                                 compute='_compute_stage', string='Stage', store=True, track_visibility="onchange")
+    mgt_stage = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage',
+                                 store=True, track_visibility="onchange")
 
     @api.depends('uuid')
     def _compute_name(self):
@@ -225,6 +239,7 @@ class BaseRiskIdentification(models.AbstractModel):
     def _inverse_active(self):
         for rec in self.filtered('report_date'):
             rec.review_date = fields.Date.context_today(self)
+            rec.is_confirmed = False
 
     @api.multi
     def _search_active(self, operator, value):
@@ -256,7 +271,8 @@ class BaseRiskIdentification(models.AbstractModel):
         review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         self.sudo().write({'review_date': fields.Date.to_string(review_date),
                            'report_date': new_report_date,
-                           'reported_by': new_reporter})
+                           'reported_by': new_reporter,
+                           'is_confirmed': False})
 
     @api.multi
     def toggle_active(self):
@@ -370,39 +386,168 @@ class BusinessRisk(models.Model):
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
-    treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id', string='Treatment tasks')
-    treatment_task_id = fields.Many2one('project.task', compute='_compute_treatment_task_id',
-                                        inverse='_inverse_treatment_task_id')
-    treatment_task_count = fields.Integer(compute='_compute_treatment_task_count', string='Risk Treatment Tasks')
+    treatment_task_id = fields.Many2one('project.task', compute='_compute_treatment_task_id', store=True)
+    treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
+                                          store=True)
 
     @api.onchange('owner')
     def _onchange_owner(self):
         if self.treatment_task_id:
             self.treatment_task_id.user_id = self.owner
 
-    @api.depends('treatment_task_id')
-    def _compute_treatment_task_count(self):
-        for rec in self:
-            if rec.treatment_task_id:
-                rec.treatment_task_count = rec.treatment_task_id.subtask_count
-
-    @api.depends('latest_level_value', 'treatment_task_count')
+    @api.depends('active', 'is_confirmed', 'treatment_task_id', 'treatment_task_count', 'evaluation_ids')
     def _compute_stage(self):
-        for rec in self:
-            if rec.active and not rec.latest_level_value:
-                rec.mgt_stage = '1'
-            elif rec.latest_level_value and not rec.treatment_task_count:
-                rec.mgt_stage = '2'
-            elif rec.treatment_task_count:
-                rec.mgt_stage = '3'
-            else:
-                rec.mgt_stage = False
+        for risk in self:
+            up_to_date_evals = risk.evaluation_ids.filtered(lambda ev: not ev.is_obsolete)
+            valid_evals = up_to_date_evals.filtered('is_valid')
+            if not risk.active:
+                risk.mgt_stage = False
+            elif not risk.is_confirmed:
+                # risk has been reported but not confirmed
+                risk.mgt_stage = '1'  # still in identification stage
 
-    @api.depends('risk_treatment_task_ids')
+            elif not up_to_date_evals:
+                # risk has been confirmed but has not yet been evaluated
+                risk.mgt_stage = '2'  # done with risk identification
+
+            elif not valid_evals:
+                # there are evaluations of the risk but no valid one yet
+                risk.mgt_stage = '3'  # still in evaluation stage
+
+            elif not risk.treatment_task_id:
+                # there is at least one valid risk evaluation
+                risk.mgt_stage = '4'  # risk evaluation done
+
+            elif not risk.treatment_task_id.child_ids or risk.treatment_task_count:
+                # there is a ongoing risk treatment task
+                risk.mgt_stage = '5'  # ongoing risk treatment
+
+            elif risk.treatment_task_id.child_ids and not risk.treatment_task_count:
+                # risk treatment done
+                risk.mgt_stage = '6'
+
+    @api.onchange('mgt_stage')
+    def _onchange_mgt_stage(self):
+        activity = self.env['mail.activity']
+        act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+        act_deadline = fields.Date.to_string(act_deadline_date)
+
+        for risk in self:
+            if risk.mgt_stage == '1':
+                act_confirm = activity.search([
+                    ('res_id', '=', risk.id),
+                    ('summary', 'like', 'Check and confirm the existence of the risk')
+                ])
+                if not act_confirm:
+                    # next activity
+                    risk.sudo().write({
+                        "activity_ids": [(0, 0, {
+                            'res_id': risk.id,
+                            'res_model_id': self.env.ref(self._name),
+                            'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                            'summary': 'Check and confirm the existence of the risk',
+                            'date_deadline': act_deadline
+                        })]
+                    })
+            elif risk.mgt_stage == '2':
+                # closed preceding activity
+                activity.search([
+                    ('res_id', '=', risk.id),
+                    ('summary', 'like', 'Check and confirm the existence of the risk')
+                ]).action_feedback('<strong>Risk Confirmed</strong>')
+
+                act_assess = activity.search(['&',
+                                              ('res_id', '=', risk.id),
+                                              ('summary', 'like',
+                                               'Assess the probability of risk occurring and its possible impact,'
+                                               'as well as the company\'s ability to detect it should it occur.'),
+                                              ])
+                if not act_assess:
+                    # next activity
+                    risk.write({
+                        "activity_ids": [(0, 0, {
+                            'res_id': risk.id,
+                            'res_model_id': self.env.ref(self._name),
+                            'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                            'summary': 'Assess the probability of risk occurring and its possible impact,'
+                                       'as well as the company\'s ability to detect it should it occur.',
+                            'date_deadline': act_deadline
+                        })]
+                    })
+            elif risk.mgt_stage == '3':
+                act_valid = activity.search(['&',
+                                             ('res_id', '=', risk.id),
+                                             ('summary', 'like', 'Validate the risk assessment')
+                                             ])
+                if not act_valid:
+                    # next activity
+                    risk.write({
+                        "activity_ids": [(0, 0, {
+                            'res_id': risk.id,
+                            'res_model_id': self.env.ref(self._name),
+                            'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                            'summary': 'Validate the risk assessment',
+                            'date_deadline': act_deadline
+                        })]
+                    })
+            elif risk.mgt_stage == '4':
+                # closed preceding activities
+                activity.search(['&',
+                                 ('res_id', '=', risk.id),
+                                 '|',
+                                 ('summary', 'like', 'Validate the risk assessment'),
+                                 ('summary', 'like',
+                                  'Assess the probability of risk occurring and its possible impact,'
+                                  'as well as the company\'s ability to detect it should it occur.'),
+                                 ]).action_feedback('<strong>Risk evaluation done</strong>')
+
+                act_treat = activity.search([
+                    ('res_id', '=', risk.id),
+                    ('summary', 'like', 'Select and implement measures to modify risk')
+                ])
+                if not act_treat:
+                    # next activity
+                    if self.state == 'N':
+                        risk.write({
+                            "activity_ids": [(0, 0, {
+                                'res_id': risk.id,
+                                'res_model_id': self.env.ref(self._name),
+                                'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                                'summary': 'Select and implement measures to modify risk',
+                                'date_deadline': act_deadline
+                            })]
+                        })
+            elif risk.mgt_stage == '6':
+                # closed preceding activities
+                activity.search([
+                    ('res_id', '=', risk.id),
+                    ('summary', 'like', 'Select and implement measures to modify risk')
+                ]).action_feedback('<strong>Risk Risk treatment done</strong>')
+
+                act_reassess = activity.search([
+                    ('res_id', '=', risk.id),
+                    ('summary', 'like', 'Reassess the  risk to make sure that risk treatment has been effective')
+                ])
+                if not act_reassess:
+                    risk.write({
+                        "activity_ids": [(0, 0, {
+                            'res_id': risk.id,
+                            'res_model_id': self.env.ref(self._name),
+                            'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                            'summary': 'Reassess the  risk to make sure that risk treatment has been effective',
+                            'date_deadline': act_deadline
+                        })]
+                    })
+
+    @api.depends('state')
     def _compute_treatment_task_id(self):
+        """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """
         for rec in self:
-            if rec.treatment_task_ids:
-                rec.treatment_task_id = rec.treatment_task_ids[0]
+            if not rec.treatment_task_id:
+                rec.treatment_task_id = self.env['project.task'].create({
+                    'name': 'Treatment for %s' % rec.name,
+                    'project_id': rec.business_process_id.risk_treatment_project_id.id,
+                })
 
     @api.multi
     def _inverse_treatment_task_id(self):
@@ -446,10 +591,12 @@ class BusinessRisk(models.Model):
         self.ensure_one()
         if 'active' in init_values and self.active:
             return 'risk_management.mt_business_risk_new'
-        elif 'owner' in init_values and self.owner:
+        elif 'report_date' in init_values and self.report_date == fields.Date.today():
             return 'risk_management.mt_business_risk_new'
         elif 'state' in init_values:
             return 'risk_management.mt_business_risk_status'
+        elif 'mgt_stage' in init_values:
+            return 'risk_management.mt_business_risk_stage'
         return super(BusinessRisk, self)._track_subtype(init_values)
 
     @api.multi
@@ -479,6 +626,7 @@ class BaseEvaluation(models.AbstractModel):
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')
     eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on',
                             readonly=True)
+    is_valid = fields.Boolean('Valid', groups=['risk_management.group_manager'])
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):
