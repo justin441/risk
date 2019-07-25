@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!--    Risk Management activity type-->
+    <record id="risk_activity_to_do" model="mail.activity.type">
+        <field name="name">TODO</field>
+        <field name="summary">Next step in managing risk</field>
+        <field name="icon">fa-clipboard-list-check</field>
+        <field name="res_model_id" ref="risk_management.business_risk"/>
+        <field name="days">10</field>
+    </record>
+
     <!-- Business risk subtypes for messaging / Chatter -->
     <record id="mt_business_risk_new" model="mail.message.subtype">
         <field name="name">New Risk</field>
@@ -18,6 +27,15 @@
         <field name="internal" eval="True"/>
         <field name="hidden" eval="False"/>
         <field name="description">Risk status changed</field>
+    </record>
+
+    <record id="mt_business_risk_stage" model="mail.message.subtype">
+        <field name="name">Risk Stage Changed</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="default" eval="True"/>
+        <field name="internal" eval="True"/>
+        <field name="hidden" eval="False"/>
+        <field name="description">Risk management stage changed</field>
     </record>
 
     <record id="mt_business_risk_new_treatment_task" model="mail.message.subtype">
