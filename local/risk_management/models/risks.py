@@ -144,7 +144,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     _name = 'risk_management.risk_identification.mixin'
     _inherit = ['risk_management.risk_criteria.mixin', 'mail.thread', 'mail.activity.mixin']
     _mail_post_access = 'read'
-    _order = 'latest_level_value desc, report_date desc'
+    _order = 'priority desc, report_date desc'
 
     def _compute_default_review_date(self):
 
