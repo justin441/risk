@@ -34,8 +34,8 @@ class RiskCategory(models.Model):
 
     @api.multi
     def _compute_risk_count(self):
-        for rec in self:
-            rec.risk_count = len(rec.risk_info_ids)
+        for category in self:
+            category.risk_count = len(category.risk_info_ids)
 
 
 class RiskInfo(models.Model):
@@ -60,8 +60,6 @@ class RiskInfo(models.Model):
     action = fields.Html(translate=True, string='Action / Hedging policy', groups='risk_management.group_risk_manager')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
-    project_risk_ids = fields.One2many(comodel_name='risk_management.project_risk', inverse_name='risk_info_id',
-                                       string='Occurrence (Projects)')
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
     project_occurrences = fields.Integer(string="Occurrences in Projects", compute="_compute_project_occurrences")
 
@@ -76,17 +74,12 @@ class RiskInfo(models.Model):
 
     @api.multi
     def _compute_business_occurrences(self):
-        for rec in self:
-            rec.business_occurrences = len(rec.business_risk_ids)
-
-    @api.multi
-    def _compute_project_occurrences(self):
-        for rec in self:
-            rec.project_occurrences = len(rec.project_risk_ids)
+        for risk in self:
+            risk.business_occurrences = len(risk.business_risk_ids)
 
 
-class BaseRiskCriteria(models.AbstractModel):
-    _name = 'risk_management.base_criteria'
+class RiskCriteriaMixin(models.AbstractModel):
+    _name = 'risk_management.risk_criteria.mixin'
 
     @api.model
     def _get_detectability(self):
@@ -147,9 +140,9 @@ class BaseRiskCriteria(models.AbstractModel):
                 rec.value_opportunity = False
 
 
-class BaseRiskIdentification(models.AbstractModel):
-    _name = 'risk_management.base_identification'
-    _inherit = ['risk_management.base_criteria', 'mail.thread', 'mail.activity.mixin']
+class RiskIdentificationMixin(models.AbstractModel):
+    _name = 'risk_management.risk_identification.mixin'
+    _inherit = ['risk_management.risk_criteria.mixin', 'mail.thread', 'mail.activity.mixin']
     _mail_post_access = 'read'
     _order = 'latest_level_value desc, report_date desc'
 
@@ -204,6 +197,13 @@ class BaseRiskIdentification(models.AbstractModel):
                              track_visibility="onchange")
     mgt_stage = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage',
                                  store=True, track_visibility="onchange")
+    priority = fields.Char('Priority', compute='_compute_priority', store=True)
+
+    @api.depends('latest_level_value')
+    def _compute_priority(self):
+        for risk in self:
+            index = self.sorted('latest_level_value', reverse=True).index(risk)
+            risk.priority = '#' + str(index)
 
     @api.depends('uuid')
     def _compute_name(self):
@@ -374,7 +374,7 @@ class BaseRiskIdentification(models.AbstractModel):
 class BusinessRisk(models.Model):
     _name = 'risk_management.business_risk'
     _description = 'Business risk'
-    _inherit = ['risk_management.base_identification']
+    _inherit = ['risk_management.risk_identification.mixin']
     _sql_constraints = [
         (
             'unique_risk_process',
@@ -398,7 +398,8 @@ class BusinessRisk(models.Model):
     @api.depends('active', 'is_confirmed', 'treatment_task_id', 'treatment_task_count', 'evaluation_ids')
     def _compute_stage(self):
         for risk in self:
-            up_to_date_evals = risk.evaluation_ids.filtered(lambda ev: not ev.is_obsolete)
+            up_to_date_evals = risk.evaluation_ids.filtered(
+                lambda ev: not ev.is_obsolete) if risk.evaluation_ids else False
             valid_evals = up_to_date_evals.filtered('is_valid')
             if not risk.active:
                 risk.mgt_stage = False
@@ -408,7 +409,7 @@ class BusinessRisk(models.Model):
 
             elif not up_to_date_evals:
                 # risk has been confirmed but has not yet been evaluated
-                risk.mgt_stage = '2'  # done with risk identification
+                risk.mgt_stage = '2'  # risk identification completed
 
             elif not valid_evals:
                 # there are evaluations of the risk but no valid one yet
@@ -416,7 +417,7 @@ class BusinessRisk(models.Model):
 
             elif not risk.treatment_task_id:
                 # there is at least one valid risk evaluation
-                risk.mgt_stage = '4'  # risk evaluation done
+                risk.mgt_stage = '4'  # rRisk evaluation completed
 
             elif not risk.treatment_task_id.child_ids or risk.treatment_task_count:
                 # there is a ongoing risk treatment task
@@ -444,13 +445,13 @@ class BusinessRisk(models.Model):
                         "activity_ids": [(0, 0, {
                             'res_id': risk.id,
                             'res_model_id': self.env.ref(self._name),
-                            'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                            'activity_type_id': self.env.ref('risk_management.risk_activity_todo'),
                             'summary': 'Check and confirm the existence of the risk',
                             'date_deadline': act_deadline
                         })]
                     })
             elif risk.mgt_stage == '2':
-                # closed preceding activity
+                # close preceding activity
                 activity.search([
                     ('res_id', '=', risk.id),
                     ('summary', 'like', 'Check and confirm the existence of the risk')
@@ -491,7 +492,7 @@ class BusinessRisk(models.Model):
                         })]
                     })
             elif risk.mgt_stage == '4':
-                # closed preceding activities
+                # close preceding activities
                 activity.search(['&',
                                  ('res_id', '=', risk.id),
                                  '|',
@@ -518,7 +519,7 @@ class BusinessRisk(models.Model):
                             })]
                         })
             elif risk.mgt_stage == '6':
-                # closed preceding activities
+                # close preceding activities
                 activity.search([
                     ('res_id', '=', risk.id),
                     ('summary', 'like', 'Select and implement measures to modify risk')
@@ -608,12 +609,19 @@ class BusinessRisk(models.Model):
 
         return groups
 
+    @api.model
+    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
+        user_field_lst = super(BusinessRisk, self)._message_get_auto_subscribe_fields(updated_fields,
+                                                                                         auto_follow_fields=None)
+        user_field_lst.append('owner')
+        return user_field_lst
+
 
 # -------------------------------------- Risk evaluation ----------------------------------
 
 
-class BaseEvaluation(models.AbstractModel):
-    _name = 'risk_management.base_evaluation'
+class RiskEvaluationMixin(models.AbstractModel):
+    _name = 'risk_management.risk_evaluation.mixin'
     _inherit = ['risk_management.base_criteria']
     _order = 'create_date desc'
 
@@ -667,7 +675,7 @@ class BaseEvaluation(models.AbstractModel):
 class BusinessRiskEvaluation(models.Model):
     _name = 'risk_management.business_risk.evaluation'
     _description = 'Business risk evaluation'
-    _inherit = ['risk_management.base_evaluation']
+    _inherit = ['risk_management.risk_evaluation.mixin']
 
     business_risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk', required=True)
     risk_type = fields.Selection(related='business_risk_id.risk_type', readonly=True)
@@ -676,7 +684,7 @@ class BusinessRiskEvaluation(models.Model):
 
     @api.model
     def create(self, vals):
-        same_day = self.env['risk_management.business_risk.evaluation'].search([
+        same_day = self.search([
             ('eval_date', '=', fields.Date.context_today(self)),
             ('business_risk_id', '=', vals['business_risk_id'])
         ])
