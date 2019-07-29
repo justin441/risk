@@ -334,17 +334,19 @@
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
             <search>
-                <field name="risk_info_id"/>
                 <field name="business_process_id"/>
+                <field name="risk_info_id"/>
                 <field name="risk_info_description"/>
                 <field name="risk_info_cause"/>
                 <field name="risk_info_consequence"/>
+                <filter name="evaluated" string="Evaluated" domain="[('latest_level_value', '!=', False)]"/>
                 <filter name="my_reported" string="Reported by me" domain="[('reported_by', '=', uid)]"/>
                 <filter name="my_assigned" string="Assigned to me" domain="[('owner', '=', uid)]"/>
                 <filter name="my_followed" string="Followed by Me" domain="[('message_is_follower','=',True)]"/>
                 <filter name="unassigned" string="Unassigned" domain="[('owner', '=', False)]"/>
+                <filter name="unconfirmed" string="waiting for confirmation" domain="[('is_confirmed', '=', False)]"/>
                 <separator/>
-                <filter name="inactive" string="Latent" domain="[('active', '=', 0)]"/>
+                <filter name="inactive" string="Latent" domain="[('active', '=', 0)]" groups="risk_management.group_risk_manager"/>
                 <separator/>
                 <filter name="threats" string="ThreatS" domain="[('risk_type', '=', 'T')]"/>
                 <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
@@ -366,19 +368,19 @@
         <field name="name">business_risk.list</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
-            <tree create="false" decoration-muted="active==False"
-                  decoration-info="active==True and state=='U'" decoration-danger="state=='N'"
-                  decoration-bf="state=='N' or state=='A'" decoration-success="state=='A'"
+            <tree decoration-muted="active==False or is_confirmed=False"
+                  decoration-info="is_confirmed=True and state=='U'"
+                  decoration-danger="state=='N'"
+                  decoration-bf="state=='N'" decoration-success="state=='A'"
             >
+                <field name="priority"/>
                 <field name="risk_info_id"/>
-                <field name="owner"/>
+                <field name="business_process_id" invisible="context.get('search_default_business_process_id', False)"/>
                 <field name="report_date"/>
+                <field name="priority"/>
                 <field name="state" invisible="1"/>
                 <field name="active" invisible="1"/>
-                <field name="business_process_id" invisible="context.get('search_default_business_process_id', False)"/>
-                <field name="review_date"/>
-                <field name="threshold_value"/>
-                <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', False)] }"/>
+
             </tree>
         </field>
     </record>
@@ -479,7 +481,7 @@
         <field name="model">risk_management.business_risk</field>
         <field eval="2" name="priority"/>
         <field name="arch" type="xml">
-            <calendar date_start="review_date" string="Risks" mode="month" color="owner">
+            <calendar date_start="review_date" string="Risks" mode="month" color="business_process_id">
                 <field name="name"/>
             </calendar>
         </field>
@@ -621,9 +623,7 @@
         <field name="search_view_id" ref="view_business_risk_search"/>
         <field name="context">
             {
-            'search_default_my_assigned':1,
-            'search_default_my_reported':1,
-            'search_default_my_followed':1,
+            'search_default_evaluated':1,
             }
         </field>
         <field name="help" type="html">
