@@ -202,7 +202,8 @@ class RiskIdentificationMixin(models.AbstractModel):
     @api.depends('latest_level_value')
     def _compute_priority(self):
         for risk in self:
-            index = self.sorted('latest_level_value', reverse=True).index(risk)
+            index = list(self.with_context(active_test=False).sorted('latest_level_value', reverse=True)).index(
+                risk) + 1
             risk.priority = '#' + str(index)
 
     @api.depends('uuid')
@@ -612,7 +613,7 @@ class BusinessRisk(models.Model):
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
         user_field_lst = super(BusinessRisk, self)._message_get_auto_subscribe_fields(updated_fields,
-                                                                                         auto_follow_fields=None)
+                                                                                      auto_follow_fields=None)
         user_field_lst.append('owner')
         return user_field_lst
 
