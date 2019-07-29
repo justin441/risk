@@ -262,7 +262,7 @@ class RiskIdentificationMixin(models.AbstractModel):
         return [('id', 'in', [rec.id for rec in recs])]
 
     @api.multi
-    def update_id_info(self, report_date=None, reporter=None):
+    def update_report(self, report_date=None, reporter=None):
         """Reactivate an old risk when it's re-reported"""
         self.ensure_one()
         if self.active:
@@ -281,7 +281,7 @@ class RiskIdentificationMixin(models.AbstractModel):
             if rec.active:
                 rec._inverse_active()
             else:
-                rec.update_id_info()
+                rec.update_report()
 
     @api.depends('active', 'latest_level_value', 'threshold_value')
     def _compute_status(self):
@@ -617,6 +617,23 @@ class BusinessRisk(models.Model):
         user_field_lst.append('owner')
         return user_field_lst
 
+    @api.model
+    def create(self, vals):
+        # context: no_log, because subtype already handle this
+        context = dict(self.env.context, mail_create_nolog=True)
+        existing = self.env['risk_management.business_risk'].search(
+            [('active', '=', True), ('risk_info_id', '=', vals.get('risk_info_id', False)),
+             ('business_process_id', '=', vals.get('business_process_id', False)),
+             ('risk_type', '=', vals.get('risk_type', False))])
+        if existing:
+            existing.exists()[0].update_report()
+            return existing.exists()[0].id
+        else:
+            if vals.get('business_process_id') and not context.get('default_business_process_id'):
+                context['default_business_process_id'] = vals.get('business_process_id')
+        risk = super(BusinessRisk, self).create(vals)
+        return risk
+
 
 # -------------------------------------- Risk evaluation ----------------------------------
 
@@ -685,7 +702,7 @@ class BusinessRiskEvaluation(models.Model):
 
     @api.model
     def create(self, vals):
-        same_day = self.search([
+        same_day = self.env['risk_management.business_risk.evaluation'].search([
             ('eval_date', '=', fields.Date.context_today(self)),
             ('business_risk_id', '=', vals['business_risk_id'])
         ])
