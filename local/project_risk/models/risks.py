@@ -4,7 +4,7 @@ from odoo import models, fields, api, _
 
 
 class ProjectRisk(models.Model):
-    _inherit = 'risk_management.base_identification'
+    _inherit = 'risk_management.risk_identification.mixin'
     _name = 'project_risk.risk'
     _description = 'Project Risk'
 
@@ -75,7 +75,7 @@ class ProjectRisk(models.Model):
 
 
 class ProjectRiskEvaluation(models.Model):
-    _inherit = ['risk_management.base_evaluation']
+    _inherit = ['risk_management.risk_evaluation.mixin']
     _name = 'project_risk.evaluation'
     _description = 'Project Risk Evaluation'
 
