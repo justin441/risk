@@ -202,7 +202,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     @api.depends('latest_level_value')
     def _compute_priority(self):
         for risk in self:
-            index = list(self.with_context(active_test=False).sorted('latest_level_value', reverse=True)).index(
+            index = list(self.search([]).sorted('latest_level_value', reverse=True)).index(
                 risk) + 1
             risk.priority = '#' + str(index)
 
