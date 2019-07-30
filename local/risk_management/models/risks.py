@@ -183,10 +183,11 @@ class RiskIdentificationMixin(models.AbstractModel):
                                   groups=['risk_management.group_risk_manager'], track_visibility="onchange")
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True,
                                      track_visibility="onchange")
-    latest_level_value = fields.Integer(compute='_compute_latest_level_value', string='Risk Level', store=True,
+    latest_level_value = fields.Integer(compute='_compute_latest_eval', string='Risk Level', store=True,
                                         track_visibility="onchange")
+    last_evaluator_id = fields.Many2one('res.users', compute='_compute_latest_eval', string='Evaluated by')
     max_level_value = fields.Integer(default=125, readonly=True, string='Max. Level')
-    last_evaluate_date = fields.Date(compute='_compute_last_evaluate_date', string='Last Evaluation Date')
+    last_evaluate_date = fields.Date(compute='_compute_latest_eval', string='Last Evaluation Date')
     review_date = fields.Date(default=_compute_default_review_date, string="Review Date", track_visibility="onchange")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
                             track_visibility="onchange")
@@ -202,8 +203,8 @@ class RiskIdentificationMixin(models.AbstractModel):
     @api.depends('latest_level_value')
     def _compute_priority(self):
         for risk in self:
-            index = list(self.search([]).sorted('latest_level_value', reverse=True)).index(
-                risk) + 1
+            risks = self.search([]).sorted(lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True)
+            index = list(risks).index(risk) + 1
             risk.priority = '#' + str(index)
 
     @api.depends('uuid')
@@ -218,15 +219,6 @@ class RiskIdentificationMixin(models.AbstractModel):
                 rec.threshold_value = rec.value_threat
             elif rec.risk_type == 'O':
                 rec.threshold_value = rec.value_opportunity
-
-    @api.depends('evaluation_ids')
-    def _compute_last_evaluate_date(self):
-        for rec in self:
-            if not rec.evaluation_ids:
-                rec.last_evaluate_date = False
-            else:
-                last_evaluation = rec.evaluation_ids.sorted()[0]
-                rec.last_evaluate_date = last_evaluation.eval_date
 
     @api.depends('review_date')
     def _compute_active(self):
@@ -261,136 +253,6 @@ class RiskIdentificationMixin(models.AbstractModel):
                 recs = recs.search([('review_date', '>', today)])
         return [('id', 'in', [rec.id for rec in recs])]
 
-    @api.multi
-    def update_report(self, report_date=None, reporter=None):
-        """Reactivate an old risk when it's re-reported"""
-        self.ensure_one()
-        if self.active:
-            return
-        new_report_date = report_date or fields.Date.context_today(self)
-        new_reporter = reporter or self.env.user.id
-        review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
-        self.sudo().write({'review_date': fields.Date.to_string(review_date),
-                           'report_date': new_report_date,
-                           'reported_by': new_reporter,
-                           'is_confirmed': False})
-
-    @api.multi
-    def toggle_active(self):
-        for rec in self:
-            if rec.active:
-                rec._inverse_active()
-            else:
-                rec.update_report()
-
-    @api.depends('active', 'latest_level_value', 'threshold_value')
-    def _compute_status(self):
-        for rec in self:
-            if rec.active and rec.latest_level_value and rec.threshold_value:
-                if rec.risk_type == 'T':
-                    if rec.latest_level_value <= rec.threshold_value:
-                        rec.state = 'A'
-                    else:
-                        rec.state = 'N'
-                elif rec.risk_type == 'O':
-                    if rec.latest_level_value < rec.threshold_value:
-                        rec.state = 'N'
-                    else:
-                        rec.state = 'A'
-            else:
-                rec.state = 'U'
-
-    def _search_status(self, operator, value):
-        recs = self.with_context(active_test=False)
-
-        def acceptable(rec):
-            # is the risk acceptable?
-            if rec.risk_type == 'T':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value <= rec.threshold_value
-            elif rec.risk_type == 'O':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value <= rec.latest_level_value
-
-        def unacceptable(rec):
-            # is the risk unacceptable?
-            if rec.risk_type == 'T':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value > rec.threshold_value
-            elif rec.risk_type == 'O':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value > rec.latest_level_value
-
-        def unknown_status(rec):
-            # is the risk status unknown?
-            return not rec.active or not rec.latest_level_value or not rec.threshold_value
-
-        if operator not in ('=', '!=') or value not in ('A', 'N', 'U'):
-            recs = recs.search([])
-        else:
-            if operator == '=':
-                if value == 'A':
-                    recs = recs.filtered(acceptable)
-                elif value == 'N':
-                    recs = recs.filtered(unacceptable)
-                elif value == 'U':
-                    recs = recs.filtered(unknown_status)
-            if operator == '!=':
-                if value == 'A':
-                    recs = recs.filtered(unacceptable) | recs.filtered(unknown_status)
-                elif value == 'N':
-                    recs = recs.filtered(acceptable) | recs.filtered(unknown_status)
-                elif value == 'U':
-                    recs = recs.filtered(acceptable) | recs.filtered(unacceptable)
-
-        return [('id', 'in', [rec.id for rec in recs])]
-
-    def assign_to_me(self):
-        self.sudo().write({'owner': self.env.user.id})
-
-    @api.depends('evaluation_ids')
-    def _compute_latest_level_value(self):
-        for rec in self:
-            if not rec.evaluation_ids.exists():
-                rec.latest_level_value = False
-            else:
-                # get the latest evaluation
-                latest_evaluation = rec.evaluation_ids.sorted()[0]
-                if latest_evaluation.is_obsolete:
-                    rec.latest_level_value = False
-                elif rec.risk_type == 'T':
-                    rec.latest_level_value = latest_evaluation.value_threat
-                elif rec.risk_type == 'O':
-                    rec.latest_level_value = latest_evaluation.value_opportunity
-
-    @api.constrains('report_date', 'review_date')
-    def _check_review_after_report(self):
-        for rec in self:
-            if (rec.review_date and rec.report_date) and (rec.review_date < rec.report_date):
-                raise exceptions.ValidationError('Review date must be after report date')
-
-    @api.constrains('report_date', 'create_date')
-    def _check_report_date_post_create_date(self):
-        for rec in self:
-            if rec.report_date and rec.create_date < rec.report_date:
-                raise exceptions.ValidationError('Report date must post or same as create date')
-
-
-class BusinessRisk(models.Model):
-    _name = 'risk_management.business_risk'
-    _description = 'Business risk'
-    _inherit = ['risk_management.risk_identification.mixin']
-    _sql_constraints = [
-        (
-            'unique_risk_process',
-            'UNIQUE(risk_info_id, business_process_id, risk_type)',
-            'This risk has already been reported.'
-        )
-    ]
-
-    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process')
-    evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
-                                     inverse_name='business_risk_id')
-    treatment_task_id = fields.Many2one('project.task', compute='_compute_treatment_task_id', store=True)
-    treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
-                                          store=True)
-
     @api.onchange('owner')
     def _onchange_owner(self):
         if self.treatment_task_id:
@@ -418,10 +280,10 @@ class BusinessRisk(models.Model):
 
             elif not risk.treatment_task_id:
                 # there is at least one valid risk evaluation
-                risk.mgt_stage = '4'  # rRisk evaluation completed
+                risk.mgt_stage = '4'  # Risk evaluation completed
 
-            elif not risk.treatment_task_id.child_ids or risk.treatment_task_count:
-                # there is a ongoing risk treatment task
+            elif risk.treatment_task_count:
+                # there is at least one ongoing risk treatment task
                 risk.mgt_stage = '5'  # ongoing risk treatment
 
             elif risk.treatment_task_id.child_ids and not risk.treatment_task_count:
@@ -541,23 +403,151 @@ class BusinessRisk(models.Model):
                         })]
                     })
 
-    @api.depends('state')
+    @api.multi
+    def update_report(self, report_date=None, reporter=None):
+        """Reactivate an old risk when it's re-reported"""
+        self.ensure_one()
+        if self.active:
+            return
+        new_report_date = report_date or fields.Date.context_today(self)
+        new_reporter = reporter or self.env.user.id
+        review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
+        self.sudo().write({'review_date': fields.Date.to_string(review_date),
+                           'report_date': new_report_date,
+                           'reported_by': new_reporter,
+                           'is_confirmed': False})
+
+    @api.multi
+    def toggle_active(self):
+        for rec in self:
+            if rec.active:
+                rec._inverse_active()
+            else:
+                rec.update_report()
+
+    @api.depends('active', 'latest_level_value', 'threshold_value')
+    def _compute_status(self):
+        for rec in self:
+            if rec.active and rec.latest_level_value and rec.threshold_value:
+                if rec.risk_type == 'T':
+                    if rec.latest_level_value <= rec.threshold_value:
+                        rec.state = 'A'
+                    else:
+                        rec.state = 'N'
+                elif rec.risk_type == 'O':
+                    if rec.latest_level_value < rec.threshold_value:
+                        rec.state = 'N'
+                    else:
+                        rec.state = 'A'
+            else:
+                rec.state = 'U'
+
+    def _search_status(self, operator, value):
+        recs = self.with_context(active_test=False)
+
+        def acceptable(rec):
+            # is the risk acceptable?
+            if rec.risk_type == 'T':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value <= rec.threshold_value
+            elif rec.risk_type == 'O':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value <= rec.latest_level_value
+
+        def unacceptable(rec):
+            # is the risk unacceptable?
+            if rec.risk_type == 'T':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value > rec.threshold_value
+            elif rec.risk_type == 'O':
+                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value > rec.latest_level_value
+
+        def unknown_status(rec):
+            # is the risk status unknown?
+            return not rec.active or not rec.latest_level_value or not rec.threshold_value
+
+        if operator not in ('=', '!=') or value not in ('A', 'N', 'U'):
+            recs = recs.search([])
+        else:
+            if operator == '=':
+                if value == 'A':
+                    recs = recs.filtered(acceptable)
+                elif value == 'N':
+                    recs = recs.filtered(unacceptable)
+                elif value == 'U':
+                    recs = recs.filtered(unknown_status)
+            if operator == '!=':
+                if value == 'A':
+                    recs = recs.filtered(unacceptable) | recs.filtered(unknown_status)
+                elif value == 'N':
+                    recs = recs.filtered(acceptable) | recs.filtered(unknown_status)
+                elif value == 'U':
+                    recs = recs.filtered(acceptable) | recs.filtered(unacceptable)
+
+        return [('id', 'in', [rec.id for rec in recs])]
+
+    def assign_to_me(self):
+        self.sudo().write({'owner': self.env.user.id})
+
+    @api.depends('evaluation_ids')
+    def _compute_latest_eval(self):
+        for rec in self:
+            if not rec.evaluation_ids.exists():
+                rec.latest_level_value = False
+                rec.last_evaluate_date = False
+                rec.last_evaluator_id = False
+            else:
+                # get the latest evaluation
+                latest_evaluation = rec.evaluation_ids.sorted()[0]
+                rec.last_evaluate_date = latest_evaluation.eval_date
+                rec.last_evaluator_id = latest_evaluation.create_uid
+                if latest_evaluation.is_obsolete:
+                    rec.latest_level_value = False
+                elif rec.risk_type == 'T':
+                    rec.latest_level_value = latest_evaluation.value_threat
+                elif rec.risk_type == 'O':
+                    rec.latest_level_value = latest_evaluation.value_opportunity
+
+    @api.constrains('report_date', 'review_date')
+    def _check_review_after_report(self):
+        for rec in self:
+            if (rec.review_date and rec.report_date) and (rec.review_date < rec.report_date):
+                raise exceptions.ValidationError('Review date must be after report date')
+
+    @api.constrains('report_date', 'create_date')
+    def _check_report_date_post_create_date(self):
+        for rec in self:
+            if rec.report_date and rec.create_date < rec.report_date:
+                raise exceptions.ValidationError('Report date must post or same as create date')
+
+
+class BusinessRisk(models.Model):
+    _name = 'risk_management.business_risk'
+    _description = 'Business risk'
+    _inherit = ['risk_management.risk_identification.mixin']
+    _sql_constraints = [
+        (
+            'unique_risk_process',
+            'UNIQUE(risk_info_id, business_process_id, risk_type)',
+            'This risk has already been reported.'
+        )
+    ]
+
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process',
+                                          states={'A': 'readonly', 'N': 'readonly'})
+    evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
+                                     inverse_name='business_risk_id')
+    treatment_task_id = fields.Many2one('project.task', compute='_compute_treatment_task_id', store=True)
+    treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
+                                          store=True)
+
+    @api.depends('state', 'mgt_stage')
     def _compute_treatment_task_id(self):
         """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """
         for rec in self:
-            if not rec.treatment_task_id:
-                rec.treatment_task_id = self.env['project.task'].create({
-                    'name': 'Treatment for %s' % rec.name,
-                    'project_id': rec.business_process_id.risk_treatment_project_id.id,
-                })
-
-    @api.multi
-    def _inverse_treatment_task_id(self):
-        for rec in self:
-            if rec.treatment_task_ids:
-                task = self.env['project.task'].browse(rec.treatment_task_ids[0].id)
-                task.unlink()
-            rec.treatment_task_id.business_risk_id = rec
+            if rec.mgt_stage >= '4' and rec.state == 'N':
+                if not rec.treatment_task_id:
+                    rec.treatment_task_id = self.env['project.task'].create({
+                        'name': 'Treatment for %s' % rec.name,
+                        'project_id': rec.business_process_id.risk_treatment_project_id.id,
+                    })
 
     @api.multi
     def get_treatments_view(self):
