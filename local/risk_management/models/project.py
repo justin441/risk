@@ -36,26 +36,13 @@ class Project(models.Model):
 class Task(models.Model):
     _inherit = 'project.task'
 
-    def _get_default_project_risk(self):
-        default_risk_id = self.env.context.get('default_risk_id')
-        risk_model = self.env.context.get('risk_model')
-        if default_risk_id and risk_model == 'risk_management.project_risk':
-            risk = self.env[risk_model].browse(default_risk_id)
-            if risk:
-                return risk.exists()
-
     def _get_default_business_risk(self):
-        default_risk_id = self.env.context.get('default_risk_id')
-        risk_model = self.env.context.get('risk_model')
-        if default_risk_id and risk_model == 'risk_management.business_risk':
-            risk = self.env[risk_model].browse(default_risk_id)
+        default_risk_id = self.env.context.get('default_business_risk_id')
+        if default_risk_id:
+            risk = self.env['risk_management.business_risk'].browse(default_risk_id)
             if risk:
                 return risk.exists()
-        elif self.project_id:
-            return self.project_id.risk_id
 
-    project_risk_id = fields.Many2one(comodel_name='risk_management.project_risk', string='Project Risk',
-                                      default=_get_default_project_risk)
     business_risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Business Risk',
                                        default=_get_default_business_risk)
     target_criterium = fields.Selection(selection=[('D', 'Detectability'), ('O', 'Occurrence'), ('S', 'Severity')],
