@@ -21,7 +21,6 @@ class ProjectRiskEvalWizard(models.TransientModel):
     latest_eval = fields.Many2one('project_risk.evaluation', compute='_compute_latest_eval')
     threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
     latest_level = fields.Integer('Current Level', related='risk_id.latest_level_value')
-    risk_eval_model = fields.Char('Evaluation Model', default='risk_management.project_risk.evaluation', readonly=True)
     latest_level_date = fields.Date('Last evaluated on', related='risk_id.last_evaluate_date', readonly=True)
     comment = fields.Html(string='Comments', related='latest_eval.comment')
 

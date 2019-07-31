@@ -104,21 +104,20 @@ class BaseRiskLevelWizard(models.AbstractModel):
     @api.multi
     def set_value(self):
         # Get risk evaluation model
-        risk_eval_model = self.env[self.risk_eval_model]
         for wizard in self:
             review_date = wizard.review_date
             detectability = wizard.detectability
             occurrence = wizard.occurrence
             severity = wizard.severity
             comment = wizard.comment
-            risk_id = self.risk_id.id
-            risk_eval_model.create({
-                'review_date': review_date,
-                'detectability': detectability,
-                'occurrence': occurrence,
-                'severity': severity,
-                'comment': comment,
-                'risk_id': risk_id
+            self.risk_id.write({
+                'evaluation_ids': [(0, 0, {
+                    'review_date': review_date,
+                    'detectability': detectability,
+                    'occurrence': occurrence,
+                    'severity': severity,
+                    'comment': comment,
+                })]
             })
 
     @api.onchange('detectability', 'occurrence', 'severity')
@@ -158,7 +157,6 @@ class BusinessRiskEvalWizard(models.TransientModel):
     latest_eval = fields.Many2one('risk_management.business_risk.evaluation', compute='_compute_latest_eval')
     threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
     latest_level = fields.Integer('Current Level', related='risk_id.latest_level_value')
-    risk_eval_model = fields.Char('Evaluation Model', default='risk_management.business_risk.evaluation', readonly=True)
     latest_level_date = fields.Date('Last evaluated on', related='risk_id.last_evaluate_date', readonly=True)
     comment = fields.Html(string='Comments', related='latest_eval.comment')
 
