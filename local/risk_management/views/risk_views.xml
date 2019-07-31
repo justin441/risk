@@ -536,7 +536,7 @@
                                     type="object"
                                     class="oe_stat_button"
                                     icon="fa-tasks"
-                                    attrs="{'invisible': [('mgt_stage', '<', '4')]}"
+                                    attrs="{'invisible': [('treatment_task_id', '=', 'False')]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
