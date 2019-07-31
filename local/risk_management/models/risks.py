@@ -296,112 +296,111 @@ class RiskIdentificationMixin(models.AbstractModel):
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
 
-        for risk in self:
-            if risk.mgt_stage == '1':
-                act_confirm = activity.search([
-                    ('res_id', '=', risk.id),
-                    ('summary', 'like', 'Check and confirm the existence of the risk')
-                ])
-                if not act_confirm:
-                    # next activity
-                    risk.sudo().write({
-                        "activity_ids": [(0, 0, {
-                            'res_id': risk.id,
-                            'res_model_id': self.env.ref(self._name),
-                            'activity_type_id': self.env.ref('risk_management.risk_activity_todo'),
-                            'summary': 'Check and confirm the existence of the risk',
-                            'date_deadline': act_deadline
-                        })]
-                    })
-            elif risk.mgt_stage == '2':
-                # close preceding activity
-                activity.search([
-                    ('res_id', '=', risk.id),
-                    ('summary', 'like', 'Check and confirm the existence of the risk')
-                ]).action_feedback('<strong>Risk Confirmed</strong>')
+        if self.mgt_stage == '1':
+            act_confirm = activity.search([
+                ('res_id', '=', self.id),
+                ('summary', 'like', 'Check and confirm the existence of the risk')
+            ])
+            if not act_confirm:
+                # next activity
+                self.sudo().write({
+                    "activity_ids": [(0, 0, {
+                        'res_id': self.id,
+                        'res_model_id': self.env.ref(self._name),
+                        'activity_type_id': self.env.ref('risk_management.risk_activity_todo'),
+                        'summary': 'Check and confirm the existence of the risk',
+                        'date_deadline': act_deadline
+                    })]
+                })
+        elif self.mgt_stage == '2':
+            # close preceding activity
+            activity.search([
+                ('res_id', '=', self.id),
+                ('summary', 'like', 'Check and confirm the existence of the risk')
+            ]).action_feedback('<strong>Risk Confirmed</strong>')
 
-                act_assess = activity.search(['&',
-                                              ('res_id', '=', risk.id),
-                                              ('summary', 'like',
-                                               'Assess the probability of risk occurring and its possible impact,'
-                                               'as well as the company\'s ability to detect it should it occur.'),
-                                              ])
-                if not act_assess:
-                    # next activity
-                    risk.write({
+            act_assess = activity.search(['&',
+                                          ('res_id', '=', self.id),
+                                          ('summary', 'like',
+                                           'Assess the probability of risk occurring and its possible impact,'
+                                           'as well as the company\'s ability to detect it should it occur.'),
+                                          ])
+            if not act_assess:
+                # next activity
+                self.write({
+                    "activity_ids": [(0, 0, {
+                        'res_id': self.id,
+                        'res_model_id': self.env.ref(self._name),
+                        'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                        'summary': 'Assess the probability of risk occurring and its possible impact,'
+                                   'as well as the company\'s ability to detect it should it occur.',
+                        'date_deadline': act_deadline
+                    })]
+                })
+        elif self.mgt_stage == '3':
+            act_valid = activity.search(['&',
+                                         ('res_id', '=', self.id),
+                                         ('summary', 'like', 'Validate the risk assessment')
+                                         ])
+            if not act_valid:
+                # next activity
+                self.write({
+                    "activity_ids": [(0, 0, {
+                        'res_id': self.id,
+                        'res_model_id': self.env.ref(self._name),
+                        'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                        'summary': 'Validate the risk assessment',
+                        'date_deadline': act_deadline
+                    })]
+                })
+        elif self.mgt_stage == '4':
+            # close preceding activities
+            activity.search(['&',
+                             ('res_id', '=', self.id),
+                             '|',
+                             ('summary', 'like', 'Validate the risk assessment'),
+                             ('summary', 'like',
+                              'Assess the probability of risk occurring and its possible impact,'
+                              'as well as the company\'s ability to detect it should it occur.'),
+                             ]).action_feedback('<strong>Risk evaluation done</strong>')
+
+            act_treat = activity.search([
+                ('res_id', '=', self.id),
+                ('summary', 'like', 'Select and implement measures to modify risk')
+            ])
+            if not act_treat:
+                # next activity
+                if self.state == 'N':
+                    self.write({
                         "activity_ids": [(0, 0, {
-                            'res_id': risk.id,
+                            'res_id': self.id,
                             'res_model_id': self.env.ref(self._name),
                             'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
-                            'summary': 'Assess the probability of risk occurring and its possible impact,'
-                                       'as well as the company\'s ability to detect it should it occur.',
+                            'summary': 'Select and implement measures to modify risk',
                             'date_deadline': act_deadline
                         })]
                     })
-            elif risk.mgt_stage == '3':
-                act_valid = activity.search(['&',
-                                             ('res_id', '=', risk.id),
-                                             ('summary', 'like', 'Validate the risk assessment')
-                                             ])
-                if not act_valid:
-                    # next activity
-                    risk.write({
-                        "activity_ids": [(0, 0, {
-                            'res_id': risk.id,
-                            'res_model_id': self.env.ref(self._name),
-                            'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
-                            'summary': 'Validate the risk assessment',
-                            'date_deadline': act_deadline
-                        })]
-                    })
-            elif risk.mgt_stage == '4':
-                # close preceding activities
-                activity.search(['&',
-                                 ('res_id', '=', risk.id),
-                                 '|',
-                                 ('summary', 'like', 'Validate the risk assessment'),
-                                 ('summary', 'like',
-                                  'Assess the probability of risk occurring and its possible impact,'
-                                  'as well as the company\'s ability to detect it should it occur.'),
-                                 ]).action_feedback('<strong>Risk evaluation done</strong>')
+        elif self.mgt_stage == '6':
+            # close preceding activities
+            activity.search([
+                ('res_id', '=', self.id),
+                ('summary', 'like', 'Select and implement measures to modify risk')
+            ]).action_feedback('<strong>Risk Risk treatment done</strong>')
 
-                act_treat = activity.search([
-                    ('res_id', '=', risk.id),
-                    ('summary', 'like', 'Select and implement measures to modify risk')
-                ])
-                if not act_treat:
-                    # next activity
-                    if self.state == 'N':
-                        risk.write({
-                            "activity_ids": [(0, 0, {
-                                'res_id': risk.id,
-                                'res_model_id': self.env.ref(self._name),
-                                'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
-                                'summary': 'Select and implement measures to modify risk',
-                                'date_deadline': act_deadline
-                            })]
-                        })
-            elif risk.mgt_stage == '6':
-                # close preceding activities
-                activity.search([
-                    ('res_id', '=', risk.id),
-                    ('summary', 'like', 'Select and implement measures to modify risk')
-                ]).action_feedback('<strong>Risk Risk treatment done</strong>')
-
-                act_reassess = activity.search([
-                    ('res_id', '=', risk.id),
-                    ('summary', 'like', 'Reassess the  risk to make sure that risk treatment has been effective')
-                ])
-                if not act_reassess:
-                    risk.write({
-                        "activity_ids": [(0, 0, {
-                            'res_id': risk.id,
-                            'res_model_id': self.env.ref(self._name),
-                            'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
-                            'summary': 'Reassess the  risk to make sure that risk treatment has been effective',
-                            'date_deadline': act_deadline
-                        })]
-                    })
+            act_reassess = activity.search([
+                ('res_id', '=', self.id),
+                ('summary', 'like', 'Reassess the  risk to make sure that risk treatment has been effective')
+            ])
+            if not act_reassess:
+                self.write({
+                    "activity_ids": [(0, 0, {
+                        'res_id': self.id,
+                        'res_model_id': self.env.ref(self._name),
+                        'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
+                        'summary': 'Reassess the  risk to make sure that risk treatment has been effective',
+                        'date_deadline': act_deadline
+                    })]
+                })
 
     @api.multi
     def update_report(self, report_date=None, reporter=None):
