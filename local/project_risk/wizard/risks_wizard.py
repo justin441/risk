@@ -5,17 +5,6 @@ class ProjectRiskThresholdWizard(models.TransientModel):
     _name = 'project_risk.set_threshold_wizard'
     _inherit = ['risk_management.base_eval_wizard']
 
-    def default_criteria(self):
-        # return a dict of the risk criteria
-        risk_id = self.env.context.get('default_project_risk_id', False)
-        if risk_id:
-            risk = self.env[self._name].browse(risk_id)
-            if risk.exists():
-                return {'detectability': risk.detectability,
-                        'occurrence': risk.occurrence,
-                        'severity': risk.severity}
-        return {}
-
     risk_id = fields.Many2one('project_risk.project_risk', string='Project Risk', required=True,
                               ondelete='cascade')
     threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
@@ -26,21 +15,6 @@ class ProjectRiskThresholdWizard(models.TransientModel):
 class ProjectRiskEvalWizard(models.TransientModel):
     _name = 'project_risk.eval_wizard'
     _inherit = ['risk_management.base_risk_level_wizard']
-
-    def _get_default_criteria(self):
-        # returns a dict of the risk latest evaluation's criteria
-        risk_id = self.env.context.get('default_project_risk_id', False)
-
-        if risk_id:
-            risk = self.env[self._name].browse(risk_id)
-            if risk.exists() and risk.evaluation_ids.exists():
-                latest_evaluation = risk.evaluation_ids.sorted()[0]
-                return {
-                    'detectability': latest_evaluation.detectability,
-                    'occurrence': latest_evaluation.occurrence,
-                    'severity': latest_evaluation.severity,
-                }
-        return {}
 
     risk_id = fields.Many2one('project_risk.project_risk', string='Project Risk', required=True,
                               ondelete='cascade')

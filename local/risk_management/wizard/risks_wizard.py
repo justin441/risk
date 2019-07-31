@@ -24,6 +24,18 @@ class BaseEvaluationWizard(models.AbstractModel):
         scores = [str(x) for x in range(1, 6)]
         return list(zip(scores, levels))
 
+    def default_criteria(self):
+        # returns a dict of containing the criteria values of the risk being evaluated
+        risk_id = self.env.context.get('default_risk_id', False)
+        risk_model = self.env.context.get('risk_model', False)
+        if risk_id and risk_model:
+            risk = self.env[risk_model].browse(risk_id)
+            if risk.exists():
+                return {'detectability': risk.detectability,
+                        'occurrence': risk.occurrence,
+                        'severity': risk.severity}
+        return {}
+
     detectability = fields.Selection(selection=_get_detectability, string='Detectability',
                                      default=lambda self: self.default_criteria().get('detectability', '3'),
                                      required=True,
@@ -72,10 +84,26 @@ class BaseRiskLevelWizard(models.AbstractModel):
         default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
+    def _get_default_criteria(self):
+        # returns a dict of the  latest evaluation's criteria of the risk being evaluated
+        risk_id = self.env.context.get('default_risk_id', False)
+        risk_model = self.env.context.get('risk_model', False)
+        if risk_id and risk_model:
+            risk = self.env[risk_model].browse(risk_id)
+            if risk.exists() and risk.evaluation_ids.exists():
+                latest_evaluation = risk.evaluation_ids.sorted()[0]
+                return {
+                    'detectability': latest_evaluation.detectability,
+                    'occurrence': latest_evaluation.occurrence,
+                    'severity': latest_evaluation.severity,
+                }
+        return {}
+
     review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
 
     @api.multi
     def set_value(self):
+        # Get risk evaluation model
         risk_eval_model = self.env[self.risk_eval_model]
         for wizard in self:
             review_date = wizard.review_date
@@ -114,17 +142,6 @@ class BusinessRiskThresholdWizard(models.TransientModel):
     _name = 'risk_management.business_risk.set_threshold_wizard'
     _inherit = ['risk_management.base_eval_wizard']
 
-    def default_criteria(self):
-        # return a dict of the risk criteria
-        risk_id = self.env.context.get('default_business_risk_id', False)
-        if risk_id:
-            risk = self.env[self._name].browse(risk_id)
-            if risk.exists():
-                return {'detectability': risk.detectability,
-                        'occurrence': risk.occurrence,
-                        'severity': risk.severity}
-        return {}
-
     risk_id = fields.Many2one('risk_management.business_risk', string='Business Risk', required=True,
                               ondelete='cascade')
     threshold_value = fields.Integer('Current Threshold', related='risk_id.threshold_value')
@@ -135,21 +152,6 @@ class BusinessRiskThresholdWizard(models.TransientModel):
 class BusinessRiskEvalWizard(models.TransientModel):
     _name = 'risk_management.business_risk.eval_wizard'
     _inherit = ['risk_management.base_risk_level_wizard']
-
-    def _get_default_criteria(self):
-        # returns a dict of the risk latest evaluation's criteria
-        risk_id = self.env.context.get('default_business_risk_id', False)
-
-        if risk_id:
-            risk = self.env[self._name].browse(risk_id)
-            if risk.exists() and risk.evaluation_ids.exists():
-                latest_evaluation = risk.evaluation_ids.sorted()[0]
-                return {
-                    'detectability': latest_evaluation.detectability,
-                    'occurrence': latest_evaluation.occurrence,
-                    'severity': latest_evaluation.severity,
-                }
-        return {}
 
     risk_id = fields.Many2one('risk_management.business_risk', string='Business Risk', required=True,
                               ondelete='cascade')
