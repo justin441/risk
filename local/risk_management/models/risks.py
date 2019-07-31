@@ -544,8 +544,13 @@ class BusinessRisk(models.Model):
         for rec in self:
             if rec.mgt_stage >= '4' and rec.state == 'N':
                 if not rec.treatment_task_id:
-                    rec.treatment_task_id = self.env['project.task'].create({
+                    rec.treatment_task_id = self.env['project.task'].sudo().create({
                         'name': 'Treatment for %s' % rec.name,
+                        'description': """
+                                <p>
+                                    The purpose of this task is to select and implement measures to modify the %s. 
+                                    These measures can include avoiding, optimizing, transferring or retaining risk
+                                </p>""" % rec.name,
                         'project_id': rec.business_process_id.risk_treatment_project_id.id,
                     })
 
@@ -554,13 +559,6 @@ class BusinessRisk(models.Model):
         """returns the treatment tasks view.
         """
         self.ensure_one()
-        if not self.treatment_task_id:
-            risk_treatment_project_id = self.sudo().business_process_id.get_risk_treatment_project_id()
-            self.treatment_task_id = self.env['project.task'].create({
-                'name': 'Treatment of risk %s' % self.name,
-                'project_id': risk_treatment_project_id
-            })
-
         return {
             'name': _('Treatment Tasks'),
             'type': 'ir.actions.act_window',
