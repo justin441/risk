@@ -19,6 +19,11 @@ class ProjectRisk(models.Model):
     treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
                                           store=True)
 
+    @api.onchange('project_id')
+    def _onchange_project_id(self):
+        if not self.project_id.subtask_project_id:
+            self.project_id.subtask_project_id = self.project_id
+
     @api.depends('state', 'mgt_stage')
     def _compute_treatment_task_id(self):
         """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """

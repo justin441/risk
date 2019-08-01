@@ -543,6 +543,9 @@ class BusinessRisk(models.Model):
         for rec in self:
             if rec.mgt_stage >= '4' and rec.state == 'N':
                 if not rec.treatment_task_id:
+                    treatment_project = rec.business_process_id.risk_treatment_project_id
+                    if not treatment_project.subtask_project_id:
+                        treatment_project.subtask_project_id = treatment_project
                     rec.treatment_task_id = self.env['project.task'].sudo().create({
                         'name': 'Treatment for %s' % rec.name,
                         'description': """
@@ -550,7 +553,7 @@ class BusinessRisk(models.Model):
                                     The purpose of this task is to select and implement measures to modify the %s. 
                                     These measures can include avoiding, optimizing, transferring or retaining risk
                                 </p>""" % rec.name,
-                        'project_id': rec.business_process_id.risk_treatment_project_id.id,
+                        'project_id': treatment_project.id,
                     })
 
     @api.multi
