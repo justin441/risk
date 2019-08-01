@@ -37,5 +37,4 @@
     'application': True,
     'installable': True,
     'auto_install': False,
-    'post_init_hook': '_create_process_zero',
 }
