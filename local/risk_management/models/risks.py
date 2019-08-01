@@ -668,17 +668,6 @@ class RiskEvaluationMixin(models.AbstractModel):
                 recs = self.search(['review_date', '<', fields.Date.today()])
         return [('id', 'in', [rec.id for rec in recs])]
 
-    @api.depends('business_risk_id',
-                 'detectability',
-                 'occurrence',
-                 'severity')
-    def _compute_eval_value(self):
-        for rec in self:
-            if rec.risk_type == 'T':
-                rec.value = rec.value_threat
-            elif rec.risk_type == 'O':
-                rec.value = rec.value_opportunity
-
 
 class BusinessRiskEvaluation(models.Model):
     _name = 'risk_management.business_risk.evaluation'
@@ -704,3 +693,14 @@ class BusinessRiskEvaluation(models.Model):
             same_day.exists().write(vals)
         else:
             return super(BusinessRiskEvaluation, self).create(vals)
+
+    @api.depends('business_risk_id',
+                 'detectability',
+                 'occurrence',
+                 'severity')
+    def _compute_eval_value(self):
+        for rec in self:
+            if rec.risk_type == 'T':
+                rec.value = rec.value_threat
+            elif rec.risk_type == 'O':
+                rec.value = rec.value_opportunity
