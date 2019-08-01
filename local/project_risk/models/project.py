@@ -5,7 +5,7 @@ class Project(models.Model):
     _inherit = 'project.project'
 
     risk_ids = fields.One2many('project_risk.project_risk', inverse_name='project_id', string='Risks')
-    risk_count = fields.Integer('Active risks', compute='_compute_active_risks')
+    risk_count = fields.Integer('Active risks', compute='_compute_risk_count')
 
     @api.multi
     def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
@@ -24,6 +24,12 @@ class Project(models.Model):
                 ).message_subscribe(
                     partner_ids=None, channel_ids=[channel_id], subtype_ids=None, force=False)
         return res
+
+    @api.depends('risk_ids')
+    def _compute_risk_count(self):
+        for project in self:
+            if project.risk_ids:
+                project.risk_count = len(project.risk_ids.filtered('active'))
 
 
 class Task(models.Model):

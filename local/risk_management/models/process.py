@@ -137,12 +137,13 @@ class BusinessProcess(models.Model):
     @api.depends('risk_ids')
     def _compute_risk_count(self):
         for rec in self:
-            rec.risk_count = len(rec.risk_ids)
+            if rec.risk_ids:
+                rec.risk_count = len(rec.risk_ids.filtered('active'))
 
     @api.depends('output_data_ids', 'input_data_ids')
     def _compute_is_core(self):
         """
-        Returns: - True is self output or relay data that are 'customer voice' to other processes or if self has an
+        Returns: - True if self outputs or relays data that are 'customer voice' to other processes or if self has an
         input that is a 'customer voice' and directly output to the customer partner category;
                 - False otherwise
         """
