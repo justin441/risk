@@ -116,8 +116,8 @@ class ProjectRiskEvaluation(models.Model):
     _description = 'Project Risk Evaluation'
 
     project_risk_id = fields.Many2one('project_risk.project_risk', string='Risk', required=True)
-    risk_type = fields.Selection(related='risk_id.risk_type', readonly=True)
-    threshold_value = fields.Integer(related='risk_id.threshold_value', store=True, readonly=True)
+    risk_type = fields.Selection(related='project_risk_id.risk_type', readonly=True)
+    threshold_value = fields.Integer(related='project_risk_id.threshold_value', store=True, readonly=True)
     value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
     @api.model
@@ -132,3 +132,14 @@ class ProjectRiskEvaluation(models.Model):
             same_day.exists().write(vals)
         else:
             return super(ProjectRiskEvaluation, self).create(vals)
+
+    @api.depends('project_risk_id',
+                 'detectability',
+                 'occurrence',
+                 'severity')
+    def _compute_eval_value(self):
+        for rec in self:
+            if rec.risk_type == 'T':
+                rec.value = rec.value_threat
+            elif rec.risk_type == 'O':
+                rec.value = rec.value_opportunity
