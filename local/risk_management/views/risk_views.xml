@@ -369,7 +369,7 @@
         </field>
     </record>
 
-    <record id="view_business_risk_list" model="ir.ui.view">
+    <record id="view_business_risk_tree" model="ir.ui.view">
         <field name="name">business_risk.list</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
@@ -410,7 +410,7 @@
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_card oe_kanban_global_click">
                             <div class="oe_kanban_content">
-                                <div class="o_kanbab_record_top">
+                                <div class="o_kanban_record_top">
                                     <div class="o_kanban_record_headings">
                                         <t t-if="record.risk_type.raw_value=='O'">
                                             <strong>
@@ -509,7 +509,7 @@
     </record>
 
     <record id="view_business_risk_edit" model="ir.ui.view">
-        <field name="name">business_risk.edit_form</field>
+        <field name="name">business_risk.form</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
             <form>
@@ -643,8 +643,6 @@
         <field name="help" type="html">
             <p class="oe_view_nocontent">
                 There is no risk in this risk register at the moment.
-                <br/>
-                <a type="action" name="%(risk_management.act_record_risk_wizard)d">Report a risk</a>
             </p>
         </field>
     </record>
