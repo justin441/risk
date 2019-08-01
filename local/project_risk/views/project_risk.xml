@@ -1,43 +1,36 @@
 <odoo>
-  <data>
-            <!-- PROJECT RISK EVALUATION -->
+    <data>
+        <!-- PROJECT RISK EVALUATION -->
 
         <record model="ir.ui.view" id="view_project_risk_evaluation_list">
             <field name="name">project_risk.evaluation.tree</field>
-            <field name="model">risk_management.project_risk.evaluation</field>
+            <field name="model">project_risk.evaluation</field>
+            <field name="inherit_id" ref="risk_management.view_business_risk_evaluation_list"/>
             <field name="arch" type="xml">
-                <tree create="false"
-                      decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
-                      decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
-                >
-                    <field name="eval_date"/>
-                    <field name="create_uid"/>
-                    <field name="risk_id" invisible="1"/>
-                    <field name="risk_type" invisible="1"/>
-                    <field name="detectability"/>
-                    <field name="severity"/>
-                    <field name="occurrence"/>
-                    <field name="threshold_value" invisible="1"/>
-                    <field name="value" type="measure"/>
-                </tree>
+                <field name="business_risk_id" position="replace">
+                    <field name="project_risk_id" invisible="context.get('search_default_project_risk_id', False)"/>
+                </field>
+                <field name="risk_type" position="attributes">
+                    <attribute name="invisible" eval="context.get('search_default_project_risk_id', False)"/>
+                </field>
             </field>
         </record>
 
         <record model="ir.ui.view" id="view_project_risk_eval_graph">
             <field name="name">project_risk.evaluation.graph</field>
-            <field name="model">risk_management.project_risk.evaluation</field>
+            <field name="model">project_risk.evaluation</field>
+            <field name="inherit_id" ref="risk_management.view_business_risk_eval_graph"/>
             <field name="arch" type="xml">
-                <graph string="Timeline" type="line">
-                    <field name="eval_date"/>
-                    <field name="risk_id"/>
-                    <field name="value" type="measure"/>
-                </graph>
+                <field name="business_risk_id" position="replace">
+                    <field name="project_risk_id"/>
+                </field>
+
             </field>
         </record>
 
         <record model="ir.actions.act_window" id="act_project_risk_evaluation">
             <field name="name">Project Risk Evaluation</field>
-            <field name="res_model">risk_management.project_risk.evaluation</field>
+            <field name="res_model">project_risk.evaluation</field>
             <field name="view_mode">tree,graph</field>
         </record>
 
@@ -45,66 +38,46 @@
 
         <record id="view_project_risk_search" model="ir.ui.view">
             <field name="name">project_risk.search</field>
-            <field name="model">risk_management.project_risk</field>
-            <field name="inherit_id" ref="view_business_risk_search"/>
+            <field name="model">project_risk.project_risk</field>
+            <field name="inherit_id" ref="risk_management.view_business_risk_search"/>
             <field name="arch" type="xml">
-                <field name="process_id" position="after">
+                <field name="business_process_id" position="replace">
                     <field name="project_id"/>
                 </field>
-                <xpath expr="//filter[@name='Process']" position="after">
+                <xpath expr="//filter[@name='Process']" position="replace">
                     <filter string="Project" name="Project" context="{'group_by': 'project_id'}"/>
-                </xpath>
-                <xpath expr="//filter[@name='untreated']" position="replace">
-                    <filter name="untreated" string="Untreated"
-                            domain="[('latest_level_value', '!=', False), ('treatment_ids', '=', False)]"/>
                 </xpath>
             </field>
         </record>
 
         <record id="view_tree_project_risk_activity" model="ir.ui.view">
             <field name="name">project_risk.tree.activity</field>
-            <field name="model">risk_management.project_risk</field>
+            <field name="model">project_risk.project_risk</field>
+            <field name="inherit_id" ref="risk_management.view_tree_business_risk_activity"/>
             <field name="arch" type="xml">
-                <tree string="Risk activities" decoration-danger="activity_date_deadline &lt; current_date"
-                      default_order="activity_date_deadline" create="false">
-                    <field name="name"/>
-                    <field name="process_id"/>
+                <field name="business_process_id" position="replace">
                     <field name="project_id"/>
-                    <field name="activity_date_deadline"/>
-                    <field name="activity_type_id"/>
-                    <field name="activity_summary"/>
-                    <field name="mgt_stage"/>
-                </tree>
+                </field>
             </field>
         </record>
 
         <record id="view_project_risk_list" model="ir.ui.view">
-            <field name="name">project_risk.list</field>
-            <field name="model">risk_management.project_risk</field>
+            <field name="name">project_risk.tree</field>
+            <field name="model">project_risk.project_risk</field>
+            <field name="inherit_id" ref="risk_management.view_business_risk_tree"/>
             <field name="arch" type="xml">
-                <tree create="false" decoration-muted="active==False"
-                      decoration-info="active==True and state=='U'" decoration-danger="state=='N'"
-                      decoration-bf="state=='N'" decoration-success="state=='A'"
-                >
-                    <field name="risk_info_id"/>
-                    <field name="report_date"/>
-                    <field name="state" invisible="1"/>
-                    <field name="active" invisible="1"/>
-                    <field name="project_id"/>
-                    <field name="process_id"/>
-                    <field name="review_date"/>
-                    <field name="threshold_value"/>
-                    <field name="latest_level_value" attrs="{'invisible': [('latest_level_value', '=', 0)] }"/>
-                </tree>
+                <field name="business_process_id" position="replace">
+                    <field name="project_id" invisible="context.get('search_default_project_id', False)"/>
+                </field>
             </field>
         </record>
 
         <record id="view_project_risk_calendar" model="ir.ui.view">
             <field name="name">project_risk.calendar</field>
-            <field name="model">risk_management.project_risk</field>
+            <field name="model">project_risk.project_risk</field>
             <field eval="2" name="priority"/>
             <field name="arch" type="xml">
-                <calendar date_start="review_date" string="Risks" mode="month" color="owner">
+                <calendar date_start="review_date" string="Risks" mode="month" color="project_id">
                     <field name="name"/>
                 </calendar>
             </field>
@@ -113,99 +86,21 @@
         <record id="view_project_risk_kanban" model="ir.ui.view">
             <field name="name">project_risk.kanban</field>
             <field name="model">risk_management.project_risk</field>
+            <field name="inherit_id" ref="risk_management.view_business_risk_kanban"/>
             <field name="arch" type="xml">
-                <kanban default_group_by="mgt_stage" class="o_kanban_small_column o_kanban_project_tasks"
-                        group_create="false" group_delete="false" group_edit="false" create="false">
-                    <field name="name"/>
-                    <field name="process_id"/>
+                <field name="business_process_id" position="replace">
                     <field name="project_id"/>
-                    <field name="risk_info_id"/>
-                    <field name="risk_type"/>
-                    <field name="report_date"/>
-                    <field name="review_date"/>
-                    <field name="owner"/>
-                    <field name="state"/>
-                    <field name="activity_ids"/>
-                    <field name="mgt_stage"/>
-                    <templates>
-                        <t t-name="kanban-box">
-                            <div t-attf-class="oe_kanban_card oe_kanban_global_click">
-                                <div class="oe_kanban_content">
-                                    <div class="o_kanbab_record_top">
-                                        <div class="o_kanban_record_headings">
-                                            <strong class="o_kanban_record_title">
-                                                <field name="name"/>
-                                            </strong>
-                                            <br/>
-                                            <small class="o_kanban_record_subtitle text-muted">
-                                                <field name="process_id"
-                                                       invisible="context.get('default_process_id', False)"/>
-                                                <field name="project_id"
-                                                       invisible="context.get('default_process_id', False)"/>
-                                                <t t-if="record.review_date.raw_value and record.review_date.raw_value lt (new Date())"
-                                                   t-set="red">oe_kanban_text_red
-                                                </t>
-                                                <span t-attf-class="#{red || ''}">
-                                                    <i>
-                                                        <field name="review_date"/>
-                                                    </i>
-                                                </span>
-                                            </small>
-                                        </div>
-                                        <div class="o_dropdown_kanban dropdown" groups="base.group_user">
-                                            <a class="dropdown-toggle btn" data-toggle="dropdown" href="#">
-                                                <span class="fa fa-ellipsis-v" aria-hidden="true"/>
-                                            </a>
-                                            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                                                <li t-if="widget.editable">
-                                                    <a type="edit">Edit Risk</a>
-                                                </li>
-                                                <li t-if="widget.deletable">
-                                                    <a type="delete">Delete</a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="o_kanban_record_body">
-                                        <t t-if="record.risk_type.raw_value=='O'">
-                                            <strong>
-                                                <i class="text-success fa fa-leaf"/>
-                                                <t t-raw="record.risk_type.value"/>
-                                            </strong>
-                                            <br/>
-                                        </t>
-                                        <t t-else="record.risk_type.raw_value=='T'">
-                                            <strong>
-                                                <i class="text-danger fa fa-exclamation-triangle"/>
-                                                <t t-raw="record.risk_type.value"/>
-                                            </strong>
-                                            <br/>
-                                        </t>
-                                        <field name="risk_info_id"/>
-                                    </div>
-                                    <div class="o_kanban_record_bottom">
-                                        <div class="oe_kanban_bottom_left">
-                                            <field name="state"/>
-                                            <field name="activity_ids" widget="kanban_activity"/>
-                                        </div>
-                                        <div class="oe_kanban_bottom_right">
-                                            <img t-att-src="kanban_image('res.users', 'image_small', record.owner.raw_value)"
-                                                 t-att-title="record.owner.value" width="24" height="24"
-                                                 class="oe_kanban_avatar"/>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="oe_clear"/>
-                            </div>
-                        </t>
-                    </templates>
-                </kanban>
+                </field>
+                <xpath expr="//small[hasclass('o_kanban_record_subtitle')]/field[@name='business_process_id']"
+                       position="replace">
+                    <field name="project_id" invisible="context.get('default_project_id', False)"/>
+                </xpath>
             </field>
         </record>
 
         <record id="act_project_risk_activity" model="ir.actions.act_window">
             <field name="name">Risk activities</field>
-            <field name="res_model">risk_management.project_risk</field>
+            <field name="res_model">project_risk.project_risk</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,kanban,calendar</field>
             <field name="view_id" ref="view_tree_project_risk_activity"/>
@@ -218,206 +113,51 @@
             </field>
         </record>
 
-
-        <record id="view_project_risk_wiz" model="ir.ui.view">
-            <field name="name">Risk Report Wizard Form</field>
-            <field name="model">risk_management.project_risk.wizard</field>
+        <record id="view_project_risk_edit" model="ir.ui.view">
+            <field name="name">project_risk.form</field>
+            <field name="model">project_risk.project_risk</field>
+            <field name="inherit_id" ref="risk_management.view_business_risk_edit"/>
             <field name="arch" type="xml">
-                <form string="Report a risk">
-                    <sheet>
-                        <group string="Ref.">
-                            <group>
-                                <field name="project_id"/>
-                                <field name="process_id"/>
-                                <field name="risk_type"/>
-                            </group>
-                            <group>
-                                <field name="reported_by"/>
-                                <field name="report_date"/>
-                            </group>
-                        </group>
-                        <group string="Details">
-                            <field name="risk_info_id" string="Risk Name" class="oe_no_button"/>
-                            <field name="risk_info_description" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                            <field name="risk_info_cause" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                            <field name="risk_info_consequence" attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
-                        </group>
-                    </sheet>
-                    <footer>
-                        <button name="record_risk"
-                                string="Submit"
-                                class="btn-primary"
-                                type="object"
-                        />
-                        <button string="Cancel"
-                                class="btn-default"
-                                special="cancel"
-                        />
-                    </footer>
-                </form>
-            </field>
-        </record>
-
-
-        <record id="act_record_project_risk_wizard" model="ir.actions.act_window">
-            <field name="name">New Project Risk</field>
-            <field name="res_model">risk_management.project_risk.wizard</field>
-            <field name="view_mode">form</field>
-            <field name="target">new</field>
-        </record>
-
-        <record id="view_project_risk_edit2" model="ir.ui.view">
-            <field name="name">project_risk.edit_form</field>
-            <field name="model">risk_management.project_risk</field>
-            <field name="arch" type="xml">
-                <form create="false">
-                    <header>
-                        <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
-                                attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"/>
-                        <button name="%(risk_management.act_set_project_risk_threshold_wizard)d"
-                                type="action"
-                                class="btn-primary"
-                                groups="project.group_project_manager"
-                                string="Set Threshold"
-                        />
-                        <button name="%(risk_management.act_eval_project_risk_wizard)d"
-                                type="action"
-                                class="btn-danger"
-                                groups="risk_management.group_risk_manager"
-                                string="Evaluation"
-                        />
-                        <button name="action_add_treatment_task"
-                                type="object"
-                                class="btn-success"
-                                string="Treatment"
-                                attrs="{'invisible': [
-                                        '|',
-                                            ('treatment_task_count', '!=', 0),
-                                        '|',
-                                            ('owner', '=', False),
-                                        '|',
-                                            ('active', '=', False),
-                                            ('latest_level_value', '=', False)]}"
-                        />
-                        <field name="mgt_stage" widget="statusbar"/>
-                    </header>
-                    <sheet>
-                        <div class="oe_title">
-                            <div class="oe_button_box" name="treatment_button">
-                                <button name="action_add_treatment_task"
-                                        type="object"
-                                        class="oe_stat_button"
-                                        icon="fa-tasks"
-                                        attrs="{'invisible': ['|', ('treatment_task_count', '=', 0), '|', ('active', '=', False), ('latest_level_value', '=', False)]}"
-                                >
-                                    <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
-                                </button>
-                            </div>
-                            <field name="state" widget="label_selection"
-                                   options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
-                            <h1>
-                                <field name="name"/>
-                            </h1>
-                        </div>
-                        <group>
-                            <field name="risk_info_id" readonly="1"/>
-                            <field name="treatment_ids" invisible="1"/>
-                        </group>
-                        <group col="12">
-                            <group colspan="6" col="2">
-                                <field name="project_id" readonly="1"/>
-                                <field name="process_id" readonly="1"/>
-                                <field name="risk_info_category"/>
-                                <field name="risk_info_subcategory"/>
-                            </group>
-                            <group colspan="6" col="2">
-                                <field name="active" invisible="1"/>
-                                <field name="risk_type"/>
-                                <label for="reported_by" class="oe_read_only"/>
-                                <field name="reported_by" class="oe_read_only" nolabel="1"/>
-                                <label for="report_date" class="oe_read_only"/>
-                                <field name="report_date" class="oe_read_only" nolabel="1"/>
-                                <label for="review_date" class="oe_edit_only"/>
-                                <field name="review_date" class="oe_edit_only" nolabel="1"/>
-                                <field name="owner"/>
-                            </group>
-                        </group>
-                        <group>
-                            <field name="max_level_value" invisible="1"/>
-                            <label for="threshold_value" class="oe_read_only"/>
-                            <field name="threshold_value" widget="progressbar" class="oe_read_only" nolabel="1"
-                                   options="{'current_value': 'threshold_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
-                            <label for="latest_level_value" class="oe_read_only"/>
-                            <field name="latest_level_value" widget="progressbar" class="oe_read_only" nolabel="1"
-                                   options="{'current_value': 'latest_level_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
-                        </group>
-                        <notebook>
-                            <page name="info_page" string="Info">
-
-                                <group>
-                                    <field name="risk_info_description"/>
-                                    <field name="risk_info_cause"/>
-                                    <field name="risk_info_consequence"/>
-                                </group>
-                            </page>
-                            <page name="help_page" string="Treatment guides">
-                                <group>
-                                    <button
-                                            name="%(risk_management.act_edit_risk_info_help)d"
-                                            type="action"
-                                            string="Edit..."
-                                            class="btn-primary oe_right oe_link"
-                                            context="{'default_risk_info_id': risk_info_id}"
-                                    >
-                                    </button>
-                                </group>
-                                <group>
-                                    <field name="risk_info_control"/>
-                                </group>
-                                <group>
-                                    <field name="risk_info_action"/>
-                                </group>
-                            </page>
-                            <page name="comment_page" string="Comments">
-                                <group>
-                                    <field name="comment"/>
-                                </group>
-                            </page>
-                            <page name="eval_timeline" string="Timeline"
-                                  attrs="{'invisible': [('evaluation_ids', '=', False)]}">
-                                <field name="evaluation_ids"
-                                       mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph is not rendering for some reason -->
-                            </page>
-                        </notebook>
-                    </sheet>
-                    <div class="oe_chatter">
-                        <field name="message_follower_ids" widget="mail_followers"/>
-                        <field name="activity_ids" widget="mail_activity"/>
-                        <field name="message_ids" widget="mail_thread"/>
-                    </div>
-                </form>
+                <xpath expr="//button[@name='assign_to_me']" position="attributes">
+                    <attribute name="groups" eval="project_risk.group_risk_manager"/>
+                </xpath>
+                <xpath expr="//header/button[2]" position="replace">
+                    <button name="%(project_risk.act_set_project_risk_threshold_wizard)d"
+                            type="action"
+                            class="btn-primary" groups="project.group_project_manager"
+                            string="Set Threshold"/>
+                </xpath>
+                <xpath expr="//header/button[3]" position="replace">
+                    <button name="%(project_risk.act_eval_project_risk_wizard)d"
+                            type="action"
+                            class="btn-danger" groups="project_risk.group_risk_manager"
+                            string="Evaluation"
+                            attrs="{'invisible' : [('is_confirmed', '=', False)]}"/>
+                </xpath>
+                <field name="business_process_id" position="replace">
+                    <field name="project_id"
+                           invisible="context.get('default_project_id', False)"
+                    />
+                </field>
             </field>
         </record>
 
         <record model="ir.actions.act_window" id="act_project_risk_reg">
             <field name="name">Risk Register</field>
-            <field name="res_model">risk_management.project_risk</field>
+            <field name="res_model">project_risk.project_risk</field>
             <field name="view_mode">tree,kanban,form</field>
             <field name="view_id" ref="view_project_risk_list"/>
-            <field name="context" eval="{'active_test': False, 'form_view_ref': 'risk_management.view_project_risk_edit'}"/>
+            <field name="context"
+                   eval="{'search_default_evaluated':1,, 'form_view_ref': 'project_risk.view_project_risk_edit'}"/>
             <field name="search_view_id" ref="view_project_risk_search"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent">
                     There is no risk in this risk register at the moment.
-                    <br/>
-                    <a type="action" name="%(risk_management.act_record_project_risk_wizard)d">Report a risk</a>
                 </p>
             </field>
         </record>
 
         <menuitem name="Risks management" id="project_risk_management" parent="project.menu_main_pm" sequence="3"/>
-        <menuitem name="Report a new risk" id="menu_wizard_report_project_risk" parent="project_risk_management"
-                  action="act_record_project_risk_wizard" sequence="20"/>
         <menuitem name="Risk Register" id="menu_project_risk_register" parent="project_risk_management"
                   action="act_project_risk_reg" sequence="10"/>
         <menuitem action="act_project_risk_activity" id="menu_project_risk_activity" parent="project_risk_management"
@@ -431,13 +171,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//div[@name='button_box']/button[2]" position="after">
                     <button class="oe_stat_button" type="action"
-                            name="%(act_project_project_2_project_process_all)d" icon="fa-refresh">
-                        <field string="Processes" name="process_count" widget="statinfo"/>
-                    </button>
-                    <button class="oe_stat_button" type="action"
-                            name="%(risk_management.act_project_risk_reg)d"
+                            name="%(project_risk.act_project_risk_reg)d"
                             icon="fa-exclamation-circle"
-                            context="{'search_default_project_id': active_id}"
+                            context="{'search_default_project_id': [active_id], 'default_project_id': active_id}"
                     >
                         <field string="Risks" name="risk_count" widget="statinfo"/>
                     </button>
@@ -445,5 +181,5 @@
             </field>
         </record>
 
-  </data>
+    </data>
 </odoo>
