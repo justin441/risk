@@ -20,6 +20,15 @@
         <field name="description">New risk added</field>
     </record>
 
+    <record id="mt_business_risk_obsolete" model="mail.message.subtype">
+        <field name="name">Obsolete Risk</field>
+        <field name="res_model">risk_management.business_risk</field>
+        <field name="default" eval="True"/>
+        <field name="internal" eval="True"/>
+        <field name="hidden" eval="False"/>
+        <field name="description">Risk has become obsolete</field>
+    </record>
+
     <record id="mt_business_risk_status" model="mail.message.subtype">
         <field name="name">Risk Status Changed</field>
         <field name="res_model">risk_management.business_risk</field>

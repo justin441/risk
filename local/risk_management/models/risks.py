@@ -583,6 +583,8 @@ class BusinessRisk(models.Model):
         self.ensure_one()
         if 'active' in init_values and self.active:
             return 'risk_management.mt_business_risk_new'
+        elif 'active' in init_values and not self.active:
+            return 'risk_management.mt_business_risk_obsolete'
         elif 'report_date' in init_values and self.report_date == fields.Date.today():
             return 'risk_management.mt_business_risk_new'
         elif 'state' in init_values:

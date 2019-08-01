@@ -35,6 +35,15 @@
         <field name="relation_field">process_id</field>
     </record>
 
+    <record id="mt_business_process_risk_obsolete" model="mail.message.subtype">
+        <field name="name">Obsolete Risk</field>
+        <field name="res_model">risk_management.business_process</field>
+        <field name="default" eval="True"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('risk_management.mt_business_risk_new')"/>
+        <field name="relation_field">process_id</field>
+    </record>
+
      <record id="mt_business_process_risk_status" model="mail.message.subtype">
         <field name="name">Risk Status Changed</field>
         <field name="res_model">risk_management.business_process</field>
