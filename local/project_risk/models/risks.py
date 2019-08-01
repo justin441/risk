@@ -68,6 +68,8 @@ class ProjectRisk(models.Model):
         self.ensure_one()
         if 'active' in init_values and self.active:
             return 'project_risk.mt_project_risk_new'
+        elif 'active' in init_values and not self.active:
+            return 'project_risk.mt_project_risk_obsolete'
         elif 'report_date' in init_values and self.report_date == fields.Date.today():
             return 'project_risk.mt_project_risk_new'
         elif 'state' in init_values:
