@@ -23,7 +23,7 @@
 
     # always loaded
     'data': [
-        'security/project_risk_security.xml'
+        'security/project_risk_security.xml',
         'wizard/risks_wizard_views.xml',
         'data/risk_data.xml',
         'views/project_risk.xml',
