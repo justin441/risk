@@ -750,6 +750,7 @@
             </kanban>
         </field>
     </record>
+
     <record model="ir.ui.view" id="business_process_form_view">
         <field name="name">business_process.form</field>
         <field name="model">risk_management.business_process</field>
@@ -766,7 +767,7 @@
                 <sheet string="Process">
                     <field name="analytic_account_id" invisible="1" required="0"/>
                     <div class="oe_title">
-                        <label for="name" class="oe_edit_only"/>
+                        <label for="name" string="Name" class="oe_edit_only"/>
                         <h1>
                             <field name="name" placeholder="Process name"/>
                         </h1>

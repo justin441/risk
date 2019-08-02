@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-    <data>
+<odoo >
+    <data noupdate="1">
+
+        <record id="req_link_process" model="res.request.link">
+            <field name="name">Business Process</field>
+            <field name="object">risk_management.business_process</field>
+        </record>
+
+        <record id="req_link_risk" model="res.request.link">
+            <field name="name">Business Risk</field>
+            <field name="object">risk_management.business_risk</field>
+        </record>
+
         <record id="plan_rm" model="risk_management.business_process" >
             <field name="name">Plan Risk Management</field>
             <field name="process_type">M</field>

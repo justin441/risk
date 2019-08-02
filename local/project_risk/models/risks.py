@@ -28,7 +28,7 @@ class ProjectRisk(models.Model):
     def _compute_treatment_task_id(self):
         """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """
         for rec in self:
-            if rec.mgt_stage >= '4' and rec.state == 'N':
+            if rec.mgt_stage and rec.mgt_stage >= '4' and rec.state == 'N':
                 if not rec.treatment_task_id:
                     rec.treatment_task_id = self.env['project.task'].sudo().create({
                         'name': 'Treatment for %s' % rec.name,

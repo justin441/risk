@@ -295,6 +295,7 @@ class RiskIdentificationMixin(models.AbstractModel):
         activity = self.env['mail.activity']
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
+        ir_model = self.env['ir.model']
 
         if self.mgt_stage == '1':
             act_confirm = activity.search([
@@ -306,7 +307,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                 self.sudo().write({
                     "activity_ids": [(0, 0, {
                         'res_id': self.id,
-                        'res_model_id': self.env.ref(self._name),
+                        'res_model_id': ir_model._get_id(self._name),
                         'activity_type_id': self.env.ref('risk_management.risk_activity_todo'),
                         'summary': 'Check and confirm the existence of the risk',
                         'date_deadline': act_deadline
@@ -330,7 +331,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                 self.write({
                     "activity_ids": [(0, 0, {
                         'res_id': self.id,
-                        'res_model_id': self.env.ref(self._name),
+                        'res_model_id': ir_model._get_id(self._name),
                         'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
                         'summary': 'Assess the probability of risk occurring and its possible impact,'
                                    'as well as the company\'s ability to detect it should it occur.',
@@ -347,7 +348,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                 self.write({
                     "activity_ids": [(0, 0, {
                         'res_id': self.id,
-                        'res_model_id': self.env.ref(self._name),
+                        'res_model_id': ir_model._get_id(self._name),
                         'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
                         'summary': 'Validate the risk assessment',
                         'date_deadline': act_deadline
@@ -374,7 +375,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                     self.write({
                         "activity_ids": [(0, 0, {
                             'res_id': self.id,
-                            'res_model_id': self.env.ref(self._name),
+                            'res_model_id': ir_model._get_id(self._name),
                             'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
                             'summary': 'Select and implement measures to modify risk',
                             'date_deadline': act_deadline
@@ -395,7 +396,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                 self.write({
                     "activity_ids": [(0, 0, {
                         'res_id': self.id,
-                        'res_model_id': self.env.ref(self._name),
+                        'res_model_id': ir_model._get_id(self._name),
                         'activity_type_id': self.env.ref('risk_management.risk_activity_to_do'),
                         'summary': 'Reassess the  risk to make sure that risk treatment has been effective',
                         'date_deadline': act_deadline
@@ -541,7 +542,7 @@ class BusinessRisk(models.Model):
     def _compute_treatment_task_id(self):
         """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """
         for rec in self:
-            if rec.mgt_stage >= '4' and rec.state == 'N':
+            if rec.mgt_stage and rec.mgt_stage >= '4' and rec.state == 'N':
                 if not rec.treatment_task_id:
                     treatment_project = rec.business_process_id.risk_treatment_project_id
                     if not treatment_project.subtask_project_id:

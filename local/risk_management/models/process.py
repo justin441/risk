@@ -12,7 +12,6 @@ class BaseProcess(models.AbstractModel):
     _inherit = ['mail.thread']
     _order = 'sequence asc, name, id'
 
-    # name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility='onchange')
     process_type = fields.Selection(selection=[('O', 'Operations'), ('M', 'Management'), ('S', 'Support'),
                                                ('PM', 'Project Management')], default='O',
                                     required=True, string='Process type', track_visibility='onchange')
@@ -29,7 +28,7 @@ class BusinessProcess(models.Model):
     _inherits = {'account.analytic.account': "analytic_account_id"}
     _sql_constraints = [
         ('process_name_unique',
-         'UNIQUE(name, analytic_account_id)',
+         'UNIQUE(description, analytic_account_id)',
          'The process name must be unique.')
     ]
 
