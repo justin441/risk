@@ -263,7 +263,7 @@ class RiskIdentificationMixin(models.AbstractModel):
         for risk in self:
             up_to_date_evals = risk.evaluation_ids.filtered(
                 lambda ev: not ev.is_obsolete) if risk.evaluation_ids else False
-            valid_evals = up_to_date_evals.filtered('is_valid')
+            valid_evals = up_to_date_evals.filtered('is_valid') if up_to_date_evals else False
             if not risk.active:
                 risk.mgt_stage = False
             elif not risk.is_confirmed:
