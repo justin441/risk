@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import datetime
 from odoo import models, fields, api, _
+
+
+RISK_ACT_DELAY = 15
 
 
 class ProjectRisk(models.Model):
@@ -21,14 +25,15 @@ class ProjectRisk(models.Model):
 
     @api.onchange('project_id')
     def _onchange_project_id(self):
-        if not self.project_id.subtask_project_id:
-            self.project_id.subtask_project_id = self.project_id
+        if self.project_id:
+            if not self.project_id.subtask_project_id:
+                self.project_id.subtask_project_id = self.project_id
 
-    @api.depends('state', 'mgt_stage')
+    @api.depends('status', 'state')
     def _compute_treatment_task_id(self):
         """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """
         for rec in self:
-            if rec.mgt_stage and rec.mgt_stage >= '4' and rec.state == 'N':
+            if rec.state and rec.state >= '4' and rec.status == 'N':
                 if not rec.treatment_task_id:
                     rec.treatment_task_id = self.env['project.task'].sudo().create({
                         'name': 'Treatment for %s' % rec.name,
@@ -72,9 +77,9 @@ class ProjectRisk(models.Model):
             return 'project_risk.mt_project_risk_obsolete'
         elif 'report_date' in init_values and self.report_date == fields.Date.today():
             return 'project_risk.mt_project_risk_new'
-        elif 'state' in init_values:
+        elif 'status' in init_values:
             return 'project_risk.mt_project_risk_status'
-        elif 'mgt_stage' in init_values:
+        elif 'state' in init_values:
             return 'project_risk.mt_project_risk_stage'
         return super(ProjectRisk, self)._track_subtype(init_values)
 
@@ -109,6 +114,19 @@ class ProjectRisk(models.Model):
             if vals.get('project_id') and not context.get('default_project_id'):
                 context['default_project_id'] = vals.get('project_id')
         risk = super(ProjectRisk, self).create(vals)
+
+        act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+        act_deadline = fields.Date.to_string(act_deadline_date)
+        ir_model = self.env['ir.model']
+        act_type = self.env.ref('risk_management.risk_activity_todo')
+        # Next activity
+        self.env['mail.activity'].create({
+            'res_id': risk,
+            'res_model_id': ir_model._get_id(self._name),
+            'activity_type_id': act_type.id,
+            'summary': 'Check and confirm the existence of the risk',
+            'date_deadline': act_deadline
+        })
         return risk
 
 

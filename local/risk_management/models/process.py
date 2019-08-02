@@ -55,7 +55,7 @@ class BusinessProcess(models.Model):
                                string='Identified risks')
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
     module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
-                             domain=[('state', '=', 'installed')], track_visibility='always',
+                             domain=[('status', '=', 'installed')], track_visibility='always',
                              help='This provides a hook for developing a solution to measure the performance of the '
                                   'process.')
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',

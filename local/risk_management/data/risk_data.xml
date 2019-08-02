@@ -6,8 +6,6 @@
         <field name="name">TODO</field>
         <field name="summary">Next step in managing risk</field>
         <field name="icon">fa-clipboard-list-check</field>
-        <field name="res_model_id" ref="risk_management.model_risk_management_business_risk"/>
-        <field name="days">10</field>
     </record>
 
     <!-- Business risk subtypes for messaging / Chatter -->

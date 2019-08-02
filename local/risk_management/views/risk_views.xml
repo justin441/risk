@@ -342,8 +342,8 @@
                 <field name="risk_info_consequence"/>
                 <filter name="evaluated" string="Evaluated" domain="[('latest_level_value', '!=', False)]"/>
                 <separator/>
-                <filter name="acceptable" string="Acceptable" domain="[('state', '=', 'A')]"/>
-                <filter name="not_acceptable" string="Unacceptable" domain="[('state', '=', 'N')]"/>
+                <filter name="acceptable" string="Acceptable" domain="[('status', '=', 'A')]"/>
+                <filter name="not_acceptable" string="Unacceptable" domain="[('status', '=', 'N')]"/>
                 <separator/>
                 <filter name="threats" string="ThreatS" domain="[('risk_type', '=', 'T')]"/>
                 <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
@@ -363,7 +363,7 @@
                 <group expand="0" string="Group By">
                     <filter string="Category" name="Category" context="{'group_by': 'risk_info_category'}"/>
                     <filter string="Process" name="Process" context="{'group_by': 'business_process_id'}"/>
-                    <filter string="Stage" name="Stage" context="{'group_by': 'mgt_stage'}"/>
+                    <filter string="Stage" name="Stage" context="{'group_by': 'state'}"/>
                     <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
                 </group>
             </search>
@@ -375,16 +375,16 @@
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
             <tree decoration-muted="active==False or is_confirmed==False"
-                  decoration-info="is_confirmed==True and state=='U'"
-                  decoration-danger="state=='N'"
-                  decoration-bf="state=='N'" decoration-success="state=='A'"
+                  decoration-info="is_confirmed==True and status=='U'"
+                  decoration-danger="status=='N'"
+                  decoration-bf="status=='N'" decoration-success="status=='A'"
             >
                 <field name="priority"/>
                 <field name="risk_info_id"/>
                 <field name="business_process_id" invisible="context.get('search_default_business_process_id', False)"/>
                 <field name="report_date"/>
                 <field name="priority"/>
-                <field name="state" invisible="1"/>
+                <field name="status" invisible="1"/>
                 <field name="active" invisible="1"/>
                 <field name="is_confirmed" invisible="1"/>
 
@@ -396,7 +396,7 @@
         <field name="name">business_risk.kanban</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="mgt_stage" class="o_kanban_small_column o_kanban_project_tasks"
+            <kanban default_group_by="state" class="o_kanban_small_column o_kanban_project_tasks"
                     group_create="false" group_delete="false" group_edit="false" create="false">
                 <field name="name"/>
                 <field name="business_process_id"/>
@@ -405,9 +405,9 @@
                 <field name="report_date"/>
                 <field name="review_date"/>
                 <field name="owner"/>
-                <field name="state"/>
+                <field name="status"/>
                 <field name="activity_ids"/>
-                <field name="mgt_stage"/>
+                <field name="state"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_card oe_kanban_global_click">
@@ -461,7 +461,7 @@
                                 </div>
                                 <div class="o_kanban_record_body">
                                     <field name="risk_info_id"/>
-                                    <field name="state" widget="label_selection"
+                                    <field name="status" widget="label_selection"
                                            options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                                 </div>
                                 <div class="o_kanban_record_bottom">
@@ -505,7 +505,7 @@
                 <field name="activity_date_deadline"/>
                 <field name="activity_type_id"/>
                 <field name="activity_summary"/>
-                <field name="mgt_stage"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
@@ -529,7 +529,7 @@
                             string="Evaluation"
                             attrs="{'invisible' : [('is_confirmed', '=', False)]}"
                     />
-                    <field name="mgt_stage" widget="statusbar"/>
+                    <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -543,7 +543,7 @@
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
                         </div>
-                        <field name="state" widget="label_selection"
+                        <field name="status" widget="label_selection"
                                options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                         <field name="treatment_task_id" invisible="1"/>
                         <field name="active" invisible="1"/>
