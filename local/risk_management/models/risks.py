@@ -167,7 +167,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
     name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
-                                 require=True, track_visibility="onchange", states={'A': 'readonly', 'N': 'readonly'})
+                                 require=True, track_visibility="onchange")
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Name')
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
                                      store=True)
@@ -179,8 +179,8 @@ class RiskIdentificationMixin(models.AbstractModel):
     risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
     report_date = fields.Date(string='Reported On', default=lambda self: fields.Date.context_today(self))
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
-    is_confirmed = fields.Boolean('Confirmed', states={'A': 'readonly', 'N': 'readonly'},
-                                  groups=['risk_management.group_risk_manager'], track_visibility="onchange")
+    is_confirmed = fields.Boolean('Confirmed',
+                                  groups='risk_management.group_risk_manager', track_visibility="onchange")
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True,
                                      track_visibility="onchange")
     latest_level_value = fields.Integer(compute='_compute_latest_eval', string='Risk Level', store=True,
@@ -530,7 +530,7 @@ class BusinessRisk(models.Model):
     ]
 
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Impacted Process',
-                                          states={'A': 'readonly', 'N': 'readonly'})
+                                          )
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
     treatment_task_id = fields.Many2one('project.task', compute='_compute_treatment_task_id', store=True)
@@ -632,7 +632,7 @@ class BusinessRisk(models.Model):
 
 class RiskEvaluationMixin(models.AbstractModel):
     _name = 'risk_management.risk_evaluation.mixin'
-    _inherit = ['risk_management.base_criteria']
+    _inherit = ['risk_management.risk_criteria.mixin']
     _order = 'create_date desc'
 
     def _compute_default_review_date(self):
@@ -644,7 +644,7 @@ class RiskEvaluationMixin(models.AbstractModel):
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')
     eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on',
                             readonly=True)
-    is_valid = fields.Boolean('Valid', groups=['risk_management.group_manager'])
+    is_valid = fields.Boolean('Valid', groups='risk_management.group_manager')
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):

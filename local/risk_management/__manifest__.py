@@ -26,6 +26,7 @@
         'data/risk_data.xml',
         'data/process_data.xml',
         'security/risk_security.xml',
+        'wizard/risks_wizard_views.xml',
         'views/risk_views.xml',
         'views/risk_templates.xml',
         'security/ir.model.access.csv',

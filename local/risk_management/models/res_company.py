@@ -15,7 +15,6 @@ class Company(models.Model):
                 <p>This process represents the overall process of the company's business, to be used for activities, 
                 methods or risks in the absence of more specific processes.</p>
                 """,
-                'company_id': company.id
             }
         )
         return company

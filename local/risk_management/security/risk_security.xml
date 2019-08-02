@@ -33,7 +33,7 @@
 
         <record id="business_process_data_comp_rule" model="ir.rule">
             <field name="name">Business Process Data: Multi-company</field>
-            <field name="model_id" ref="model_risk_management_business_process_data"/>
+            <field name="model_id" ref="model_risk_management_business_process_input_output"/>
             <field name="domain_force">
                 [
                     '|',
@@ -47,7 +47,7 @@
 
         <record id="business_process_method_comp_rule" model="ir.rule">
             <field name="name">Business Process Method: Multi-company</field>
-            <field name="model_id" ref="model_risk_management_business_process_data"/>
+            <field name="model_id" ref="model_risk_management_business_process_input_output"/>
             <field name="domain_force">[('business_process_id.company_id', 'child_of', [user.company_id.id])]</field>
             <field name="global" eval="True"/>
         </record>
