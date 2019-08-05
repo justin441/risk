@@ -80,7 +80,7 @@ class BusinessProcess(models.Model):
 
     @api.returns('self')
     def get_provider_processes(self):
-        """Returns the users of self's output data that are 'customer voice', if any"""
+        """Returns the users of self's output  that are 'customer voice', if any"""
         self.ensure_one()
         proc = self.env[self._name]
         for data in self.output_data_ids.filtered('is_customer_voice'):
@@ -253,8 +253,9 @@ class BusinessProcess(models.Model):
             self.risk_treatment_project_id = self.responsible_id
 
 
-class BaseProcessIO(models.AbstractModel):
-    _name = 'risk_management.base_process_io'
+class BusinessProcessIO(models.Model):
+    _name = 'risk_management.business_process.input_output'
+    _description = 'Business Process input or output'
     _order = "name, id"
     _sql_constraints = [
         (
@@ -273,51 +274,46 @@ class BaseProcessIO(models.AbstractModel):
     is_customer_voice = fields.Boolean('Customer Voice?', compute='_compute_is_customer_voice',
                                        help="Does this data relay the customer voice?",
                                        search='_search_is_customer_voice')
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Internal source',
+                                          ondelete='cascade',
+                                          default=lambda self: self.env.context.get('default_business_process_id'))
     source_part_cat_id = fields.Many2one('res.partner.category', string='External Source', ondelete='cascade',
                                          domain=lambda self: [('id', 'child_of',
                                                                self.env.ref('risk_management.process_partner').id)],
                                          help='Must be a child of `Process partner` category')
-    channel_ids = fields.Many2many('risk_management.business_process.channel', string='Authorized Channels',
-                                   relation='risk_management_data_channel_rel', column1='data_id',
-                                   column2='channel_id')
+    origin_id = fields.Reference(selection=[('res.partner.category', 'Partner Category'),
+                                            ('risk_management.business_process', 'Business Process')],
+                                 str='Source', compute='_compute_origin', store=True)
+
+    ref_input_ids = fields.Many2many('risk_management.business_process.input_output',
+                                     relation='risk_management_data_ref_rel', column1='input_id',
+                                     column2='output_id', string="Input Ref.",
+                                     domain=lambda self: [('id', 'in', self.origin_id.input_data_ids.ids)])
+    ref_output_ids = fields.Many2many('risk_management.business_process.input_output', 'risk_management_data_ref_rel',
+                                      column1='output_id', column2='input_id', string='Referenced By')
     dest_partner_ids = fields.Many2many('res.partner.category', string='External Recipients',
                                         relation='risk_management_data_partner_cat_rel', column1='data_id',
                                         column2='partner_category_id',
                                         domain=lambda self: [('id', 'child_of',
                                                               self.env.ref('risk_management.process_partner').id)],
                                         help='Must be a child of `Process partner` category', )
-    default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
-        'risk_management.process_partner'), readonly=True)
-
-    @api.constrains('user_process_ids', 'business_process_id')
-    def _check_provider_not_in_consumers(self):
-        """Data source should not be a user of said data"""
-        for data in self:
-            if data.business_process_id and data.business_process_id in data.user_process_ids:
-                raise exceptions.ValidationError("The data source cannot be a user of the data")
-
-
-class BusinessProcessIO(models.Model):
-    _name = 'risk_management.business_process.input_output'
-    _description = 'Business Process input or output'
-    _inherit = ['risk_management.base_process_io']
-
-    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Internal source',
-                                          ondelete='cascade',
-                                          default=lambda self: self.env.context.get('default_business_process_id'))
-    origin_id = fields.Reference(selection=[('res.partner.category', 'Partner Category'),
-                                            ('risk_management.business_process', 'Business Process')],
-                                 str='Origin', compute='_compute_origin', store=True)
-    ref_input_ids = fields.Many2many('risk_management.business_process.input_output',
-                                     relation='risk_management_data_ref_rel', column1='input_id',
-                                     column2='output_id', string="Input Ref.",
-                                     domain=lambda self: [('id', 'in', self.business_process_id.input_data_ids.ids)])
-    ref_output_ids = fields.Many2many('risk_management.business_process.input_output', 'risk_management_data_ref_rel',
-                                      column1='output_id', column2='input_id', string='Referenced By')
     user_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                         relation='risk_management_input_ids_user_ids_rel',
                                         column1='input_id', column2='business_process_id',
                                         string="Recipient processes")
+    channel_ids = fields.Many2many('risk_management.business_process.channel', string='Authorized Channels',
+                                   relation='risk_management_data_channel_rel', column1='data_id',
+                                   column2='channel_id')
+    default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
+        'risk_management.process_partner'), readonly=True)
+
+    @api.depends('source_part_cat_id', 'business_process_id')
+    def _compute_origin(self):
+        for rec in self:
+            if rec.business_process_id:
+                rec.origin_id = rec.business_process_id
+            elif rec.source_part_cat_id:
+                rec.origin_id = rec.source_part_cat_id
 
     @api.depends('source_part_cat_id', 'ref_input_ids')
     def _compute_is_customer_voice(self):
@@ -325,11 +321,12 @@ class BusinessProcessIO(models.Model):
         customers = self.env[
             'res.partner.category'
         ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
+
         for rec in self:
-            if (
-                    rec.source_part_cat_id and rec.source_parntner_id.id in customers.ids
-            ) or rec.ref_input_ids.filtered('is_customer_voice'):
-                rec.is_customer_voice = True
+            if rec.origin_id:
+                if (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids)\
+                        or rec.ref_input_ids.filtered('is_customer_voice'):
+                    rec.is_customer_voice = True
             else:
                 rec.is_customer_voice = False
 
@@ -338,44 +335,49 @@ class BusinessProcessIO(models.Model):
             'res.partner.category'
         ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
 
+        def customer_voice(rec):
+            return (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids) or (
+                    rec.ref_input_ids and rec.ref_input_ids.filtered(customer_voice)
+            )
+
         if operator not in ('=', '!=') or value not in (0, 1):
             recs = self
-        if operator == '=':
+        elif operator == '=':
             if value:
-                recs = self.filtered(lambda rec: rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids)
+                recs = self.filtered(customer_voice)
             else:
-                recs = self.filtered(
-                    lambda rec: not rec.source_part_cat_id.id or rec.source_part_cat_id.id not in customers.ids)
+                recs = self.filtered(lambda rec: not customer_voice(rec))
         else:
             if value:
-                recs = self.filtered(
-                    lambda rec: not rec.ext_provider_id.id or rec.ext_provider_id.id not in customers.ids)
+                recs = self.filtered(lambda rec: not customer_voice(rec))
             else:
-                recs = self.filtered(lambda rec: rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids)
+                recs = self.filtered(customer_voice)
         return [('id', 'in', [rec.id for rec in recs])]
 
     @api.onchange('is_customer_voice')
     def _onchange_is_customer_voice(self):
-        customer_proc = self.business_process_id.get_customers()['internal']
-        if self.is_customer_voice:
-            return {'domain': {
-                'user_process_ids': [('id', '!=', self.business_process_id.id),
-                                     ('id', 'not in', customer_proc.ids),
-                                     ('company_id', '=', self.business_process_id.company_id.id)]
-            }}
-        else:
-            return {'domain': {
-                'user_process_ids': [('id', '!=', self.business_process_id.id),
-                                     ('company_id', '=', self.business_process_id.company_id.id)]
-            }}
+        if self.business_process_id:
+            if self.is_customer_voice:
+                return {'domain': {
+                    'user_process_ids': [('id', '!=', self.business_process_id.id),
+                                         ('id', 'not in', self.business_process_id.get_customers()['internal']),
+                                         ('company_id', '=', self.business_process_id.company_id.id)]
+                }}
+            else:
+                return {'domain': {
+                    'user_process_ids': [
+                        ('id', '!=', self.business_process_id.id),
+                        ('company_id', '=', self.business_process_id.company_id.id)]
+                }}
 
-    @api.depends('source_part_cat_id', 'business_process_id')
-    def _compute_origin(self):
-        for rec in self:
-            if rec.business_process_id:
-                rec.origin_id = rec.business_process_id
-            elif rec.source_part_cat_id:
-                rec.origin_id = rec.source_part_cat_id.id
+    @api.constrains('user_process_ids', 'business_process_id')
+    def _check_provider_not_in_consumers(self):
+        """Data source should not be a user of said data"""
+        for data in self:
+            if (data.business_process_id and data.business_process_id in data.user_process_ids) or (
+                    data.source_part_cat_id and data.source_part_cat_id in data.dest_partner_ids
+            ):
+                raise exceptions.ValidationError("The data source cannot be a recipient of the data")
 
 
 class ProcessDataChannel(models.Model):
