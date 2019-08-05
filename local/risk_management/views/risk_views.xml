@@ -951,17 +951,13 @@
                         </h1>
                     </div>
                     <div class="oe_right oe_button_box oe_read_only" name="buttons">
-                        <button name=""
+                        <button name="%(risk_management.act_business_risk_register)d"
                                 type="action"
                                 class="oe_stat_button"
-                                icon="fa-hashtag">
+                                icon="fa-hashtag"
+                                context="{'search_default_risk_info_id':[active_id]}"
+                        >
                             <field string="Occurrences" name="business_occurrences" widget="statinfo"/>
-                        </button>
-                        <button name=""
-                                type="action"
-                                class="oe_stat_button"
-                                icon="fa-hashtag">
-                            <field string="Projects Occurrences" name="project_occurrences" widget="statinfo"/>
                         </button>
                     </div>
                     <group name="classification" string="Classification">

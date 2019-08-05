@@ -127,13 +127,15 @@
             </field>
         </record>
 
-         <record id="act_project_risk_activity" model="ir.actions.act_window">
+        <record id="act_project_risk_activity" model="ir.actions.act_window">
             <field name="name">Risk activities</field>
             <field name="res_model">project_risk.project_risk</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,kanban,calendar</field>
             <field name="view_id" ref="view_tree_project_risk_activity"/>
-            <field name="context">{'search_default_activities_my':1, 'form_view_ref': 'project_risk.view_project_risk_edit'}</field>
+            <field name="context">{'search_default_activities_my':1, 'form_view_ref':
+                'project_risk.view_project_risk_edit'}
+            </field>
             <field name="domain">[('activity_date_deadline', '!=', False)]</field>
             <field name="help" type="html">
                 <p>
@@ -158,7 +160,8 @@
         </record>
 
         <menuitem name="Risks management" id="project_risk_management" parent="project.menu_main_pm" sequence="3"/>
-        <menuitem name="Risks Database" id="project_risk_db" parent="project_risk_management" sequence="20" action="risk_management.act_risk_category_list"/>
+        <menuitem name="Risks Database" id="project_risk_db" parent="project_risk_management" sequence="20"
+                  action="risk_management.act_risk_category_list"/>
         <menuitem name="Risk Register" id="menu_project_risk_register" parent="project_risk_management"
                   action="act_project_risk_reg" sequence="10"/>
         <menuitem action="act_project_risk_activity" id="menu_project_risk_activity" parent="project_risk_management"
@@ -177,6 +180,26 @@
                             context="{'search_default_project_id': [active_id], 'default_project_id': active_id}"
                     >
                         <field string="Risks" name="risk_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- risk form -->
+
+        <record id="view_risk_form" model="ir.ui.view">
+            <field name="name">risk_info.form</field>
+            <field name="model">risk_management.risk.info</field>
+            <field name="inherit_id" ref="risk_management.view_risk_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='buttons']/button[1]" position="after">
+                    <button name="%(project_risk.act_project_risk_reg)d"
+                            type="action"
+                            class="oe_stat_button"
+                            icon="fa-hashtag"
+                            context="{'search_default_risk_info_id':[active_id]}"
+                    >
+                        <field string="Projects Occurrences" name="project_occurrences" widget="statinfo"/>
                     </button>
                 </xpath>
             </field>
