@@ -520,18 +520,18 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
+                    <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight oe_read_only"
                             attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"
                             groups="risk_management.group_risk_manager"/>
                     <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
                             type="action"
-                            class="btn-primary" groups="risk_management.group_manager"
+                            class="btn-primary oe_read_only" groups="risk_management.group_manager"
                             string="Set Threshold"
                             attrs="{'invisible': [('state', '=', '1')]}"
                     />
                     <button name="%(risk_management.act_eval_business_risk_wizard)d"
                             type="action"
-                            class="btn-danger" groups="risk_management.group_risk_manager"
+                            class="btn-danger oe_read_only" groups="risk_management.group_risk_manager"
                             string="Evaluation"
                             attrs="{'invisible' : [('state', '=', '1')]}"
                     />
@@ -561,9 +561,7 @@
                             <field name="name"/>
                         </h1>
                     </div>
-                    <group>
-                        <field name="risk_info_id"/>
-                    </group>
+
                     <group>
                         <group>
                             <field name="business_process_id"
@@ -576,6 +574,9 @@
                             <field name="owner"/>
                             <field name="review_date"/>
                         </group>
+                    </group>
+                     <group>
+                        <field name="risk_info_id"/>
                     </group>
                     <group class="oe_read_only">
                         <group>
@@ -592,11 +593,13 @@
                         </group>
                     </group>
                     <notebook>
-                        <page name="info_page" string="Info" attrs="{'invisible': [('risk_info_id', '=', False)]}">
+                        <page name="info_page" string="Info">
                             <group>
                                 <field name="risk_info_category"/>
                                 <field name="risk_info_subcategory"
                                        attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
+                            </group>
+                            <group>
                                 <field name="risk_info_description"/>
                                 <field name="risk_info_cause"/>
                                 <field name="risk_info_consequence"/>
@@ -942,13 +945,12 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <div class="oe_left oe_title">
-                        <label for="name" class="oe_edit_only"/>
-                        <h3>
-                            <field name="name" widget="text"/>
-                        </h3>
+                    <div class="ooe_title">
+                        <h1>
+                            <field name="name" placeholder="Risk Title" class="oe_left"/>
+                        </h1>
                     </div>
-                    <div class="oe_right oe_button_box" name="buttons">
+                    <div class="oe_right oe_button_box oe_read_only" name="buttons">
                         <button name=""
                                 type="action"
                                 class="oe_stat_button"

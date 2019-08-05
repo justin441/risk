@@ -168,7 +168,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  require=True, track_visibility="onchange")
-    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Name')
+    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Details')
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
                                      store=True)
     risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)

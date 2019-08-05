@@ -18,7 +18,7 @@ class BaseProcess(models.AbstractModel):
     description = fields.Html(translate=True, string="Description", track_visibility='onchange', index=True)
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
     sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True, compute_sudo=True)
-    color = fields.Integer(string='Color Index', compute='_compute_color', inverse='_inverse_color')
+    color = fields.Integer(string='Color Index', default=1)
 
 
 class BusinessProcess(models.Model):
@@ -55,7 +55,7 @@ class BusinessProcess(models.Model):
                                string='Identified risks')
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
     module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
-                             domain=[('status', '=', 'installed')], track_visibility='always',
+                             domain=[('state', '=', 'installed')], track_visibility='always',
                              help='This provides a hook for developing a solution to measure the performance of the '
                                   'process.')
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
@@ -105,25 +105,13 @@ class BusinessProcess(models.Model):
                 src['internal'] |= data.business_process_id
         return src
 
-    @api.depends('process_type', 'is_core')
-    def _compute_color(self):
-        for rec in self:
-            if rec.process_type == 'O' or rec.is_core:
-                rec.color = 1
-            elif rec.process_type == 'M':
-                rec.color = 2
-            elif rec.process_type == 'S':
-                rec.color = 3
-            else:
-                rec.color = 4
-
-    def _inverse_color(self):
-        for rec in self:
-            if rec.is_core or rec.process_type == 'O':
-                recs = self.env[self._name].search(['|', ('process_type', '=', 'O'), ('is_core', '=', True)])
-            else:
-                recs = self.env[self._name].search([('process_type', '=', rec.process_type)])
-            recs.write({'color': rec.color})
+    @api.onchange('color')
+    def _onchange_color(self):
+        if self.is_core or self.process_type == 'O':
+            recs = self.env[self._name].search(['|', ('is_core', '=', True), ('process_type', '=', 'O')])
+        else:
+            recs = self.env[self._name].search([('process_type', '=', self.process_type)])
+        (recs - self).write({'color': self.color})
 
     @api.depends('task_ids')
     def _compute_task_count(self):
@@ -288,7 +276,7 @@ class BusinessProcessIO(models.Model):
     ref_input_ids = fields.Many2many('risk_management.business_process.input_output',
                                      relation='risk_management_data_ref_rel', column1='input_id',
                                      column2='output_id', string="Input Ref.",
-                                     domain=lambda self: [('id', 'in', self.origin_id.input_data_ids.ids)])
+                                     domain=lambda self: [('id', 'in', self.business_process_id.input_data_ids.ids)])
     ref_output_ids = fields.Many2many('risk_management.business_process.input_output', 'risk_management_data_ref_rel',
                                       column1='output_id', column2='input_id', string='Referenced By')
     dest_partner_ids = fields.Many2many('res.partner.category', string='External Recipients',
