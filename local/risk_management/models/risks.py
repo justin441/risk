@@ -61,7 +61,6 @@ class RiskInfo(models.Model):
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
-    project_occurrences = fields.Integer(string="Occurrences in Projects", compute="_compute_project_occurrences")
 
     @api.model
     def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
@@ -75,7 +74,7 @@ class RiskInfo(models.Model):
     @api.multi
     def _compute_business_occurrences(self):
         for risk in self:
-            risk.business_occurrences = len(risk.business_risk_ids)
+            risk.business_occurrences = len(risk.business_risk_ids.filtered('active'))
 
 
 class RiskCriteriaMixin(models.AbstractModel):

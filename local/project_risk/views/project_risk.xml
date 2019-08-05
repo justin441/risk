@@ -98,21 +98,6 @@
             </field>
         </record>
 
-        <record id="act_project_risk_activity" model="ir.actions.act_window">
-            <field name="name">Risk activities</field>
-            <field name="res_model">project_risk.project_risk</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form,kanban,calendar</field>
-            <field name="view_id" ref="view_tree_project_risk_activity"/>
-            <field name="context">{'search_default_activities_my':1, ''}</field>
-            <field name="domain">[('activity_date_deadline', '!=', False)]</field>
-            <field name="help" type="html">
-                <p>
-                    Currently there are not any activity scheduled.
-                </p>
-            </field>
-        </record>
-
         <record id="view_project_risk_edit" model="ir.ui.view">
             <field name="name">project_risk.form</field>
             <field name="model">project_risk.project_risk</field>
@@ -139,6 +124,21 @@
                            invisible="context.get('default_project_id', False)"
                     />
                 </field>
+            </field>
+        </record>
+
+         <record id="act_project_risk_activity" model="ir.actions.act_window">
+            <field name="name">Risk activities</field>
+            <field name="res_model">project_risk.project_risk</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,kanban,calendar</field>
+            <field name="view_id" ref="view_tree_project_risk_activity"/>
+            <field name="context">{'search_default_activities_my':1, 'form_view_ref': 'project_risk.view_project_risk_edit'}</field>
+            <field name="domain">[('activity_date_deadline', '!=', False)]</field>
+            <field name="help" type="html">
+                <p>
+                    Currently there are not any activity scheduled.
+                </p>
             </field>
         </record>
 

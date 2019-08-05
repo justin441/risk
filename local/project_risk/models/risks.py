@@ -7,6 +7,19 @@ from odoo import models, fields, api, _
 RISK_ACT_DELAY = 15
 
 
+class RiskInfo(models.Model):
+    _inherit = 'risk_management.risk.info'
+
+    project_risk_ids = fields.One2many('project_risk.project_risk', inverse_name='risk_info_id',
+                                       string='Occurrences(Project)')
+    project_occurrences = fields.Integer(string="Occurrences in Projects", compute="_compute_project_occurrences")
+
+    @api.multi
+    def _compute_project_occurrences(self):
+        for rec in self:
+            rec.project_occurrences = len(rec.project_risk_ids.filtered('active'))
+
+
 class ProjectRisk(models.Model):
     _inherit = 'risk_management.risk_identification.mixin'
     _name = 'project_risk.project_risk'
