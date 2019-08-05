@@ -299,9 +299,9 @@ class BusinessProcessIO(models.Model):
     def _compute_origin(self):
         for rec in self:
             if rec.business_process_id:
-                rec.origin_id = rec.business_process_id
+                rec.origin_id = rec.business_process_id.id
             elif rec.source_part_cat_id:
-                rec.origin_id = rec.source_part_cat_id
+                rec.origin_id = rec.source_part_cat_id.id
 
     @api.depends('source_part_cat_id', 'ref_input_ids')
     def _compute_is_customer_voice(self):
@@ -311,10 +311,9 @@ class BusinessProcessIO(models.Model):
         ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
 
         for rec in self:
-            if rec.origin_id:
-                if (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids)\
-                        or rec.ref_input_ids.filtered('is_customer_voice'):
-                    rec.is_customer_voice = True
+            if (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids) \
+                    or rec.ref_input_ids.filtered('is_customer_voice'):
+                rec.is_customer_voice = True
             else:
                 rec.is_customer_voice = False
 
@@ -345,10 +344,11 @@ class BusinessProcessIO(models.Model):
     @api.onchange('is_customer_voice')
     def _onchange_is_customer_voice(self):
         if self.business_process_id:
+            customers = self.business_process_id.get_customers()['internal']
             if self.is_customer_voice:
                 return {'domain': {
                     'user_process_ids': [('id', '!=', self.business_process_id.id),
-                                         ('id', 'not in', self.business_process_id.get_customers()['internal']),
+                                         ('id', 'not in', customers.ids),
                                          ('company_id', '=', self.business_process_id.company_id.id)]
                 }}
             else:

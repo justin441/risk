@@ -36,7 +36,8 @@
                                context="{'default_parent_id': default_partner_cat_parent_id}"
                                class="oe_edit_only"
                         />
-                        <field name="origin_id" class="oe_read_only"/>
+                        <label for="origin_id" class="oe_read_only"/>
+                        <field name="origin_id" class="oe_read_only" nolabel="1"/>
                         <field name="ref_input_ids" widget="many2many_tags"/>
                         <field name="channel_ids" widget="many2many_tags"/>
                     </group>
@@ -47,7 +48,7 @@
                         </page>
                         <page string="Recipients" name="recipient_page">
                             <group>
-                                <field name="dest_partner_ids" widget="many2many_tags"/>
+                                <field name="dest_partner_ids" widget="many2many_tags" context="{'default_parent_id': default_partner_cat_parent_id}"/>
                                 <field name="user_process_ids" widget="many2many_tags"/>
                             </group>
                         </page>
@@ -502,7 +503,7 @@
         <field name="name">business_risk.tree.activity</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
-            <tree string="Risk activities" default_order="activity_date_deadline" create="false"
+            <tree string="Risk activities" default_order="activity_date_deadline"
                   decoration-danger="activity_date_deadline != False and activity_date_deadline &lt; current_date">
                 <field name="name"/>
                 <field name="business_process_id"/>
@@ -733,11 +734,11 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-xs-8">
                                         <field name="company_id" string="Company" groups="base.group_multi_company"/>
                                     </div>
-                                </div>
-                                <div class="row">
                                     <div class="col-xs-4">
                                         <div class="oe_kanban_bottom_right">
                                             <img t-att-src="kanban_image('res.users', 'image_small', record.responsible_id.raw_value)"
@@ -747,7 +748,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="oe_clear"/>
                         </div>
                     </t>
                 </templates>
@@ -770,13 +770,7 @@
                 </header>
                 <sheet string="Process">
                     <field name="analytic_account_id" invisible="1" required="0"/>
-                    <div class="oe_title">
-                        <label for="name" string="Name" class="oe_edit_only"/>
-                        <h1>
-                            <field name="name" placeholder="Process name"/>
-                        </h1>
-                    </div>
-                    <div class="oe_right oe_button_box" name="buttons">
+                     <div class="oe_right oe_button_box oe_read_only" name="buttons">
                         <button name="%(risk_management.act_business_process_2_process_method_all)d"
                                 type="action"
                                 class="oe_stat_button"
@@ -797,6 +791,12 @@
                         >
                             <field name="risk_count" string="Risks"/>
                         </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Process name"/>
+                        </h1>
                     </div>
                     <group>
                         <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
