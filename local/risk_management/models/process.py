@@ -305,7 +305,7 @@ class BusinessProcessIO(models.Model):
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Internal source',
                                           ondelete='cascade',
                                           default=lambda self: self.env.context.get('default_business_process_id'))
-    origin_id = fields.Reference(selection=[('res.partner.category', 'Partner Tags'),
+    origin_id = fields.Reference(selection=[('res.partner.category', 'Partner Category'),
                                             ('risk_management.business_process', 'Business Process')],
                                  str='Origin', compute='_compute_origin', store=True)
     ref_input_ids = fields.Many2many('risk_management.business_process.input_output',
