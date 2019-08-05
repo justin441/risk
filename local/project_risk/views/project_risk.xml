@@ -104,7 +104,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form,kanban,calendar</field>
             <field name="view_id" ref="view_tree_project_risk_activity"/>
-            <field name="context">{'search_default_activities_my':1}</field>
+            <field name="context">{'search_default_activities_my':1, ''}</field>
             <field name="domain">[('activity_date_deadline', '!=', False)]</field>
             <field name="help" type="html">
                 <p>
