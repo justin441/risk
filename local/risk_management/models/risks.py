@@ -144,7 +144,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     _name = 'risk_management.risk_identification.mixin'
     _inherit = ['risk_management.risk_criteria.mixin', 'mail.thread', 'mail.activity.mixin']
     _mail_post_access = 'read'
-    _order = 'priority desc, report_date desc'
+    _order = 'priority asc, report_date desc'
 
     def _compute_default_review_date(self):
 
@@ -198,7 +198,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                               track_visibility="onchange")
     state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage',
                              store=True, track_visibility="onchange")
-    priority = fields.Char('Priority', compute='_compute_priority', store=True)
+    priority = fields.Integer('Priority', compute='_compute_priority', store=True)
 
     @api.depends('latest_level_value')
     def _compute_priority(self):
@@ -207,10 +207,9 @@ class RiskIdentificationMixin(models.AbstractModel):
                                                            rec.latest_level_value - rec.threshold_value,
                                                            reverse=True)
             if risk.id:
-                index = list(risks).index(risk) + 1
-                risk.priority = '#' + str(index)
+                risk.priority = list(risks).index(risk) + 1
             else:
-                risk.priority = '#' + str(len(risks) + 1)
+                risk.priority = len(risks) + 1
 
     @api.depends('uuid')
     def _compute_name(self):

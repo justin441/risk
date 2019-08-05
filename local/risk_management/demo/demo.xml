@@ -3,22 +3,29 @@
         <!--Processes-->
         <record id="process00" model="risk_management.business_process">
             <field name="name">Planning</field>
-            <field name="description">
-                Thinking about the activities required to achieve a desired goal.
+            <field name="description" type="html">
+                <p>Thinking about the activities required to achieve a desired goal.
                 It provides a systematic way of viewing problems and developing
                 short- and long-term solutions. It involves the creation and maintenance of a plan.
+                </p>
             </field>
             <field name="process_type" eval="'M'"/>
         </record>
 
         <record id="process01" model="risk_management.business_process">
             <field name="name">Commercial</field>
-            <field name="description">Production of quotes. Order Analysis and Validation</field>
+            <field name="description" type="html"><p>
+                Production of quotes. Order Analysis and Validation
+            </p></field>
         </record>
 
         <record id="process02" model="risk_management.business_process">
             <field name="name">outgoing logistics</field>
-            <field name="description">control, packaging and shipping of goods sold.</field>
+            <field name="description" type="html">
+                <p>
+                    control, packaging and shipping of goods sold.
+                </p>
+            </field>
         </record>
 
         <!--Process Data-->
