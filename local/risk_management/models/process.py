@@ -109,8 +109,8 @@ class BusinessProcess(models.Model):
     @api.multi
     def get_customers(self):
         """Returns sources of self's input data that are `customer voice`, if any
-        :return type: dict with keys: - `external`: children of customer partner category,
-                                      - `internal`: business processes
+        :return type: dict with keys: - `external`: children of customer partner category, external customers
+                                      - `internal`: business processes, internal customers
         """
         self.ensure_one()
         src = {
