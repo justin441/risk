@@ -9,20 +9,17 @@ class BaseEvaluationWizard(models.AbstractModel):
     @api.model
     def _get_detectability(self):
         levels = ['Continuous', 'High', 'Average', 'Low', 'Minimal']
-        scores = [str(x) for x in range(1, 6)]
-        return list(zip(scores, levels))
+        return [(str(x+1), y) for x, y in enumerate(levels)]
 
     @api.model
     def _get_occurrence(self):
         levels = ['Almost impossible', 'Unlikely', 'Probable', 'Very probable', 'Almost certain']
-        scores = [str(x) for x in range(1, 6)]
-        return list(zip(scores, levels))
+        return [(str(x+1), y) for x, y in enumerate(levels)]
 
     @api.model
     def _get_severity(self):
         levels = ['Low', 'Average', 'High', 'Very High', 'Maximal']
-        scores = [str(x) for x in range(1, 6)]
-        return list(zip(scores, levels))
+        return [(str(x+1), y) for x, y in enumerate(levels)]
 
     def default_criteria(self):
         # returns a dict of containing the criteria values of the risk being evaluated
