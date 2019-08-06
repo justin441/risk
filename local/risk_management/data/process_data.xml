@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-    <data>
+<odoo >
+    <data noupdate="1">
+
+        <record id="req_link_process" model="res.request.link">
+            <field name="name">Business Process</field>
+            <field name="object">risk_management.business_process</field>
+        </record>
+
+        <record id="req_link_risk" model="res.request.link">
+            <field name="name">Business Risk</field>
+            <field name="object">risk_management.business_risk</field>
+        </record>
+
         <record id="plan_rm" model="risk_management.business_process" >
             <field name="name">Plan Risk Management</field>
             <field name="process_type">M</field>
@@ -35,40 +46,21 @@
         <field name="relation_field">process_id</field>
     </record>
 
+    <record id="mt_business_process_risk_obsolete" model="mail.message.subtype">
+        <field name="name">Obsolete Risk</field>
+        <field name="res_model">risk_management.business_process</field>
+        <field name="default" eval="True"/>
+        <field name="internal" eval="True"/>
+        <field name="parent_id" eval="ref('risk_management.mt_business_risk_obsolete')"/>
+        <field name="relation_field">business_process_id</field>
+    </record>
+
      <record id="mt_business_process_risk_status" model="mail.message.subtype">
         <field name="name">Risk Status Changed</field>
         <field name="res_model">risk_management.business_process</field>
         <field name="default" eval="True"/>
         <field name="internal" eval="True"/>
         <field name="parent_id" eval="ref('risk_management.mt_business_risk_status')"/>
-        <field name="relation_field">process_id</field>
-    </record>
-
-     <!-- Project process subtypes for messaging / Chatter -->
-    <record id="mt_project_process_new" model="mail.message.subtype">
-        <field name="name">New process</field>
-        <field name="res_model">risk_management.project_process</field>
-        <field name="default" eval="True"/>
-        <field name="internal" eval="True"/>
-        <field name="hidden" eval="False"/>
-        <field name="description">New process added</field>
-    </record>
-
-    <record id="mt_project_process_risk_new" model="mail.message.subtype">
-        <field name="name">New Risk</field>
-        <field name="res_model">risk_management.business_process</field>
-        <field name="default" eval="True"/>
-        <field name="internal" eval="True"/>
-        <field name="parent_id" eval="ref('risk_management.mt_project_risk_new')"/>
-        <field name="relation_field">process_id</field>
-    </record>
-
-     <record id="mt_project_process_risk_status" model="mail.message.subtype">
-        <field name="name">Risk Status Changed</field>
-        <field name="res_model">risk_management.project_process</field>
-        <field name="default" eval="True"/>
-        <field name="internal" eval="True"/>
-        <field name="parent_id" eval="ref('risk_management.mt_project_risk_status')"/>
-        <field name="relation_field">process_id</field>
+        <field name="relation_field">business_process_id</field>
     </record>
 </odoo>

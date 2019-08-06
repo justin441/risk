@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from . import process, partner_category, risks, project
+from . import process, risks, project, res_users

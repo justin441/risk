@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from odoo import models, fields, api, exceptions
+import math
+from odoo import models, fields, api, exceptions, _
 
 _logger = logging.getLogger(__name__)
 
@@ -11,147 +12,125 @@ class BaseProcess(models.AbstractModel):
     _inherit = ['mail.thread']
     _order = 'sequence asc, name, id'
 
-    name = fields.Char(required=True, index=True, translate=True, copy=False, track_visibility=True)
-    process_type = fields.Selection(selection=[('O', 'Operation'), ('M', 'Management'), ('S', 'Support')], default='O',
+    process_type = fields.Selection(selection=[('O', 'Operations'), ('M', 'Management'), ('S', 'Support'),
+                                               ('PM', 'Project Management')], default='O',
                                     required=True, string='Process type', track_visibility='onchange')
     description = fields.Html(translate=True, string="Description", track_visibility='onchange', index=True)
-    responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
-                                     default=lambda self: self.env.user, index=True, track_visibility='onchange')
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
     sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True, compute_sudo=True)
-    is_core = fields.Boolean(compute='_compute_is_core', string='Is core process', search='_search_is_core',
-                             help='Is this a core process')
+    color = fields.Integer(string='Color Index', default=1)
+
+
+class BusinessProcess(models.Model):
+    _name = 'risk_management.business_process'
+    _description = 'Business process'
+    _inherit = ['risk_management.base_process']
+    _inherits = {'account.analytic.account': "analytic_account_id"}
+    _sql_constraints = [
+        ('process_name_unique',
+         'UNIQUE(description, analytic_account_id)',
+         'The process name must be unique.')
+    ]
+
+    task_ids = fields.One2many('risk_management.business_process.task', inverse_name='business_process_id',
+                               string='Tasks')
+    analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic',
+                                          help="Link this Process to an analytic account if you need financial "
+                                               "management on projects. It enables you to connect processes with "
+                                               "budgets, planning, cost and revenue analysis.",
+                                          ondelete="restrict", required=True, auto_join=True)
+    output_data_ids = fields.One2many('risk_management.business_process.input_output',
+                                      inverse_name='business_process_id',
+                                      string='Output data')
+    input_data_ids = fields.Many2many(comodel_name='risk_management.business_process.input_output',
+                                      relation='risk_management_input_ids_user_ids_rel',
+                                      column1='business_process_id', column2='input_id', string="Input data",
+                                      domain=lambda self: [('id', 'not in', self.output_data_ids.ids),
+                                                           ('business_process_id.company_id', '=',
+                                                            self.company_id.id)])
+    method_ids = fields.One2many('risk_management.business_process.method',
+                                 inverse_name='business_process_id', string='Methods')
+    task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
+    risk_ids = fields.Many2many('risk_management.business_risk', relation='risk_management_process_risk_rel',
+                                column1='process_id', column2='risk_id', )
+    risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
+    module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
+                             domain=[('state', '=', 'installed')], track_visibility='always',
+                             help='This provides a hook for developing a solution to measure the performance of the '
+                                  'process.')
+    is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
+                             help='Is this a core business process? It is if it processes customer data.')
+
+    responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
+                                     default=lambda self: self.env.user, index=True, track_visibility='onchange',
+                                     domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
+    user_ids = fields.Many2many('res.users', 'risk_management_users_process_rel', 'business_process_id', 'user_id',
+                                string='Staff', domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)],
+                                track_visilibity='always')
+
+    @api.multi
+    def add_partner_input(self):
+        self.ensure_one()
+        form = self.env.ref('risk_management.process_data_form')
+        ctx = {
+            'default_source_part_cat_id': self.env.ref('risk_management.process_external_customer').id,
+            'default_user_process_ids': [(4, self.id)]
+
+        }
+        return {
+            'name': _('New partner input'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'risk_management.business_process.input_output',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(form.id, 'form')],
+            'view_id': form.id,
+            'target': 'new',
+            'context': ctx
+        }
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
+        """This is further enforced by the `input_data_ids` field domain"""
         for process in self:
             for data in process.output_data_ids:
                 if data in process.input_data_ids:
                     raise exceptions.ValidationError("A process cannot consume its own output")
 
-    @api.multi
-    def get_input_int_providers(self):
+    @api.returns('self')
+    def get_provider_processes(self):
+        """Returns the users of self's output  that are 'customer voice', if any"""
         self.ensure_one()
-        int_data = self.input_data_ids.filtered('int_provider_id')  # filter out data of external origin
-        return int_data.mapped('int_provider_id')
-
-    @api.multi
-    def get_input_ext_provider_cats(self):
-        self.ensure_one()
-        ext_data = self.input_data_ids.filtered('ext_provider_cat_id')  # filter out data of internal origin
-        return ext_data.mapped('ext_provider_cat_id')
+        proc = self.env[self._name]
+        for data in self.output_data_ids.filtered('is_customer_voice'):
+            proc |= data.user_process_ids
+        return proc
 
     @api.multi
-    def get_output_users(self):
+    def get_customers(self):
+        """Returns sources of self's input data that are `customer voice`, if any
+        :return type: dict with keys: - `external`: children of customer partner category,
+                                      - `internal`: business processes
+        """
         self.ensure_one()
-        c = self.env[self._name]
-        for data in self.output_data_ids:
-            c |= data.consumer_ids
-        return c
+        src = {
+            'external': self.env['res.partner.category'],
+            'internal': self.env[self._name]
+        }
+        for data in self.input_data_ids.filtered('is_customer_voice'):
+            if data.source_part_cat_id:
+                src['external'] |= data.source_part_cat_id
+            elif data.business_process_id:
+                src['internal'] |= data.business_process_id
+        return src
 
-    @api.depends('input_data_ids')
-    def _compute_is_core(self):
-        for rec in self:
-            if rec.input_data_ids.filtered('is_customer_voice').exists():
-                rec.is_core = True
-            else:
-                rec.is_core = False
-
-    def _search_is_core(self, operator, value):
-        def is_core(rec):
-            if rec.input_data_ids.filtered('is_customer_voice').exists():
-                return True
-            return False
-
-        if operator not in ('=', "!=") or value not in (0, 1):
-            recs = self
-        elif operator == '=':
-            if value:
-                recs = self.filtered(is_core)
-            else:
-                recs = self - self.filtered(is_core)
+    @api.onchange('color')
+    def _onchange_color(self):
+        if self.is_core or self.process_type == 'O':
+            recs = self.env[self._name].search(['|', ('is_core', '=', True), ('process_type', '=', 'O')])
         else:
-            if value:
-                recs = self - self.filtered(is_core)
-            else:
-                recs = self.filtered(is_core)
-        return [('id', 'in', [rec.id for rec in recs])]
-
-
-class BaseProcessData(models.AbstractModel):
-    _name = 'risk_management.base_process_data'
-    _sql_constraints = [
-        (
-            'data_name_unique',
-            'UNIQUE(name, int_provider_id, ext_provider_cat_id)',
-            'The process data name must be unique within the same process.'
-        ),
-        ('check_only_one_provider',
-         'CHECK((ext_provider_cat_id IS NOT NULL AND int_provider_id IS NULL) OR'
-         '(ext_provider_cat_id IS NULL and int_provider_id IS NOT NULL))',
-         'A process can only have one provider.'
-         )
-    ]
-    name = fields.Char(required=True, index=True, translate=True, copy=False)
-    is_customer_voice = fields.Boolean('Consumer Voice?', default=False,
-                                       help="Does this data relay the customer voice?")
-    ext_provider_cat_id = fields.Many2one('res.partner.category', string='External provider', ondelete='cascade',
-                                          domain=lambda self: [('id', 'child_of',
-                                                                self.env.ref('risk_management.process_partner').id)],
-                                          help='Must be a child of `Process partner` category')
-    default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
-        'risk_management.process_partner'), readonly=True)
-
-    @api.constrains('consumer_ids', 'int_provider_id')
-    def _check_provider_not_in_consumers(self):
-        """Data provider should not be a consumer of said data"""
-        for data in self:
-            if data.int_provider_id and data.int_provider_id in data.consumer_ids:
-                raise exceptions.ValidationError("A data's provider cannot be a consumer of that data")
-
-
-class BaseProcessMethod(models.AbstractModel):
-    _name = 'risk_management.base_process_method'
-    _sql_constraints = [
-        (
-            'method_name_unique',
-            'UNIQUE(name, process_id)',
-            'A procedure with the same name already exist on this process'
-        )
-    ]
-
-    name = fields.Char(translate=True, string='Title', required=True, copy=False, index=True)
-    content = fields.Html(translate=True)
-
-
-class BusinessProcess(models.Model):
-    _name = 'risk_management.business_process'
-    _description = 'A Business process'
-    _inherit = ['risk_management.base_process']
-    _sql_constraints = [
-        ('process_name_unique_for_company',
-         'UNIQUE(name, business_id)',
-         'The process name must be unique.')
-    ]
-
-    business_id = fields.Many2one('res.company', ondelete='cascade', string='Business Unit', required=True,
-                                  default=lambda self: self.env.user.company_id,
-                                  readonly=True, copy=False)
-    task_ids = fields.One2many('risk_management.business_process.task', inverse_name='process_id', string='Tasks')
-    output_data_ids = fields.One2many('risk_management.business_process_data', inverse_name='int_provider_id',
-                                      string='Output data')
-    input_data_ids = fields.Many2many(comodel_name='risk_management.business_process_data',
-                                      relation='risk_management_input_ids_consumers_ids_rel',
-                                      column1='input_data_ids', column2='consumer_ids', string="Input data",
-                                      domain="[('id', 'not in', output_data_ids),"
-                                             "('int_provider_id.business_id', '=', business_id)]")
-    method_ids = fields.One2many('risk_management.business_process.method',
-                                 inverse_name='process_id', string='Methods')
-    task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
-    risk_ids = fields.One2many('risk_management.business_risk', inverse_name='process_id', string='Identified risks')
-    risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
-    module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
-                             domain=[('state', '=', 'installed')], track_visibility='always')
+            recs = self.env[self._name].search([('process_type', '=', self.process_type)])
+        (recs - self).write({'color': self.color})
 
     @api.depends('task_ids')
     def _compute_task_count(self):
@@ -166,66 +145,70 @@ class BusinessProcess(models.Model):
     @api.depends('risk_ids')
     def _compute_risk_count(self):
         for rec in self:
-            rec.risk_count = len(rec.risk_ids)
+            if rec.risk_ids:
+                rec.risk_count = len(rec.risk_ids.filtered('active'))
+
+    @api.depends('output_data_ids', 'input_data_ids')
+    def _compute_is_core(self):
+        """
+        Returns: - True if self outputs or relays data that are 'customer voice' to other processes or if self has an
+        input that is a 'customer voice' and directly output to the customer partner category;
+                - False otherwise
+        """
+        for rec in self:
+            if rec.output_data_ids.filtered('is_customer_voice').mapped('user_process_ids') or (
+                    rec.input_data_ids.filtered('is_customer_voice') and
+                    rec.output_data_ids.mapped('dest_partner_ids'
+                                               ) >= self.env.ref('risk_management.process_external_customer')):
+                rec.is_core = True
+            else:
+                rec.is_core = False
 
     @api.depends("process_type", 'input_data_ids')
     def _compute_sequence(self):
         """
-        The sequence of a process depends on its type: operations come first and are order according to their proximity
+        The sequence of a process depends on its type: operations come first and are ordered according to their proximity
         to external clients; then management processes and finally support processes.
         :return: int
         """
-
+        proc = self.env['risk_management.business_process']
+        op = proc.search(['|', ('process_type', '=', 'O'), ('is_core', '=', True)])
+        mp = proc.search([('process_type', '=', 'M'), ('is_core', '=', False)])
+        sp = proc.search([('process_type', '=', 'S'), ('is_core', '=', False)])
         for rec in self:
-            operational_processes = rec.env[
-                'risk_management.business_process'].search(['|', '&',
-                                                            ('business_id', '=', rec.business_id.id),
-                                                            ('process_type', '=', 'O'),
-                                                            '&',
-                                                            ('business_id', '=', rec.business_id.id),
-                                                            ('is_core', '=', 1)
-                                                            ])
-            management_processes = rec.env[
-                'risk_management.business_process'].search(['&', '&',
-                                                            ('business_id', '=', rec.business_id.id),
-                                                            ('process_type', '=', 'M'),
-                                                            ('is_core', '=', 0)
-                                                            ])
-            default_seq = 10
-            if rec.process_type == "O" or rec.is_core:
-                if rec.get_input_ext_provider_cats().exists():
-                    rec.sequence = default_seq
-                else:
-                    if rec.get_input_int_providers().exists():
-                        operational_providers = rec.get_input_int_providers().filtered(
-                            lambda record: record.process_type == 'O' or record.is_core)
-                        rec.sequence = default_seq + sum([record.sequence for record in operational_providers])
-                    else:
-                        rec.sequence = default_seq
-            elif rec.process_type == "M" and not rec.is_core:
-                default = default_seq
-                if operational_processes.exists():
-                    default += max([record.sequence for record in operational_processes])
-                if rec.get_input_int_providers().exists():
-                    mgt_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'M' and not record.is_core
-                    )
-                    rec.sequence = default + sum(
-                        [record.sequence for record in mgt_providers])
-                else:
+            if rec.process_type == 'O' or rec.is_core:
+                default = 10
+                if rec.get_customers()['external']:
                     rec.sequence = default
-            elif rec.process_type == "S" and not rec.is_core:
-                default = default_seq
-                if management_processes.exists():
-                    default += max([record.sequence for record in management_processes])
-                if rec.get_input_int_providers().exists():
-                    support_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'S' and not record.is_core
-                    )
-                    rec.sequence = default + sum(
-                        [record.sequence for record in support_providers])
+                elif rec.get_customers()['internal']:
+                    rec.sequence = 1 + min([proc.sequence for proc in rec.get_customers()['internal']])
                 else:
-                    rec.sequence = default
+                    rec.sequence = 100
+            elif rec.process_type == 'M':
+                default = max([rec.sequence for rec in op]) if op else 30
+                if rec.output_data_ids:
+                    rec.sequence = default + math.floor(default * (1 / len(rec.output_data_ids)))
+                else:
+                    rec.sequence = default + 100
+            elif rec.process_type == 'S':
+                default = max([rec.sequence for rec in mp]) if mp else 50
+                if rec.output_data_ids:
+                    rec.sequence = default + math.floor(default * (1 / len(rec.output_data_ids)))
+                else:
+                    rec.sequence = default + 100
+            else:
+                default = max([rec.sequence for rec in sp]) if mp else 70
+                if rec.output_data_ids:
+                    rec.sequence = default + math.floor(default * (1 / len(rec.output_data_ids)))
+                else:
+                    rec.sequence = default + 100
+
+    @api.model
+    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
+        user_field_lst = super(BusinessProcess, self)._message_get_auto_subscribe_fields(updated_fields,
+                                                                                         auto_follow_fields=None)
+        user_field_lst.extend(['user_ids', 'responsible_id'])
+        return user_field_lst
 
     @api.multi
     def _notification_recipients(self, message, groups):
@@ -254,20 +237,165 @@ class BusinessProcess(models.Model):
                     partner_ids=None, channel_ids=[channel_id], subtype_ids=None, force=False)
         return res
 
+    def message_unsubscribe(self, partner_ids=None, channel_ids=None):
+        """ Unsubscribe from all existing risks when unsubscribing from a business process """
+        self.mapped('risk_ids').message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
+        return super(BusinessProcess, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
 
-class BusinessProcessData(models.Model):
-    _name = 'risk_management.business_process_data'
+
+class BusinessProcessIO(models.Model):
+    _name = 'risk_management.business_process.input_output'
     _description = 'Business Process input or output'
-    _inherit = ['risk_management.base_process_data']
+    _order = "name, id"
+    _sql_constraints = [
+        (
+            'data_name_unique',
+            'UNIQUE(name, business_process_id, source_part_cat_id)',
+            'The process data name must be unique within the same process.'
+        ),
+        ('check_only_one_source',
+         'CHECK((source_part_cat_id IS NOT NULL AND business_process_id IS NULL) OR'
+         '(source_part_cat_id IS NULL and business_process_id IS NOT NULL))',
+         'A process can only have one source, either internal or external.'
+         )
+    ]
+    name = fields.Char(required=True, index=True, translate=True, copy=False)
+    description = fields.Html('Description', translate=True)
+    is_customer_voice = fields.Boolean('Customer Voice?', compute='_compute_is_customer_voice',
+                                       help="Does this data relay the customer voice?",
+                                       search='_search_is_customer_voice')
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Internal source',
+                                          ondelete='cascade',
+                                          default=lambda self: self.env.context.get('default_business_process_id'))
+    source_part_cat_id = fields.Many2one('res.partner.category', string='External Source', ondelete='cascade',
+                                         domain=lambda self: [('id', 'child_of',
+                                                               self.env.ref('risk_management.process_partner').id)],
+                                         help='Must be a child of `Process partner` category')
+    origin_id = fields.Reference(selection=[('res.partner.category', 'Partner Category'),
+                                            ('risk_management.business_process', 'Business Process')],
+                                 str='Source', compute='_compute_origin', store=True)
 
-    int_provider_id = fields.Many2one('risk_management.business_process', string='Origin (internal)',
-                                      ondelete='cascade')
-    consumer_ids = fields.Many2many(comodel_name='risk_management.business_process',
-                                    relation='risk_management_input_ids_consumers_ids_rel',
-                                    column1='consumer_ids', column2='input_data_ids',
-                                    domain="[('id', '!=', int_provider_id),"
-                                           "('business_id', '=', int_provider_id.business_id)]",
-                                    string="Users")
+    ref_input_ids = fields.Many2many('risk_management.business_process.input_output',
+                                     relation='risk_management_data_ref_rel', column1='input_id',
+                                     column2='output_id', string="Input Ref.",
+                                     domain=lambda self: [('id', 'in', self.business_process_id.input_data_ids.ids)])
+    ref_output_ids = fields.Many2many('risk_management.business_process.input_output', 'risk_management_data_ref_rel',
+                                      column1='output_id', column2='input_id', string='Referenced By')
+    dest_partner_ids = fields.Many2many('res.partner.category', string='External Recipients',
+                                        relation='risk_management_data_partner_cat_rel', column1='data_id',
+                                        column2='partner_category_id',
+                                        domain=lambda self: [('id', 'child_of',
+                                                              self.env.ref('risk_management.process_partner').id)],
+                                        help='Must be a child of `Process partner` category', )
+    user_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
+                                        relation='risk_management_input_ids_user_ids_rel',
+                                        column1='input_id', column2='business_process_id',
+                                        string="Recipient processes")
+    channel_ids = fields.Many2many('risk_management.business_process.channel', string='Authorized Channels',
+                                   relation='risk_management_data_channel_rel', column1='data_id',
+                                   column2='channel_id')
+    default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
+        'risk_management.process_partner'), readonly=True)
+
+    @api.depends('source_part_cat_id', 'business_process_id')
+    def _compute_origin(self):
+        for rec in self:
+            if rec.id:
+                if rec.business_process_id:
+                    rec.origin_id = self._name + ',' + str(rec.business_process_id.id)
+                elif rec.source_part_cat_id:
+                    rec.origin_id = 'res.partner.category' + ',' + str(rec.source_part_cat_id.id)
+            else:
+                rec.origin_id = False
+
+    @api.depends('source_part_cat_id', 'ref_input_ids')
+    def _compute_is_customer_voice(self):
+        """a data is customer voice if it was input by an Customer or if it relays one."""
+        customers = self.env[
+            'res.partner.category'
+        ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
+
+        for rec in self:
+            if (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids) \
+                    or rec.ref_input_ids.filtered('is_customer_voice'):
+                rec.is_customer_voice = True
+            else:
+                rec.is_customer_voice = False
+
+    def _search_is_customer_voice(self, operator, value):
+        customers = self.env[
+            'res.partner.category'
+        ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
+
+        def customer_voice(rec):
+            return (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids) or (
+                    rec.ref_input_ids and rec.ref_input_ids.filtered(customer_voice)
+            )
+
+        if operator not in ('=', '!=') or value not in (0, 1):
+            recs = self
+        elif operator == '=':
+            if value:
+                recs = self.filtered(customer_voice)
+            else:
+                recs = self.filtered(lambda rec: not customer_voice(rec))
+        else:
+            if value:
+                recs = self.filtered(lambda rec: not customer_voice(rec))
+            else:
+                recs = self.filtered(customer_voice)
+        return [('id', 'in', [rec.id for rec in recs])]
+
+    @api.onchange('is_customer_voice')
+    def _onchange_is_customer_voice(self):
+        if self.business_process_id:
+            customers = self.business_process_id.get_customers()['internal']
+            if self.is_customer_voice:
+                return {'domain': {
+                    'user_process_ids': [('id', '!=', self.business_process_id.id),
+                                         ('id', 'not in', customers.ids),
+                                         ('company_id', '=', self.business_process_id.company_id.id)]
+                }}
+            else:
+                return {'domain': {
+                    'user_process_ids': [
+                        ('id', '!=', self.business_process_id.id),
+                        ('company_id', '=', self.business_process_id.company_id.id)]
+                }}
+
+    @api.constrains('user_process_ids', 'business_process_id')
+    def _check_provider_not_in_consumers(self):
+        """Data source should not be a user of said data"""
+        for data in self:
+            if (data.business_process_id and data.business_process_id in data.user_process_ids) or (
+                    data.source_part_cat_id and data.source_part_cat_id in data.dest_partner_ids
+            ):
+                raise exceptions.ValidationError("The data source cannot be a recipient of the data")
+
+    @api.constrains('source_part_cat_id', 'ref_input_ids')
+    def _check_ext_input_no_ref(self):
+        if self.source_part_cat_id and self.ref_input_ids:
+            raise exceptions.ValidationError("Input from partner can't have input references")
+
+    @api.constrains('source_part_cat_id', 'dest_partner_ids')
+    def _check_ext_input_not_ext_recip(self):
+        if self.source_part_cat_id and self.dest_partner_ids:
+            raise exceptions.ValidationError("Input from partner can't have other partners as recipients")
+
+
+class ProcessDataChannel(models.Model):
+    _name = 'risk_management.business_process.channel'
+    _description = 'Interprocess communication channel'
+    _order = 'name'
+
+    _sql_constraints = [
+        ('name_uniq', 'unique (name)', "Channel name already exists !"),
+    ]
+
+    name = fields.Char(required=True, index=True, Translate=True)
+    data_ids = fields.Many2many('risk_management.business_process.input_output',
+                                relation='risk_management_data_channel_rel', column1='channel_id',
+                                column2='data_id', string='Process Data')
 
 
 class BusinessProcessTask(models.Model):
@@ -277,190 +405,49 @@ class BusinessProcessTask(models.Model):
     _sql_constraints = [
         (
             'task_name_unique',
-            'UNIQUE(name, process_id)',
+            'UNIQUE(name, business_process_id)',
             'A task with the same name already exists in this process.'
         )
     ]
 
     name = fields.Char(required=True, translate=True, index=True)
     description = fields.Text(translate=True, index=True)
-    owner_id = fields.Many2one('res.users', ondelete="set null")
-    sequence = fields.Integer(default=10)
-    process_id = fields.Many2one('risk_management.business_process', ondelete='cascade', string="Process", index=True)
-    manager_id = fields.Many2one('res.users', related='process_id.responsible_id', readonly=True,
+    owner_id = fields.Many2one('res.users', ondelete="set null",
+                               domain=lambda self: [('id', 'in', self.business_process_id.user_ids.ids)],
+                               string='Assigned To')
+    sequence = fields.Integer(default=10, index=True, string='Sequence')
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', ondelete='cascade',
+                                          string="Process",
+                                          index=True,
+                                          default=lambda self: self.env.context.get('default_business_process_id'))
+    manager_id = fields.Many2one('res.users', related='business_process_id.responsible_id', readonly=True,
                                  related_sudo=False, string='Process Manager')
+    frequency = fields.Selection(selection=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'),
+                                            ('quarterly', 'Quarterly'), ('annualy', 'Annualy')], string='Frequency')
+
+    def action_assign_to_me(self):
+        self.write({'owner_id': self.env.user.id})
 
 
 class BusinessProcessMethod(models.Model):
     _name = "risk_management.business_process.method"
     _description = "Rules and policies for the business process"
-    _inherit = ['risk_management.base_process_method']
-    process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process')
-    output_ref_id = fields.Many2one(comodel_name='risk_management.business_process_data', string='Output ref.',
-                                    domain=lambda self: [
-                                        ('int_provider_id.business_id', '=', self.process_id.business_id.id),
-                                        ('int_provider_id.process_type', '=', 'M')
-                                    ],
-                                    help='Output data reference')
-    author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)
-
-
-class ProjectProcessData(models.Model):
-    _name = 'risk_management.project_process_data'
-    _description = 'A project process input or output'
-    _inherit = ['risk_management.base_process_data']
-
-    int_provider_id = fields.Many2one('risk_management.project_process', string='Origin (internal)',
-                                      ondelete='cascade')
-    consumer_ids = fields.Many2many(comodel_name='risk_management.project_process',
-                                    relation='risk_management_project_input_ids_consumers_ids_rel',
-                                    column1='consumer_ids', column2='input_data_ids',
-                                    domain="[('id', '!=', int_provider_id),"
-                                           "('project_id', '=', int_provider_id.project_id)]",
-                                    string="Users")
-
-
-class ProjectProcess(models.Model):
-    _name = 'risk_management.project_process'
-    _description = 'A project process'
-    _inherit = ['risk_management.base_process']
     _sql_constraints = [
-        ('process_name_unique_for_project',
-         'UNIQUE(name, project_id)',
-         'The process name must be unique.')
+        (
+            'method_name_unique',
+            'UNIQUE(name, business_process_id)',
+            'A procedure with the same name already exist on this process'
+        )
     ]
 
-    project_id = fields.Many2one('project.project', string='Project', ondelete='cascade',
-                                 default=lambda self: self.env.context.get('default_project_id', False),
-                                 index=True, track_visibility='onchange')
-    task_ids = fields.One2many('project.task', string='Tasks', inverse_name='process_id',
-                               domain=lambda self: [('project_id', '=', self.project_id.id), '|',
-                                                    ('stage_id.fold', '=', False), ('stage_id', '=', False)])
-    method_ids = fields.One2many('risk_management.project_process.method', string='Methods', inverse_name='process_id')
-    output_data_ids = fields.One2many('risk_management.project_process_data', inverse_name='int_provider_id',
-                                      string='Output data')
-    input_data_ids = fields.Many2many('risk_management.project_process_data',
-                                      relation='risk_management_project_input_ids_consumers_ids_rel',
-                                      column1='input_data_ids', column2='consumer_ids', string='Input Data',
-                                      domain="[('id', 'not in', output_data_ids),"
-                                             "('int_provider_id.project_id', '=', project_id)]"
-                                      )
-    task_count = fields.Integer(string='Tasks', compute="_compute_task_count")
-    method_count = fields.Integer(string='Method', compute="_compute_method_count")
-    risk_ids = fields.One2many('risk_management.project_risk', inverse_name='process_id', string='Identified risks')
-    risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
-
-    @api.depends('task_ids')
-    def _compute_task_count(self):
-        for rec in self:
-            rec.task_count = len(rec.task_ids)
-
-    @api.depends('method_ids')
-    def _compute_method_count(self):
-        for rec in self:
-            rec.method_count = len(rec.method_ids)
-
-    @api.depends('risk_ids')
-    def _compute_risk_count(self):
-        for rec in self:
-            rec.risk_count = len(rec.risk_ids)
-
-    @api.depends("process_type", 'input_data_ids', 'output_data_ids')
-    def _compute_sequence(self):
-        """
-        The sequence of a process depends on its type: operations come first and are order according to their proximity
-        to external clients; then management processes and finally support processes
-        :return: int
-        """
-
-        for rec in self:
-            operational_processes = rec.env[
-                'risk_management.project_process'].search(['|', '&',
-                                                           ('project_id', '=', rec.project_id.id),
-                                                           ('process_type', '=', 'O'),
-                                                           '&',
-                                                           ('project_id', '=', rec.project_id.id),
-                                                           ('is_core', '=', 1)
-                                                           ])
-            management_processes = rec.env[
-                'risk_management.project_process'].search(['&', '&',
-                                                           ('project_id', '=', rec.project_id.id),
-                                                           ('process_type', '=', 'M'),
-                                                           ('is_core', '=', 0)
-                                                           ])
-            default_seq = 10
-            if rec.process_type == "O" or rec.is_core:
-                if rec.get_input_ext_provider_cats().exists():
-                    rec.sequence = default_seq
-                else:
-                    if rec.get_input_int_providers().exists():
-                        operational_providers = rec.get_input_int_providers().filtered(
-                            lambda record: record.process_type == 'O' or record.is_core)
-                        rec.sequence = default_seq + sum([record.sequence for record in operational_providers])
-                    else:
-                        rec.sequence = default_seq
-            elif rec.process_type == "M" and not rec.is_core:
-                default = default_seq
-                if operational_processes.exists():
-                    default += max([record.sequence for record in operational_processes])
-                if rec.get_input_int_providers().exists():
-                    mgt_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'M' and not record.is_core
-                    )
-                    rec.sequence = default + sum(
-                        [record.sequence for record in mgt_providers])
-                else:
-                    rec.sequence = default
-            elif rec.process_type == "S" and not rec.is_core:
-                default = default_seq
-                if management_processes.exists():
-                    default += max([record.sequence for record in management_processes])
-                if rec.get_input_int_providers().exists():
-                    support_providers = rec.get_input_int_providers().filtered(
-                        lambda record: record.process_type == 'S' and not record.is_core
-                    )
-                    rec.sequence = default + sum(
-                        [record.sequence for record in support_providers])
-                else:
-                    rec.sequence = default
-
-    @api.multi
-    def _notification_recipients(self, message, groups):
-        groups = super(ProjectProcess, self)._notification_recipients(message, groups)
-
-        for group_name, group_method, group_data in groups:
-            group_data['has_button_access'] = True
-
-        return groups
-
-    @api.multi
-    def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
-        """ Subscribe to all existing risks on the process when subscribing to a project process """
-        res = super(ProjectProcess, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids,
-                                                            subtype_ids=subtype_ids, force=force)
-        if not subtype_ids or any(subtype.parent_id.res_model == 'business_management.business_risk' for subtype in
-                                  self.env['mail.message.subtype'].browse(subtype_ids)):
-            for partner_id in partner_ids or []:
-                self.mapped('risk_ids').filtered(
-                    lambda risk: partner_id not in risk.message_partner_ids.ids
-                ).message_subscribe(partner_ids=[partner_id], channel_ids=None, subtype_ids=None, force=False)
-            for channel_id in channel_ids or []:
-                self.mapped('risk_ids').filtered(
-                    lambda risk: channel_id not in risk.message_channel_ids.ids
-                ).message_subscribe(
-                    partner_ids=None, channel_ids=[channel_id], subtype_ids=None, force=False)
-        return res
-
-
-class ProjectMethod(models.Model):
-    _name = "risk_management.project_process.method"
-    _description = "Rules and policies for the project process"
-    _inherit = ['risk_management.base_process_method']
-    process_id = fields.Many2one(comodel_name='risk_management.project_process', string='User process')
-    output_ref_id = fields.Many2one(comodel_name='risk_management.project_process_data', string='Output ref.',
+    name = fields.Char(translate=True, string='Title', required=True, copy=False, index=True)
+    content = fields.Html(translate=True)
+    business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process',
+                                          required=True)
+    output_ref_id = fields.Many2one(comodel_name='risk_management.business_process.input_output', string='Output ref.',
                                     domain=lambda self: [
-                                        ('int_provider_id.project_id', '=', self.process_id.project_id.id),
-                                        ('int_provider_id.process_type', '=', 'M')
+                                        ('business_process_id.company_id', '=', self.business_process_id.company_id.id),
+                                        ('business_process_id.process_type', '=', 'M')
                                     ],
-                                    help='Output data reference')
-    author_name = fields.Char('From process', related='output_ref_id.int_provider_id.name', readonly=True)
+                                    help='Output Reference', required=True)
+    author_name = fields.Char('From process', related='output_ref_id.business_process_id.name', readonly=True)

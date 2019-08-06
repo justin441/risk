@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+   <record model="ir.actions.act_window" id="act_set_project_risk_threshold_wizard">
+        <field name="name">Set Project Risk Threshold</field>
+        <field name="res_model">project_risk.set_threshold_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">
+           {'default_risk_id': active_id, 'risk_model': 'project_risk.project_risk'}
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="act_eval_project_risk_wizard">
+        <field name="name">Project Risk Evaluation</field>
+        <field name="res_model">project_risk.eval_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">
+            {'default_risk_id': active_id, 'risk_model': 'project_risk.project_risk'}
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_project_risk_threshold_wizard">
+        <field name="name">Project Risk Threshold Wizard Form</field>
+        <field name="model">project_risk.set_threshold_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Set risk Threshold">
+                <sheet>
+                    <group name="info" string="Risk Info">
+                        <field name="risk_id" readonly="1"/>
+                        <field name="threshold_value"/>
+                        <field name="latest_level"/>
+                    </group>
+                    <group string="Criteria scores">
+                        <field name="detectability"/>
+                        <field name="occurrence"/>
+                        <field name="severity"/>
+                    </group>
+                    <notebook>
+                        <page name="comment_page" string="Comment">
+                            <field name="comment"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="set_value"
+                            string="Set"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_project_risk_evaluation_wizard">
+        <field name="name">Project Risk Evaluation Wizard Form</field>
+        <field name="model">project_risk.eval_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Risk Evaluation">
+                <sheet>
+                    <group name="info" string="Risk Info">
+                        <field name="risk_id" readonly="1"/>
+                        <field name="threshold_value"/>
+                        <field name="latest_level"/>
+                        <field name="latest_level_date"/>
+                    </group>
+                    <group string="Criteria scores">
+                        <group>
+                            <field name="detectability"/>
+                            <field name="occurrence"/>
+                            <field name="severity"/>
+                        </group>
+                        <group>
+                            <field name="review_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="comment_page" string="Comment">
+                            <field name="comment"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="set_value"
+                            string="Save"
+                            class="btn-primary"
+                            type="object"
+                    />
+                    <button string="Cancel"
+                            class="btn-default"
+                            special="cancel"
+                    />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

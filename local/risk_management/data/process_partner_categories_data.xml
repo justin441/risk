@@ -15,7 +15,7 @@
             <field name="parent_id" ref="process_partner"/>
             <field name="color" eval="3"/>
         </record>
-        <record id="process_external_client" model="res.partner.category">
+        <record id="process_external_customer" model="res.partner.category">
             <field name="name">Customer</field>
             <field name="parent_id" ref="process_partner"/>
             <field name="color" eval="7"/>
