@@ -83,17 +83,17 @@ class RiskCriteriaMixin(models.AbstractModel):
     @api.model
     def _get_detectability(self):
         levels = ['Continuous', 'High', 'Average', 'Low', 'Minimal']
-        return [(str(x+1), y) for x, y in enumerate(levels)]
+        return [(str(x + 1), y) for x, y in enumerate(levels)]
 
     @api.model
     def _get_occurrence(self):
         levels = ['Almost impossible', 'Unlikely', 'Probable', 'Very probable', 'Almost certain']
-        return [(str(x+1), y) for x, y in enumerate(levels)]
+        return [(str(x + 1), y) for x, y in enumerate(levels)]
 
     @api.model
     def _get_severity(self):
         levels = ['Low', 'Average', 'High', 'Very High', 'Maximal']
-        return [(str(x+1), y) for x, y in enumerate(levels)]
+        return [(str(x + 1), y) for x, y in enumerate(levels)]
 
     detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='1', required=True,
                                      help='What is the ability of the company to detect'
@@ -251,7 +251,6 @@ class RiskIdentificationMixin(models.AbstractModel):
                 recs = recs.search([('review_date', '>', today)])
         return [('id', 'in', [rec.id for rec in recs])]
 
-
     @api.onchange('state')
     def _onchange_state(self):
         activity = self.env['mail.activity']
@@ -378,16 +377,20 @@ class RiskIdentificationMixin(models.AbstractModel):
         def acceptable(rec):
             # is the risk acceptable?
             if rec.risk_type == 'T':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value <= rec.threshold_value
+                return rec.active and rec.latest_level_value and rec.threshold_value and \
+                       rec.latest_level_value <= rec.threshold_value
             elif rec.risk_type == 'O':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value <= rec.latest_level_value
+                return rec.active and rec.latest_level_value and rec.threshold_value and \
+                       rec.threshold_value <= rec.latest_level_value
 
         def unacceptable(rec):
             # is the risk unacceptable?
             if rec.risk_type == 'T':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.latest_level_value > rec.threshold_value
+                return rec.active and rec.latest_level_value and rec.threshold_value and \
+                       rec.latest_level_value > rec.threshold_value
             elif rec.risk_type == 'O':
-                return rec.active and rec.latest_level_value and rec.threshold_value and rec.threshold_value > rec.latest_level_value
+                return rec.active and rec.latest_level_value and rec.threshold_value and \
+                       rec.threshold_value > rec.latest_level_value
 
         def unknown_status(rec):
             # is the risk status unknown?
@@ -473,11 +476,10 @@ class BusinessRisk(models.Model):
     @api.depends('active', 'is_confirmed', 'treatment_project_id', 'treatment_task_count', 'evaluation_ids')
     def _compute_stage(self):
         for risk in self:
+            up_to_date_evals = self.env['risk_management.business_risk.evaluation']
             if risk.evaluation_ids:
-                up_to_date_evals = risk.evaluation_ids.filtered(
+                up_to_date_evals |= risk.evaluation_ids.filtered(
                     lambda ev: not ev.is_obsolete)
-            else:
-                up_to_date_evals = False
             if up_to_date_evals:
                 valid_evals = up_to_date_evals.filtered('is_valid')
             else:
