@@ -36,6 +36,44 @@ class ProjectRisk(models.Model):
     treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
                                           store=True)
 
+    @api.depends('active', 'is_confirmed', 'treatment_task_id', 'treatment_task_count', 'evaluation_ids')
+    def _compute_stage(self):
+        for risk in self:
+            if risk.evaluation_ids:
+                up_to_date_evals = risk.evaluation_ids.filtered(
+                    lambda ev: not ev.is_obsolete)
+            else:
+                up_to_date_evals = False
+            if up_to_date_evals:
+                valid_evals = up_to_date_evals.filtered('is_valid')
+            else:
+                valid_evals = False
+            if not risk.active:
+                risk.state = False
+            elif not risk.is_confirmed:
+                # risk has been reported but not confirmed
+                risk.state = '1'  # still in identification stage
+
+            elif not up_to_date_evals:
+                # risk has been confirmed but has not yet been evaluated
+                risk.state = '2'  # risk identification completed
+
+            elif not valid_evals:
+                # there are evaluations of the risk but no valid one yet
+                risk.state = '3'  # still in evaluation stage
+
+            elif not risk.treatment_task_id:
+                # there is at least one valid risk evaluation
+                risk.state = '4'  # Risk evaluation completed
+
+            elif risk.treatment_task_count:
+                # there is at least one ongoing risk treatment task
+                risk.state = '5'  # ongoing risk treatment
+
+            elif risk.treatment_task_id.child_ids and not risk.treatment_task_count:
+                # risk treatment done
+                risk.state = '6'
+
     @api.onchange('project_id')
     def _onchange_project_id(self):
         if self.project_id:
@@ -75,7 +113,7 @@ class ProjectRisk(models.Model):
             'context': {
                 'search_default_parent_id': self.treatment_task_id.id,
                 'default_parent_id': self.treatment_task_id.id,
-                'default_business_risk_id': self.id,
+                'default_project_risk_id': self.id,
                 'default_project_id': self.project_id.id,
                 'default_target_criterium': 'O'
             }

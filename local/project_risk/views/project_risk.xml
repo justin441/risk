@@ -41,10 +41,10 @@
             <field name="model">project_risk.project_risk</field>
             <field name="inherit_id" ref="risk_management.view_business_risk_search"/>
             <field name="arch" type="xml">
-                <field name="business_process_id" position="replace">
+                <field name="business_process_ids" position="replace">
                     <field name="project_id"/>
                 </field>
-                <xpath expr="//filter[@name='Process']" position="replace">
+                <xpath expr="//filter[@name='Category']" position="after">
                     <filter string="Project" name="Project" context="{'group_by': 'project_id'}"/>
                 </xpath>
             </field>
@@ -55,7 +55,7 @@
             <field name="model">project_risk.project_risk</field>
             <field name="inherit_id" ref="risk_management.view_tree_business_risk_activity"/>
             <field name="arch" type="xml">
-                <field name="business_process_id" position="replace">
+                <field name="business_process_ids" position="replace">
                     <field name="project_id"/>
                 </field>
             </field>
@@ -66,7 +66,7 @@
             <field name="model">project_risk.project_risk</field>
             <field name="inherit_id" ref="risk_management.view_business_risk_tree"/>
             <field name="arch" type="xml">
-                <field name="business_process_id" position="replace">
+                <field name="business_process_ids" position="replace">
                     <field name="project_id" invisible="context.get('search_default_project_id', False)"/>
                 </field>
             </field>
@@ -88,13 +88,15 @@
             <field name="model">project_risk.project_risk</field>
             <field name="inherit_id" ref="risk_management.view_business_risk_kanban"/>
             <field name="arch" type="xml">
-                <field name="business_process_id" position="replace">
+                <field name="business_process_ids" position="replace">
                     <field name="project_id"/>
                 </field>
-                <xpath expr="//small[hasclass('o_kanban_record_subtitle')]/field[@name='business_process_id']"
-                       position="replace">
+                <xpath expr="//small[hasclass('o_kanban_record_subtitle')]/t"
+                       position="before">
                     <field name="project_id" invisible="context.get('default_project_id', False)"/>
                 </xpath>
+                <xpath expr="//div[hasclass('o_kanban_record_body')]/field[@name='business_process_ids']"
+                       position="replace"/>
             </field>
         </record>
 
@@ -103,8 +105,21 @@
             <field name="model">project_risk.project_risk</field>
             <field name="inherit_id" ref="risk_management.view_business_risk_edit"/>
             <field name="arch" type="xml">
+                <field name="treatment_project_id" position="replace">
+                    <field name="treatment_task_id" invisible="1"/>
+                </field>
                 <xpath expr="//button[@name='assign_to_me']" position="attributes">
                     <attribute name="groups" eval="project_risk.group_risk_manager"/>
+                </xpath>
+                <xpath expr="//div[@name='treatment_button']/button[1]" position="replace">
+                    <button name="get_treatments_view"
+                            type="object"
+                            class="oe_stat_button oe_read_only"
+                            icon="fa-tasks"
+                            attrs="{'invisible': [('treatment_task_id', '=', 'False')]}"
+                    >
+                        <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
+                    </button>
                 </xpath>
                 <xpath expr="//header/button[2]" position="replace">
                     <button name="%(project_risk.act_set_project_risk_threshold_wizard)d"
@@ -119,11 +134,12 @@
                             string="Evaluation"
                             attrs="{'invisible' : [('is_confirmed', '=', False)]}"/>
                 </xpath>
-                <field name="business_process_id" position="replace">
+                <field name="risk_type" position="after">
                     <field name="project_id"
                            invisible="context.get('default_project_id', False)"
                     />
                 </field>
+                <field name="business_process_ids" position="replace"/>
             </field>
         </record>
 
@@ -184,6 +200,22 @@
                 </xpath>
             </field>
         </record>
+
+        <!-- task form-->
+         <record id="view_task_form2" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <field name="project_id" position="after">
+                <field name="project_risk_id"
+                       invisible="not context.get('default_project_risk_id', False)"
+                />
+                <field name="target_criterium"
+                       invisible="not context.get('default_target_criterium', False)"
+                />
+            </field>
+        </field>
+    </record>
 
         <!-- risk form -->
 

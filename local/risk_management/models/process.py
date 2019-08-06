@@ -2,7 +2,7 @@
 
 import logging
 import math
-from odoo import models, fields, api, exceptions
+from odoo import models, fields, api, exceptions, _
 
 _logger = logging.getLogger(__name__)
 
@@ -51,8 +51,8 @@ class BusinessProcess(models.Model):
     method_ids = fields.One2many('risk_management.business_process.method',
                                  inverse_name='business_process_id', string='Methods')
     task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
-    risk_ids = fields.One2many('risk_management.business_risk', inverse_name='business_process_id',
-                               string='Identified risks')
+    risk_ids = fields.Many2many('risk_management.business_risk', relation='risk_management_process_risk_rel',
+                                column1='process_id', column2='risk_id', )
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
     module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
                              domain=[('state', '=', 'installed')], track_visibility='always',
@@ -60,8 +60,6 @@ class BusinessProcess(models.Model):
                                   'process.')
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
                              help='Is this a core business process? It is if it processes customer data.')
-    risk_treatment_project_id = fields.Many2one('project.project', string='Risk treatment project',
-                                                computed='_compute_project_id', store=True)
 
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange',
@@ -69,6 +67,27 @@ class BusinessProcess(models.Model):
     user_ids = fields.Many2many('res.users', 'risk_management_users_process_rel', 'business_process_id', 'user_id',
                                 string='Staff', domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)],
                                 track_visilibity='always')
+
+    @api.multi
+    def add_partner_input(self):
+        self.ensure_one()
+        form = self.env.ref('risk_management.process_data_form')
+        ctx = {
+            'default_source_part_cat_id': self.env.ref('risk_management.process_external_customer').id,
+            'default_user_process_ids': [(4, self.id)]
+
+        }
+        return {
+            'name': _('New partner input'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'risk_management.business_process.input_output',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'views': [(form.id, 'form')],
+            'view_id': form.id,
+            'target': 'new',
+            'context': ctx
+        }
 
     @api.constrains('input_data_ids', 'id')
     def _check_output_not_in_input(self):
@@ -223,23 +242,6 @@ class BusinessProcess(models.Model):
         self.mapped('risk_ids').message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
         return super(BusinessProcess, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
 
-    @api.depends('risk_ids')
-    def _compute_project_id(self):
-        """Adds a project to address process risks as soon as a risk is added to the process"""
-        for rec in self:
-            if rec.risk_ids.exists() and not rec.risk_treatment_project_id:
-                project = self.env['project.project']
-                risk_treatment_project = project.sudo().create({
-                    'name': 'Treatment of risks related to %s process' % self.name,
-                    'user_id': rec.responsible_id.id if rec.responsible_id else False
-                })
-                rec.risk_treatment_project_id = risk_treatment_project
-
-    @api.onchange('responsible_id')
-    def _onchange_responsible_id(self):
-        if self.risk_treatment_project_id:
-            self.risk_treatment_project_id = self.responsible_id
-
 
 class BusinessProcessIO(models.Model):
     _name = 'risk_management.business_process.input_output'
@@ -298,10 +300,13 @@ class BusinessProcessIO(models.Model):
     @api.depends('source_part_cat_id', 'business_process_id')
     def _compute_origin(self):
         for rec in self:
-            if rec.business_process_id:
-                rec.origin_id = rec.business_process_id.id
-            elif rec.source_part_cat_id:
-                rec.origin_id = rec.source_part_cat_id.id
+            if rec.id:
+                if rec.business_process_id:
+                    rec.origin_id = self._name + ',' + str(rec.business_process_id.id)
+                elif rec.source_part_cat_id:
+                    rec.origin_id = 'res.partner.category' + ',' + str(rec.source_part_cat_id.id)
+            else:
+                rec.origin_id = False
 
     @api.depends('source_part_cat_id', 'ref_input_ids')
     def _compute_is_customer_voice(self):
@@ -367,6 +372,16 @@ class BusinessProcessIO(models.Model):
             ):
                 raise exceptions.ValidationError("The data source cannot be a recipient of the data")
 
+    @api.constrains('source_part_cat_id', 'ref_input_ids')
+    def _check_ext_input_no_ref(self):
+        if self.source_part_cat_id and self.ref_input_ids:
+            raise exceptions.ValidationError("Input from partner can't have input references")
+
+    @api.constrains('source_part_cat_id', 'dest_partner_ids')
+    def _check_ext_input_not_ext_recip(self):
+        if self.source_part_cat_id and self.dest_partner_ids:
+            raise exceptions.ValidationError("Input from partner can't have other partners as recipients")
+
 
 class ProcessDataChannel(models.Model):
     _name = 'risk_management.business_process.channel'
@@ -407,11 +422,11 @@ class BusinessProcessTask(models.Model):
                                           default=lambda self: self.env.context.get('default_business_process_id'))
     manager_id = fields.Many2one('res.users', related='business_process_id.responsible_id', readonly=True,
                                  related_sudo=False, string='Process Manager')
+    frequency = fields.Selection(selection=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'),
+                                            ('quarterly', 'Quarterly'), ('annualy', 'Annualy')], string='Frequency')
 
     def action_assign_to_me(self):
         self.write({'owner_id': self.env.user.id})
-
-    # TODO: add frequency field, generate todo lists
 
 
 class BusinessProcessMethod(models.Model):

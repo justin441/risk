@@ -8,8 +8,7 @@
 
     <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
 
-    <!-- BUSINESS PROCESS DATA-->
-    <!-- actions-->
+    <!-- BUSINESS PROCESS I/O-->
     <!-- views-->
     <record model="ir.ui.view" id="process_data_form">
         <field name="name">business_process_data.form</field>
@@ -22,7 +21,7 @@
                             <field name="name" placeholder="Name"/>
                         </group>
                         <group colspan="2" col="2" class="oe_read_only">
-                            <field name="is_customer_voice" />
+                            <field name="is_customer_voice"/>
                         </group>
                     </group>
                     <group>
@@ -38,7 +37,8 @@
                         />
                         <label for="origin_id" class="oe_read_only"/>
                         <field name="origin_id" class="oe_read_only" nolabel="1"/>
-                        <field name="ref_input_ids" widget="many2many_tags"/>
+                        <field name="ref_input_ids" widget="many2many_tags"
+                               attrs="{'invisible': [('source_part_cat_id', '!=', False)]}"/>
                         <field name="channel_ids" widget="many2many_tags"/>
                     </group>
                     <notebook>
@@ -48,7 +48,9 @@
                         </page>
                         <page string="Recipients" name="recipient_page">
                             <group>
-                                <field name="dest_partner_ids" widget="many2many_tags" context="{'default_parent_id': default_partner_cat_parent_id}"/>
+                                <field name="dest_partner_ids" widget="many2many_tags"
+                                       context="{'default_parent_id': default_partner_cat_parent_id}"
+                                       attrs="{'invisible': [('source_part_cat_id', '!=', False)]}"/>
                                 <field name="user_process_ids" widget="many2many_tags"/>
                             </group>
                         </page>
@@ -102,6 +104,19 @@
                 <filter name="ext_provider" string="External" domain="[('source_part_cat_id', '!=', False)]"/>
                 <filter name="client_voice" string="Customer Voice" domain="[('is_customer_voice', '=', True)]"/>
             </search>
+        </field>
+    </record>
+
+    <!-- actions-->
+    <record model="ir.actions.act_window" id="act_business_process_io">
+        <field name="name">Business process i/o</field>
+        <field name="res_model">risk_management.business_process.input_output</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="process_data_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new input/output
+            </p>
         </field>
     </record>
 
@@ -163,13 +178,15 @@
                     </group>
                     <group>
                         <field name="sequence" groups="base.group_no_one"/>
+                        <field name="frequency"/>
                         <label for="manager_id" class="oe_read_only"/>
                         <field name="manager_id" class="oe_read_only" nolabel="1"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">
-                            <field name="description" type="html"/>
-                            <div class="oe_clear"/>
+                            <group>
+                                <field name="description" type="html"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -309,7 +326,7 @@
                 <field name="occurrence"/>
                 <field name="threshold_value" invisible="1"/>
                 <field name="is_obsolete" invisible="1"/>
-                <field name="value" />
+                <field name="value"/>
             </tree>
         </field>
     </record>
@@ -340,11 +357,11 @@
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
             <search>
-                <field name="business_process_id"/>
                 <field name="risk_info_id"/>
                 <field name="risk_info_description"/>
                 <field name="risk_info_cause"/>
                 <field name="risk_info_consequence"/>
+                <field name="business_process_ids" domain_filter="['business_process_ids', '&#8805;;', self]"/>
                 <filter name="evaluated" string="Evaluated" domain="[('latest_level_value', '!=', False)]"/>
                 <separator/>
                 <filter name="acceptable" string="Acceptable" domain="[('status', '=', 'A')]"/>
@@ -367,7 +384,6 @@
                         domain="[('latest_level_value', '!=', False), ('treatment_task_id', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Category" name="Category" context="{'group_by': 'risk_info_category'}"/>
-                    <filter string="Process" name="Process" context="{'group_by': 'business_process_id'}"/>
                     <filter string="Stage" name="Stage" context="{'group_by': 'state'}"/>
                     <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
                 </group>
@@ -386,7 +402,7 @@
             >
                 <field name="priority"/>
                 <field name="risk_info_id"/>
-                <field name="business_process_id" invisible="context.get('search_default_business_process_id', False)"/>
+                <field name="business_process_ids" widget="many2many_tags"/>
                 <field name="report_date"/>
                 <field name="priority"/>
                 <field name="status" invisible="1"/>
@@ -404,7 +420,7 @@
             <kanban default_group_by="state" class="o_kanban_small_column o_kanban_project_tasks"
                     group_create="false" group_delete="false" group_edit="false" create="false">
                 <field name="name"/>
-                <field name="business_process_id"/>
+                <field name="business_process_ids"/>
                 <field name="risk_info_id"/>
                 <field name="risk_type"/>
                 <field name="report_date"/>
@@ -438,8 +454,6 @@
                                         </strong>
                                         <br/>
                                         <small class="o_kanban_record_subtitle text-muted">
-                                            <field name="business_process_id"
-                                                   invisible="context.get('default_business_process_id', False)"/>
                                             <t t-if="record.review_date.raw_value and record.review_date.raw_value lt (new Date())"
                                                t-set="red">oe_kanban_text_red
                                             </t>
@@ -468,6 +482,9 @@
                                     <field name="risk_info_id"/>
                                     <field name="status" widget="label_selection"
                                            options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
+                                    <field name="business_process_ids" widget="many2many_tags"
+                                           options="{'color_field': 'color'}"/>
+
                                 </div>
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
@@ -493,7 +510,7 @@
         <field name="model">risk_management.business_risk</field>
         <field eval="2" name="priority"/>
         <field name="arch" type="xml">
-            <calendar date_start="review_date" string="Risks" mode="month" color="business_process_id">
+            <calendar date_start="review_date" string="Risks" mode="month" color="owner">
                 <field name="name"/>
             </calendar>
         </field>
@@ -506,7 +523,7 @@
             <tree string="Risk activities" default_order="activity_date_deadline"
                   decoration-danger="activity_date_deadline != False and activity_date_deadline &lt; current_date">
                 <field name="name"/>
-                <field name="business_process_id"/>
+                <field name="business_process_ids" widget="many2many_tags"/>
                 <field name="activity_date_deadline"/>
                 <field name="activity_type_id"/>
                 <field name="activity_summary"/>
@@ -540,12 +557,13 @@
                 </header>
                 <sheet>
                     <div class="oe_title">
+                        <field name="treatment_project_id" invisible="1"/>
                         <div class="oe_button_box" name="treatment_button">
                             <button name="get_treatments_view"
                                     type="object"
                                     class="oe_stat_button oe_read_only"
                                     icon="fa-tasks"
-                                    attrs="{'invisible': [('treatment_task_id', '=', 'False')]}"
+                                    attrs="{'invisible': [('treatment_project_id', '=', 'False')]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
@@ -554,7 +572,6 @@
                                options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"
                                class="oe_read_only"
                         />
-                        <field name="treatment_task_id" invisible="1"/>
                         <field name="active" invisible="1"/>
                         <field name="priority" class="oe_right text-danger oe_read_only"
                                attrs="{'invisible': [('status', '!=', 'N')]}"/>
@@ -565,10 +582,10 @@
 
                     <group>
                         <group>
-                            <field name="business_process_id"
-                                   invisible="context.get('default_business_process_id', False)"
-                            />
                             <field name="risk_type"/>
+                            <field name="business_process_ids"
+                                   widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"
+                            />
                         </group>
                         <group>
                             <field name="is_confirmed"/>
@@ -576,7 +593,7 @@
                             <field name="review_date"/>
                         </group>
                     </group>
-                     <group>
+                    <group>
                         <field name="risk_info_id"/>
                     </group>
                     <group class="oe_read_only">
@@ -761,16 +778,15 @@
         <field name="arch" type="xml">
             <form string="Process">
                 <header>
-                    <button name="%(risk_management.act_business_risk_register)d"
-                            type="action"
-                            string="New risk"
-                            context="{'default_business_process_id': active_id, 'search_default_business_process_id': [active_id]}"
-                            class="btn-danger"
+                    <button name="add_partner_input"
+                            type="object"
+                            string="Add partner input"
+                            class="btn-success"
                     />
                 </header>
                 <sheet string="Process">
                     <field name="analytic_account_id" invisible="1" required="0"/>
-                     <div class="oe_right oe_button_box oe_read_only" name="buttons">
+                    <div class="oe_right oe_button_box oe_read_only" name="buttons">
                         <button name="%(risk_management.act_business_process_2_process_method_all)d"
                                 type="action"
                                 class="oe_stat_button"
@@ -787,7 +803,7 @@
                                 type="action"
                                 class="oe_stat_button"
                                 icon="fa-exclamation-circle"
-                                context="{'default_business_process_id': active_id, 'search_default_business_process_id': [active_id]}"
+                                context="{'search_default_business_process_ids': [active_id]}"
                         >
                             <field name="risk_count" string="Risks"/>
                         </button>
@@ -865,7 +881,6 @@
               action="business_process_list_action" sequence="30"/>
 
 
-
     <!-- PROJECT TASK -->
     <!-- views -->
 
@@ -874,7 +889,7 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <field name="project_id" position="after">
-                <field name="business_risk_id" readonly="1"
+                <field name="business_risk_id"
                        invisible="not context.get('default_business_risk_id', False)"
                 />
                 <field name="target_criterium"
