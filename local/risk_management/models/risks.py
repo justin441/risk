@@ -83,17 +83,17 @@ class RiskCriteriaMixin(models.AbstractModel):
     @api.model
     def _get_detectability(self):
         levels = ['Continuous', 'High', 'Average', 'Low', 'Minimal']
-        return [(str(x + 1), y) for x, y in enumerate(levels)]
+        return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     @api.model
     def _get_occurrence(self):
         levels = ['Almost impossible', 'Unlikely', 'Probable', 'Very probable', 'Almost certain']
-        return [(str(x + 1), y) for x, y in enumerate(levels)]
+        return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     @api.model
     def _get_severity(self):
         levels = ['Low', 'Average', 'High', 'Very High', 'Maximal']
-        return [(str(x + 1), y) for x, y in enumerate(levels)]
+        return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='1', required=True,
                                      help='What is the ability of the company to detect'
@@ -143,9 +143,9 @@ class RiskIdentificationMixin(models.AbstractModel):
     _order = 'priority asc, report_date desc'
 
     def _compute_default_review_date(self):
+        """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days ahead of the report date"""
 
-        """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days from the report date"""
-        create_date = fields.Date.from_string(self.report_date or fields.Date.today())
+        create_date = fields.Date.from_string(fields.Date.context_today(self))
         default_review_date = create_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
@@ -163,8 +163,8 @@ class RiskIdentificationMixin(models.AbstractModel):
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
     name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
-                                 require=True, track_visibility="onchange")
-    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Details')
+                                 required=True, track_visibility="onchange")
+    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk Details', required=True)
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
                                      store=True)
     risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)
@@ -173,7 +173,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
     risk_info_control = fields.Html('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
     risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
-    report_date = fields.Date(string='Reported On', default=lambda self: fields.Date.context_today(self))
+    report_date = fields.Date(string='Reported On', default=fields.Date.context_today)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
     is_confirmed = fields.Boolean('Confirmed',
                                   groups='risk_management.group_risk_manager', track_visibility="onchange")
@@ -196,7 +196,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                              store=True, track_visibility="onchange")
     priority = fields.Integer('Priority', compute='_compute_priority', store=True)
 
-    @api.depends('latest_level_value')
+    @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
         for risk in self:
             risks = self.env[self._name].search([]).sorted(lambda rec:
@@ -223,8 +223,8 @@ class RiskIdentificationMixin(models.AbstractModel):
     @api.depends('review_date')
     def _compute_active(self):
         for rec in self:
-            if rec.review_date and fields.Date.from_string(fields.Date.context_today(self)) < fields.Date.from_string(
-                    rec.review_date):
+            if rec.id and rec.review_date and fields.Date.from_string(
+                    fields.Date.context_today(self)) < fields.Date.from_string(rec.review_date):
                 rec.active = True
             else:
                 rec.active = False
@@ -532,11 +532,11 @@ class BusinessRisk(models.Model):
     def _onchange_active(self):
         if self.active:
             if self.treatment_project_id and not self.treatment_project_id.active:
-                self.treatment_project_id.active = True
+                self.sudo().treatment_project_id.active = True
             self.update_report()
         else:
             if self.treatment_project_id and self.treatment_project_id.active:
-                self.treatment_project_id.active = False
+                self.sudo().treatment_project_id.active = False
             self.write({
                 'review_date': fields.Date.context_today(self),
                 'is_confirmed': False,
@@ -598,13 +598,16 @@ class BusinessRisk(models.Model):
     @api.model
     def create(self, vals):
         # context: no_log, because subtype already handle this
-
+        context = dict(self.env.context, mail_create_nolog=True)
         existing = self.env['risk_management.business_risk'].search(
             [('active', '=', True), ('risk_info_id', '=', vals.get('risk_info_id', False)),
              ('risk_type', '=', vals.get('risk_type', False))])
         if existing:
             existing.exists()[0].update_report()
             return existing.exists()[0].id
+        else:
+            if vals.get('risk_info_id') and not context.get('default_risk_info_id'):
+                context['default_risk_info_id'] = vals.get('risk_info_id')
         risk = super(BusinessRisk, self).create(vals)
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
@@ -620,7 +623,6 @@ class BusinessRisk(models.Model):
         })
 
         return risk
-
 
 # -------------------------------------- Risk evaluation ----------------------------------
 
