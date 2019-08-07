@@ -158,7 +158,7 @@ class ProjectRisk(models.Model):
              ('project_id', '=', vals.get('project_id', False)),
              ('risk_type', '=', vals.get('risk_type', False))])
         if existing:
-            existing.exists()[0].update_report()
+            existing.exists()[0].write(vals)
             return existing.exists()[0].id
         else:
             if vals.get('project_id') and not context.get('default_project_id'):
