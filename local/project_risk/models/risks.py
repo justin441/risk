@@ -80,11 +80,26 @@ class ProjectRisk(models.Model):
             if not self.project_id.subtask_project_id:
                 self.project_id.subtask_project_id = self.project_id
 
+    @api.onchange('active')
+    def _onchange_active(self):
+        if self.active:
+            if self.treatment_task_id and not self.treatment_task_id.active:
+                self.sudo().treatment_task_id.active = True
+            self.update_report()
+        else:
+            if self.treatment_task_id and self.treatment_task_id.active:
+                self.sudo().treatment_task_id.active = False
+            self.write({
+                'review_date': fields.Date.context_today(self),
+                'is_confirmed': False,
+                'owner': False
+            })
+
     @api.depends('status', 'state')
     def _compute_treatment_task_id(self):
         """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """
         for rec in self:
-            if rec.state and rec.state >= '4' and rec.status == 'N':
+            if int(rec.state) >= 4 and rec.status == 'N':
                 if not rec.treatment_task_id:
                     rec.treatment_task_id = self.env['project.task'].sudo().create({
                         'name': 'Treatment for %s' % rec.name,
@@ -156,7 +171,7 @@ class ProjectRisk(models.Model):
         context = dict(self.env.context, mail_create_nolog=True)
         existing = self.env['project_risk.project_risk'].search(
             [('active', '=', True), ('risk_info_id', '=', vals.get('risk_info_id', False)),
-             ('business_process_id', '=', vals.get('business_process_id', False)),
+             ('project_id', '=', vals.get('project_id', False)),
              ('risk_type', '=', vals.get('risk_type', False))])
         if existing:
             existing.exists()[0].update_report()
