@@ -5,6 +5,7 @@ from odoo import models, fields, api, _
 
 
 RISK_ACT_DELAY = 15
+RISK_REPORT_DEFAULT_MAX_AGE = 90
 
 
 class RiskInfo(models.Model):
@@ -31,7 +32,7 @@ class ProjectRisk(models.Model):
                                 column1='project_risk_id', column2='task_id',
                                 domain="[('project_id', '=', project_id)]", string='Impacted tasks')
     evaluation_ids = fields.One2many('project_risk.evaluation', inverse_name='project_risk_id', string='Evaluations')
-    treatment_task_id = fields.Many2one('project.task', compute='_compute_treatment_task_id', store=True,
+    treatment_task_id = fields.Many2one('project.task', store=True,
                                         string='Treatment Task')
     treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
                                           store=True)
@@ -94,23 +95,6 @@ class ProjectRisk(models.Model):
                 'is_confirmed': False,
                 'owner': False
             })
-
-    @api.depends('status', 'state')
-    def _compute_treatment_task_id(self):
-        """Adds a Task to treat the risk as soon as the risk level becomes unacceptable """
-        for rec in self:
-            if int(rec.state) >= 4 and rec.status == 'N':
-                if not rec.treatment_task_id:
-                    rec.treatment_task_id = self.env['project.task'].sudo().create({
-                        'name': 'Treatment for %s' % rec.name,
-                        'description': """
-                        <p>
-                            The purpose of this task is to select and implement measures to modify 
-                            the %s. These measures can include avoiding, optimizing, transferring or retaining risk.
-                        </p>
-                                """ % rec.name,
-                        'project_id': rec.project_id.id,
-                    })
 
     @api.multi
     def get_treatments_view(self):
@@ -194,6 +178,45 @@ class ProjectRisk(models.Model):
             'date_deadline': act_deadline
         })
         return risk
+
+    @api.multi
+    def write(self, vals):
+        if 'active' in vals:
+            if vals['active']:
+                # The risk is being activated
+                new_report_date = fields.Date.context_today(self)
+                review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(
+                    days=RISK_REPORT_DEFAULT_MAX_AGE)
+                vals.update({'review_date': fields.Date.to_string(review_date),
+                             'report_date': new_report_date,
+                             'reported_by': self.env.user.id,
+                             'is_confirmed': False})
+            else:
+                vals.update({
+                    'review_date': fields.Date.context_today(self),
+                    'is_confirmed': False,
+                    'owner': False
+                })
+            self.with_context(active_test=False).mapped('treatment_task_id').write({'active': vals['active']})
+        res = super(ProjectRisk).write(vals)
+        if 'status' in vals and vals['status'] == 'N':
+            vals.pop('status')
+            for rec in res:
+                if not rec.treatment_task_id:
+                    rec.write({
+                        'treatment_task_id': [(0, 0, {
+                            'name': 'Treatment for %s' % rec.name,
+                            'description': """
+                        <p>
+                            The purpose of this task is to select and implement measures to modify 
+                            the risk. These measures can include avoiding, optimizing, transferring or retaining risk.
+                        </p>
+                                """,
+                            'project_id': rec.project_id,
+                            'priority': '1',
+                        })]
+                    })
+        return res
 
 
 class ProjectRiskEvaluation(models.Model):

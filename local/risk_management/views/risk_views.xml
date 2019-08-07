@@ -611,7 +611,7 @@
                         </group>
                     </group>
                     <notebook>
-                        <page name="info_page" string="Info">
+                        <page name="info_page" string="Risk details">
                             <group>
                                 <field name="risk_info_category"/>
                                 <field name="risk_info_subcategory"
