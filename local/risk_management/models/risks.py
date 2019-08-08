@@ -196,8 +196,9 @@ class RiskIdentificationMixin(models.AbstractModel):
                              store=True, track_visibility="onchange")
     priority = fields.Integer('Priority', compute='_compute_priority', store=True)
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
-        'risk_management.risk_treatment_project'), ondelete='restrict')
-    treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment')
+        'risk_management.risk_treatment_project'), readonly=True, required=True)
+    treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment',
+                                        inverse='_inverse_treatment')
     treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
                                           store=True)
 
