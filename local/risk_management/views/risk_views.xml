@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!--top level menu-->
+    <!--top level menu -->
     <menuitem id="main_menu_risk_management" name="Risks"/>
 
     <menuitem id="config_menu" name="Configuration" parent="main_menu_risk_management" sequence="100"/>
 
     <menuitem id="risk_menu" name="Risks" parent="main_menu_risk_management" sequence="10"/>
 
-    <!-- BUSINESS PROCESS I/O-->
+    <!-- BUSINESS PROCESS I/O -->
     <!-- views-->
     <record model="ir.ui.view" id="process_data_form">
         <field name="name">business_process_data.form</field>
@@ -120,7 +120,50 @@
         </field>
     </record>
 
-    <!-- BUSINESS PROCESS TASK-->
+    <!-- I/O CHANNELS -->
+    <record model="ir.ui.view" id="process_io_channel_form">
+        <field name="name">business_process_io.form</field>
+        <field name="model">risk_management.business_process.channel</field>
+        <field name="arch" type="xml">
+            <form string="IO Channel">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Channel name"/>
+                        </h1>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="process_io_channel_tree">
+        <field name="name">business_process_io_channel.tree</field>
+        <field name="model">risk_management.business_process.channel</field>
+        <field name="arch" type="xml">
+            <tree string="IO Channel">
+                <field name="name"/>
+                <field name="data_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <!--actions-->
+    <record model="ir.actions.act_window" id="act_business_process_io_channel">
+       <field name="name">Business process i/o channel</field>
+        <field name="res_model">risk_management.business_process.channel</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new io channels
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_business_process_io_channels" name="Process I/O Channels" parent="config_menu"
+              action="act_business_process_io_channel" sequence="40"/>
+
+    <!-- BUSINESS PROCESS TASK -->
 
     <!-- views-->
     <record model="ir.ui.view" id="process_task_all">
@@ -961,11 +1004,6 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <div class="ooe_title">
-                        <h1>
-                            <field name="name" placeholder="Risk Title" class="oe_left"/>
-                        </h1>
-                    </div>
                     <div class="oe_right oe_button_box oe_read_only" name="buttons">
                         <button name="%(risk_management.act_business_risk_register)d"
                                 type="action"
@@ -975,6 +1013,11 @@
                         >
                             <field string="Occurrences" name="business_occurrences" widget="statinfo"/>
                         </button>
+                    </div>
+                    <div class="oe_title">
+                        <h6>
+                            <field name="name" placeholder="Risk Title" widget="text" />
+                        </h6>
                     </div>
                     <group name="classification" string="Classification">
                         <field name="risk_category_id"/>

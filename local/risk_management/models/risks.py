@@ -74,7 +74,7 @@ class RiskInfo(models.Model):
     @api.multi
     def _compute_business_occurrences(self):
         for risk in self:
-            br = self.env['risk_management.business_risk'].search(['risk_info_id', '=', risk.id])
+            br = self.env['risk_management.business_risk'].search([('risk_info_id', '=', risk.id)])
             risk.business_occurrences = len(br)
 
 
