@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <data noupdate="1">
+        <record id="risk_treatment_project" model="project.project">
+            <field name="name">Risk Treatment</field>
+            <field name="label_tasks" eval="'Treatment'"/>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="privacy_visibility" eval="'employees'"/>
+        </record>
+
+        <record id="risk_treatment_project" model="project.project">
+            <field name="subtask_project_id" ref="risk_management.risk_treatment_project"/>
+        </record>
+    </data>
+
     <!--    Risk Management activity type-->
     <record id="risk_activity_todo" model="mail.activity.type">
         <field name="name">TODO</field>

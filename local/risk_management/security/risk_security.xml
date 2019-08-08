@@ -40,7 +40,7 @@
                         '&amp;',
                             ('business_process_id', '=', False),
                             ('create_uid', '=', user.id),
-                        ('business_process_id.company_id', 'child_of', [user.company_id.id])]
+                        ('company_id', 'child_of', [user.company_id.id])]
             </field>
             <field name="global" eval="True"/>
         </record>
@@ -48,19 +48,19 @@
         <record id="business_process_method_comp_rule" model="ir.rule">
             <field name="name">Business Process Method: Multi-company</field>
             <field name="model_id" ref="model_risk_management_business_process_input_output"/>
-            <field name="domain_force">[('business_process_id.company_id', 'child_of', [user.company_id.id])]</field>
+            <field name="domain_force">[('company_id', 'child_of', [user.company_id.id])]</field>
             <field name="global" eval="True"/>
         </record>
         <record id="business_risk_comp_rule" model="ir.rule">
             <field name="name">Business risk: Multi-company</field>
             <field name="model_id" ref="model_risk_management_business_risk"/>
-            <field name="domain_force">[('business_process_id.company_id', 'child_of', [user.company_id.id])]</field>
+            <field name="domain_force">[('company_id', 'child_of', [user.company_id.id])]</field>
             <field name="global" eval="True"/>
         </record>
         <record id="business_risk_evaluation_comp_rule" model="ir.rule">
             <field name="name">Business risk evaluation: Multi-company</field>
             <field name="model_id" ref="model_risk_management_business_risk_evaluation"/>
-            <field name="domain_force">[('business_risk_id.business_process_id.company_id', 'child_of', [user.company_id.id])]</field>
+            <field name="domain_force">[('business_risk_id.company_id', 'child_of', [user.company_id.id])]</field>
             <field name="global" eval="True"/>
         </record>
 
@@ -86,7 +86,7 @@
             <field name="name">Change Business Risk</field>
             <field name="model_id" ref="model_risk_management_business_risk"/>
             <field name="domain_force">[('write_uid', '=', user.id)]</field>
-            <field name="groups" eval="[(4,ref('base.group_user'))]"/>
+            <field name="groups" eval="[(4,ref('risk_management.group_risk_user'))]"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_read" eval="False"/>
         </record>
@@ -96,6 +96,15 @@
             <field name="model_id" ref="model_risk_management_business_risk"/>
             <field name="domain_force">[(1, '=', 1)]</field>
             <field name="groups" eval="[(4,ref('risk_management.group_risk_manager'))]"/>
+        </record>
+
+        <record id="risk_treatment_delete_rule" model="ir.rule">
+            <field name="name">Risk Management: Delete Risk Treatments</field>
+            <field name="model_id" ref="project.model_project_project"/>
+            <field name="domain_force">[('user_id', '=', 1)]</field>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="False"/>
         </record>
 
     </data>

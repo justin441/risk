@@ -74,7 +74,8 @@ class RiskInfo(models.Model):
     @api.multi
     def _compute_business_occurrences(self):
         for risk in self:
-            risk.business_occurrences = len(risk.business_risk_ids.filtered('active'))
+            br = self.env['risk_management.business_risk'].search(['risk_info_id', '=', risk.id])
+            risk.business_occurrences = len(br)
 
 
 class RiskCriteriaMixin(models.AbstractModel):
@@ -95,12 +96,12 @@ class RiskCriteriaMixin(models.AbstractModel):
         levels = ['Low', 'Average', 'High', 'Very High', 'Maximal']
         return [(str(x), y) for x, y in enumerate(levels, 1)]
 
-    detectability = fields.Selection(selection=_get_detectability, string='Detectability', default='1', required=True,
+    detectability = fields.Selection(selection=_get_detectability, string='Detectability', required=True,
                                      help='What is the ability of the company to detect'
                                           ' this failure (or gain) if it were to occur?')
-    occurrence = fields.Selection(selection=_get_occurrence, default='1', string='Occurrence', required=True,
+    occurrence = fields.Selection(selection=_get_occurrence, string='Occurrence', required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
-    severity = fields.Selection(selection=_get_severity, default='1', string='Impact', required=True,
+    severity = fields.Selection(selection=_get_severity, string='Impact', required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
 
@@ -144,7 +145,6 @@ class RiskIdentificationMixin(models.AbstractModel):
 
     def _compute_default_review_date(self):
         """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days ahead of the report date"""
-
         create_date = fields.Date.from_string(fields.Date.context_today(self))
         default_review_date = create_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
@@ -195,6 +195,11 @@ class RiskIdentificationMixin(models.AbstractModel):
     state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage',
                              store=True, track_visibility="onchange")
     priority = fields.Integer('Priority', compute='_compute_priority', store=True)
+    treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
+        'risk_management.risk_treatment_project'), ondelete='restrict')
+    treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment')
+    treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
+                                          store=True)
 
     @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
@@ -312,6 +317,62 @@ class RiskIdentificationMixin(models.AbstractModel):
 
         return [('id', 'in', [rec.id for rec in recs])]
 
+    @api.depends('active', 'is_confirmed', 'treatment_task_id', 'treatment_task_count', 'evaluation_ids')
+    def _compute_stage(self):
+        for risk in self:
+            # non-obsolete evaluations
+            up_to_date_evals = risk.evaluation_ids and risk.evaluation_ids.filtered(
+                lambda ev: not ev.is_obsolete)
+            # validated non-obsolete evaluations
+            valid_evals = up_to_date_evals and up_to_date_evals.filtered('is_valid')
+
+            if not risk.active:
+                risk.state = False
+            elif not risk.is_confirmed:
+                # risk has been reported but not confirmed
+                risk.state = '1'  # still in identification stage
+
+            elif not up_to_date_evals:
+                # risk has been confirmed but does not have an non-obsolete evaluation
+                risk.state = '2'  # risk identification completed
+
+            elif not valid_evals:
+                # there are evaluations of the risk but none has been validated
+                risk.state = '3'  # still in evaluation stage
+
+            elif not risk.treatment_task_id:
+                # there is at least one valid risk evaluation
+                risk.state = '4'  # Risk evaluation completed
+
+            elif risk.treatment_task_count:
+                # there is at least one ongoing risk treatment task
+                risk.state = '5'  # ongoing risk treatment
+
+            elif risk.treatment_task_id.child_ids and not risk.treatment_task_count:
+                # risk treatment done
+                risk.state = '6'
+
+    @api.multi
+    def get_treatments_view(self):
+        """returns the treatment tasks view.
+        """
+        self.ensure_one()
+        return {
+            'name': _('Treatment Tasks'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task',
+            'views': [
+                [False, "kanban"], [False, "form"], [False, "tree"],
+                [False, "calendar"], [False, "pivot"], [False, "graph"]
+            ],
+            'context': {
+                'search_default_parent_id': self.treatment_task_id.id,
+                'default_parent_id': self.treatment_task_id.id,
+                'default_project_id': self.treatment_project_id.id,
+                'default_target_criterium': 'O'
+            }
+        }
+
     def assign_to_me(self):
         self.sudo().write({'owner': self.env.user.id})
 
@@ -334,6 +395,30 @@ class RiskIdentificationMixin(models.AbstractModel):
                 elif rec.risk_type == 'O':
                     rec.latest_level_value = latest_evaluation.value_opportunity
 
+    @api.depends('treatment_task_ids')
+    def _compute_treatment(self):
+        for rec in self:
+            if rec.treatment_task_ids:
+                rec.treatment_task_id = rec.treatment_task_ids[0]
+
+    # implement _inverse_treatment on BusinessRisk and ProjectRisk models
+
+    @api.multi
+    def _notification_recipients(self, message, groups):
+        groups = super(RiskIdentificationMixin, self)._notification_recipients(message, groups)
+
+        for group_name, group_method, group_data in groups:
+            group_data['has_button_access'] = True
+
+        return groups
+
+    @api.model
+    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
+        user_field_lst = super(RiskIdentificationMixin, self)._message_get_auto_subscribe_fields(updated_fields,
+                                                                                                 auto_follow_fields=None)
+        user_field_lst.append('owner')
+        return user_field_lst
+
     @api.constrains('report_date', 'review_date')
     def _check_review_after_report(self):
         for rec in self:
@@ -348,7 +433,41 @@ class RiskIdentificationMixin(models.AbstractModel):
 
     @api.multi
     def write(self, vals):
-        res = self.super().write(vals)
+        if 'active' in vals:
+            if vals['active']:
+                # The risk is being activated
+                new_report_date = fields.Date.context_today(self)
+                review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(
+                    days=RISK_REPORT_DEFAULT_MAX_AGE)
+                vals.update({'review_date': fields.Date.to_string(review_date),
+                             'report_date': new_report_date,
+                             'reported_by': self.env.user.id,
+                             'is_confirmed': False})
+            else:
+                vals.update({
+                    'review_date': fields.Date.context_today(self),
+                    'is_confirmed': False,
+                    'owner': False
+                })
+            self.with_context(active_test=False).mapped('treatment_task_id').write({'active': vals['active']})
+        res = super(RiskIdentificationMixin, self).write(vals)
+        if 'status' in vals and vals['status'] == 'N':
+            vals.pop('status')
+            for rec in res:
+                if not rec.treatment_task_id:
+                    rec.write({
+                        'treatment_task_id': [(0, 0, {
+                            'name': 'Treatment for %s' % rec.name,
+                            'description': """
+                            <p>
+                            The purpose of this task is to select and implement measures to modify 
+                            %s. These measures can include avoiding, optimizing, transferring or retaining risk.
+                            </p>
+                                """ % rec.name,
+                            'project_id': rec.treatment_project_id,
+                            'priority': '1',
+                        })]
+                    })
         if 'state' in vals:
             state = vals.pop('state')
             activity = self.env['mail.activity']
@@ -434,94 +553,25 @@ class BusinessRisk(models.Model):
     _name = 'risk_management.business_risk'
     _description = 'Business risk'
     _inherit = ['risk_management.risk_identification.mixin']
-    _sql_constraints = [
-        (
-            'unique_risk_process',
-            'UNIQUE(risk_info_id, risk_type)',
-            'This risk has already been reported.'
-        )
-    ]
 
+    company_id = fields.Many2one('res.company', string='Company', required=True, index=True,
+                                 default=lambda self: self.env.user.company_id,
+                                 help="Company affected by the risk")
     business_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                             string='Affected Processes',
                                             relation='risk_management_process_risk_rel', column1='risk_id',
-                                            column2='process_id')
+                                            column2='process_id',
+                                            domain=lambda self: [('company_id', 'child_of', self.company_id.id)])
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
-    treatment_project_id = fields.Many2one('project.project', string='Risk Treatment Project')
-    treatment_task_count = fields.Integer(related='treatment_project_id.task_count', string='Risk Treatment Tasks',
-                                          store=True)
+    treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id')
 
-    @api.depends('active', 'is_confirmed', 'treatment_project_id', 'treatment_task_count', 'evaluation_ids')
-    def _compute_stage(self):
-        for risk in self:
-            up_to_date_evals = self.env['risk_management.business_risk.evaluation']
-            if risk.evaluation_ids:
-                up_to_date_evals |= risk.evaluation_ids.filtered(
-                    lambda ev: not ev.is_obsolete)
-            if up_to_date_evals:
-                valid_evals = up_to_date_evals.filtered('is_valid')
-            else:
-                valid_evals = False
-            if not risk.active:
-                risk.state = False
-            elif not risk.is_confirmed:
-                # risk has been reported but not confirmed
-                risk.state = '1'  # still in identification stage
-
-            elif not up_to_date_evals:
-                # risk has been confirmed but has not yet been evaluated
-                risk.state = '2'  # risk identification completed
-
-            elif not valid_evals:
-                # there are evaluations of the risk but no valid one yet
-                risk.state = '3'  # still in evaluation stage
-
-            elif not risk.treatment_project_id:
-                # there is at least one valid risk evaluation
-                risk.state = '4'  # Risk evaluation completed
-
-            elif risk.treatment_task_count:
-                # there is at least one ongoing risk treatment task
-                risk.state = '5'  # ongoing risk treatment
-
-            elif risk.treatment_project_id.tasks and not risk.treatment_task_count:
-                # risk treatment done
-                risk.state = '6'
-
-    @api.depends('status', 'state', 'owner')
-    def _compute_treatment_project_id(self):
-        """Adds a project to treat the risk as soon as the risk level becomes unacceptable """
+    def _inverse_treatment(self):
         for rec in self:
-            if rec.id and int(rec.state) >= 4 and rec.status == 'N' and rec.owner:
-                if not rec.treatment_project_id:
-                    rec.treatment_project_id = self.env['project.project'].sudo().create()
-
-    @api.onchange('owner')
-    def _onchange_owner(self):
-        if self.treatment_project_id:
-            self.treatment_project_id.user_id = self.owner
-
-    @api.multi
-    def get_treatments_view(self):
-        """returns the treatment tasks view.
-        """
-        self.ensure_one()
-        return {
-            'name': _('Treatment Tasks'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'project.task',
-            'views': [
-                [False, "kanban"], [False, "form"], [False, "tree"],
-                [False, "calendar"], [False, "pivot"], [False, "graph"]
-            ],
-            'context': {
-                'search_default_project_id': self.treatment_project_id.id,
-                'default_project_id': self.treatment_project_id.id,
-                'default_business_risk_id': self.id,
-                'default_target_criterium': 'O'
-            }
-        }
+            if rec.treatment_task_ids:
+                task = self.env['project.task'].browse(rec.treatment_task_ids[0].id)
+                task.business_risk_id = False
+            rec.treatment_task_id.business_risk_id = rec
 
     @api.multi
     def _track_subtype(self, init_values):
@@ -538,37 +588,28 @@ class BusinessRisk(models.Model):
             return 'risk_management.mt_business_risk_stage'
         return super(BusinessRisk, self)._track_subtype(init_values)
 
-    @api.multi
-    def _notification_recipients(self, message, groups):
-        groups = super(BusinessRisk, self)._notification_recipients(message, groups)
-
-        for group_name, group_method, group_data in groups:
-            group_data['has_button_access'] = True
-
-        return groups
-
-    @api.model
-    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
-        user_field_lst = super(BusinessRisk, self)._message_get_auto_subscribe_fields(updated_fields,
-                                                                                      auto_follow_fields=None)
-        user_field_lst.append('owner')
-        return user_field_lst
-
     @api.model
     def create(self, vals):
         # context: no_log, because subtype already handle this
         context = dict(self.env.context, mail_create_nolog=True)
-        existing = self.env['risk_management.business_risk'].search(
-            [('active', '=', False), ('risk_info_id', '=', vals.get('risk_info_id')),
-             ('risk_type', '=', vals.get('risk_type'))])
+        existing = self.env[self._name].search(
+            [('risk_info_id', '=', vals.get('risk_info_id')),
+             ('risk_type', '=', vals.get('risk_type')),
+             ('company_id', '=', vals.get('company_id'))])
+
         if existing:
-            # if the risk was already submitted but is inactive
-            existing.exists()[0].write(vals)
-            return existing.exists()[0].id
-        else:
-            if vals.get('risk_info_id') and not context.get('default_risk_info_id'):
-                context['default_risk_info_id'] = vals.get('risk_info_id')
+            existing = existing.exists()[0]
+            if not existing.active:
+                # if the risk was already submitted but is inactive
+                existing.write(vals)
+                return existing.id
+            else:
+                raise exceptions.UserError(_("This risk has already been reported. "))
+        if vals.get('company_id') and not context.get('default_company_id'):
+            context['default_company_id'] = vals.get('company_id')
+
         risk = super(BusinessRisk, self).create(vals)
+
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
         ir_model = self.env['ir.model']
@@ -583,40 +624,6 @@ class BusinessRisk(models.Model):
         })
 
         return risk
-
-    @api.multi
-    def write(self, vals):
-        if 'active' in vals:
-            if vals['active']:
-                # The risk is being activated
-                new_report_date = fields.Date.context_today(self)
-                review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(
-                    days=RISK_REPORT_DEFAULT_MAX_AGE)
-                vals.update({'review_date': fields.Date.to_string(review_date),
-                             'report_date': new_report_date,
-                             'reported_by': self.env.user.id,
-                             'is_confirmed': False})
-            else:
-                vals.update({
-                    'review_date': fields.Date.context_today(self),
-                    'is_confirmed': False,
-                    'owner': False
-                })
-            self.with_context(active_test=False).mapped('treatment_project_id').write({'active': vals['active']})
-        res = super(BusinessRisk).write(vals)
-        if 'status' in vals and vals['status'] == 'N':
-            vals.pop('status')
-            for rec in res:
-                if not rec.treatment_project_id:
-                    rec.write({
-                        'treatment_project_id': [(0, 0, {
-                            'name': 'Risk Treatment for %s' % rec.name,
-                            'user_id': rec.owner.id,
-                            'privacy_visibility': 'followers',
-                            'label_tasks': 'treatment'
-                        })]
-                    })
-        return res
 
 
 # -------------------------------------- Risk evaluation ----------------------------------

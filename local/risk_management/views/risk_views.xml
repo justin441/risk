@@ -376,12 +376,12 @@
                 <filter name="unassigned" string="Unassigned" domain="[('owner', '=', False)]"/>
                 <filter name="unconfirmed" string="waiting for confirmation" domain="[('is_confirmed', '=', False)]"/>
                 <separator/>
-                <filter name="inactive" string="Latent" domain="[('active', '=', 0)]"
+                <filter name="inactive" string="Latent" domain="[('active', '=', False)]"
                         groups="risk_management.group_risk_manager"/>
                 <separator/>
                 <filter name="unevaluated" string="Un-evaluated" domain="[('latest_level_value', '=', False)]"/>
                 <filter name="untreated" string="Untreated"
-                        domain="[('latest_level_value', '!=', False), ('treatment_task_id', '=', False)]"/>
+                        domain="[('latest_level_value', '!=', False), ('treatment_task_id.child_ids', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Category" name="Category" context="{'group_by': 'risk_info_category'}"/>
                     <filter string="Stage" name="Stage" context="{'group_by': 'state'}"/>
@@ -545,25 +545,25 @@
                             type="action"
                             class="btn-primary oe_read_only" groups="risk_management.group_manager"
                             string="Set Threshold"
-                            attrs="{'invisible': [('state', '=', '1')]}"
+                            attrs="{'invisible': ['|', ('state', '=', False), ('state', '&lt;', '2')]}"
                     />
                     <button name="%(risk_management.act_eval_business_risk_wizard)d"
                             type="action"
                             class="btn-danger oe_read_only" groups="risk_management.group_risk_manager"
                             string="Evaluation"
-                            attrs="{'invisible' : [('state', '=', '1')]}"
+                            attrs="{'invisible': ['|', ('state', '=', False), ('state', '&lt;', '2')]}"
                     />
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <field name="treatment_project_id" invisible="1"/>
+                        <field name="treatment_task_id" invisible="1"/>
                         <div class="oe_button_box" name="treatment_button">
                             <button name="get_treatments_view"
                                     type="object"
                                     class="oe_stat_button oe_read_only"
                                     icon="fa-tasks"
-                                    attrs="{'invisible': [('treatment_project_id', '=', 'False')]}"
+                                    attrs="{'invisible': [('treatment_task_id', '=', False)]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
@@ -582,6 +582,7 @@
 
                     <group>
                         <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
                             <field name="risk_type"/>
                             <field name="business_process_ids"
                                    widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"
@@ -669,7 +670,7 @@
         <field name="search_view_id" ref="view_business_risk_search"/>
         <field name="context">
             {
-            'search_default_evaluated':1,
+            'search_default_evaluated':1, 'active_test': 0
             }
         </field>
         <field name="help" type="html">

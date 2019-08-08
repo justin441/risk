@@ -267,6 +267,7 @@ class BusinessProcessIO(models.Model):
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='Internal source',
                                           ondelete='cascade',
                                           default=lambda self: self.env.context.get('default_business_process_id'))
+    company_id = fields.Many2one('res.company', related='business_process_id.company_id', string='Company')
     source_part_cat_id = fields.Many2one('res.partner.category', string='External Source', ondelete='cascade',
                                          domain=lambda self: [('id', 'child_of',
                                                                self.env.ref('risk_management.process_partner').id)],
@@ -420,6 +421,7 @@ class BusinessProcessTask(models.Model):
                                           string="Process",
                                           index=True,
                                           default=lambda self: self.env.context.get('default_business_process_id'))
+    company_id = fields.Many2one('res.company', related='business_process_id.company_id', string='Company')
     manager_id = fields.Many2one('res.users', related='business_process_id.responsible_id', readonly=True,
                                  related_sudo=False, string='Process Manager')
     frequency = fields.Selection(selection=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'),
@@ -444,6 +446,7 @@ class BusinessProcessMethod(models.Model):
     content = fields.Html(translate=True)
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process',
                                           required=True)
+    company_id = fields.Many2one('res.company', related='business_process_id.company_id', string='Company')
     output_ref_id = fields.Many2one(comodel_name='risk_management.business_process.input_output', string='Output ref.',
                                     domain=lambda self: [
                                         ('business_process_id.company_id', '=', self.business_process_id.company_id.id),
