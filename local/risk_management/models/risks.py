@@ -605,7 +605,9 @@ class BusinessRisk(models.Model):
                 existing.write(vals)
                 return existing.id
             else:
-                raise exceptions.UserError(_("This risk has already been reported. "))
+                if 'business_process_ids' in vals:
+                    existing.write({'business_process_ids': vals['business_process_ids']})
+                raise exceptions.UserError(_("This risk has already been reported."))
         if vals.get('company_id') and not context.get('default_company_id'):
             context['default_company_id'] = vals.get('company_id')
 
