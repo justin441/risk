@@ -28,7 +28,7 @@ class BusinessProcess(models.Model):
     _inherits = {'account.analytic.account': "analytic_account_id"}
     _sql_constraints = [
         ('process_name_unique',
-         'UNIQUE(description, analytic_account_id)',
+         'UNIQUE(description, analytic_account_id)',  # TODO: review constraint
          'The process name must be unique.')
     ]
 
@@ -120,7 +120,7 @@ class BusinessProcess(models.Model):
         for data in self.input_data_ids.filtered('is_customer_voice'):
             if data.source_part_cat_id:
                 src['external'] |= data.source_part_cat_id
-            elif data.business_process_id:
+            elif data.business_process_id and data.business_process_id.is_core:
                 src['internal'] |= data.business_process_id
         return src
 
@@ -379,9 +379,23 @@ class BusinessProcessIO(models.Model):
             raise exceptions.ValidationError("Input from partner can't have input references")
 
     @api.constrains('source_part_cat_id', 'dest_partner_ids')
-    def _check_ext_input_not_ext_recip(self):
+    def _check_ext_input_no_ext_recip(self):
         if self.source_part_cat_id and self.dest_partner_ids:
             raise exceptions.ValidationError("Input from partner can't have other partners as recipients")
+
+    @api.constrains('is_customer_voice', 'user_process_ids')
+    def _check_customer_voice_dont_u_turn(self):
+        """
+        The customer-supplier relationship is not reciprocal between the business processes, hence customer's voice
+        goes through the company in one direction only
+        """
+        if self.is_customer_voice and self.business_process_id:
+            if self.business_process_id.get_customer()['internal'] & self.user_process_ids:
+                inters = self.business_process_id.get_customer()['internal'] & self.user_process_ids
+                processes = ', '.join([rec.name for rec in inters])
+                raise exceptions.ValidationError(
+                    'This document cannot have among its recipients the following process(es): %s' % processes
+                )
 
 
 class ProcessDataChannel(models.Model):
