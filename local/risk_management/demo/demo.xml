@@ -1,52 +1,155 @@
 <odoo>
     <data>
         <!--Processes-->
-        <record id="process00" model="risk_management.business_process">
-            <field name="name">Planning</field>
+        <record id="sales_process" model="risk_management.business_process">
+            <field name="name">Sales</field>
             <field name="description" type="html">
-                <p>Thinking about the activities required to achieve a desired goal.
-                It provides a systematic way of viewing problems and developing
-                short- and long-term solutions. It involves the creation and maintenance of a plan.
+                <p>
+                    This process is aimed at initiating and supporting the identification and evaluation of likely customers (prospects),
+                    sales presentation, and successful conclusion of sales activities. It requires a close coordination
+                    of people, equipment, tools, and techniques, and includes advertising and promotion.
+                </p>
+            </field>
+        </record>
+
+        <record id="delivery_process" model="risk_management.business_process">
+            <field name="name">Product / service delivery</field>
+            <field name="description" type="html">
+                <p>
+                    The delivery process is aimed at controlling, packaging and shipping of goods sold to the destination chosen by the
+                    customer, in the best conditions of time and costs.
+                </p>
+            </field>
+        </record>
+
+        <record id="hiring_process" model="risk_management.business_process">
+            <field name="name">Employee Development &amp; Satisfaction (Human Resources)</field>
+            <field name="description" type="html">
+                <p>
+                    Mainly the completely HR Process look into complete controlling and smooth performance of employees
+                    and management and their relationship with the clients.
+                </p>
+            </field>
+        </record>
+
+        <record id="quality_process" model="risk_management.business_process">
+            <field name="name">Quality, Process Improvement &amp; Change Management</field>
+            <field name="description" type="html">
+                <p>
+                    Change Management Processes include a sequence of steps or activities that move a change from
+                    inception to delivery. Change Management Plans are developed to support a project to deliver a change.
+                    It is typically created during the planning stage of a Change Management Process
                 </p>
             </field>
             <field name="process_type" eval="'M'"/>
         </record>
 
-        <record id="process01" model="risk_management.business_process">
-            <field name="name">Commercial</field>
-            <field name="description" type="html"><p>
-                Production of quotes. Order Analysis and Validation
-            </p></field>
-        </record>
-
-        <record id="process02" model="risk_management.business_process">
-            <field name="name">outgoing logistics</field>
+        <record id="accounting_process" model="risk_management.business_process">
+            <field name="name">Accounting Management</field>
             <field name="description" type="html">
                 <p>
-                    control, packaging and shipping of goods sold.
+                    The accounting process is three separate types of transactions used to record business transactions
+                    in the accounting records. This information is then aggregated into financial statements.
+                    The transaction types are as follows:
+                </p>
+                <ol>
+                    <li>The first transaction type is to ensure that reversing entries from the previous period have, in fact, been reversed.</li>
+                    <li>The second group is comprised of the steps needed to record individual business transactions in the accounting records.</li>
+                    <li>The third group is the period-end processing required to close the books and produce financial statements.</li>
+                </ol>
+            </field>
+            <field name="process_type" eval="'S'"/>
+        </record>
+
+        <record id="it_management_process" model="risk_management.business_process">
+            <field name="name">Technology Management (Computer &amp; IT)</field>
+            <field name="description" type="html">
+                <p>
+                    IT management is the process of overseeing all matters related to information technology operations
+                    and resources within an IT organization. IT management ensures that all technology resources and associated
+                    employees are utilized properly and in a manner that provides value for the organization.
                 </p>
             </field>
+            <field name="process_type" eval="'S'"/>
+        </record>
+
+        <record id="finance_management_process" model="risk_management.business_process">
+            <field name="name">Financial Analysis, Reporting, &amp; Capital Management</field>
+            <field name="description" type="html">
+                <p>
+                   In short, financial management entails planning, organising, controlling, monitoring and evaluating
+                    the financial resources of an organisation to achieve its overall objectives.
+                </p>
+            </field>
+            <field name="process_type" eval="'M'"/>
         </record>
 
         <!--Process Data-->
-        <record id="data00" model="risk_management.business_process.input_output">
-            <field name="name">Customer quote</field>
-            <field name="business_process_id" ref="process01"/>
-        </record>
-        <record id="data01" model="risk_management.business_process.input_output">
-            <field name="name">Customer order form</field>
-            <field name="business_process_id" ref="process01"/>
-        </record>
-        <record id="data02" model="risk_management.business_process.input_output">
-            <field name="name">Business plan</field>
-            <field name="business_process_id" ref="process00"/>
-        </record>
-        <record id="data03" model="risk_management.business_process.input_output">
-            <field name="name">Marketing plan</field>
-            <field name="business_process_id" ref="process00"/>
+        <record id="quote_req_io" model="risk_management.business_process.input_output">
+            <field name="name">Request for Quote</field>
+            <field name="description" type="html">
+                <p>
+                    This is a standard business document we receive from customers, whose purpose is to invite us into a bidding process to bid on
+                    specific products or services. RfQ generally means the same thing as Call for bids (CfB) and Invitation for bid (IfB)
+                </p>
+            </field>
+            <field name="source_part_cat_id" ref="risk_management.process_external_customer"/>
+            <field name="user_process_ids" eval="[(4, ref('risk_management.sales_process'))]"/>
         </record>
 
-        <!-- TODO: add processes of all 4 types -->
+        <record id="purchase_order_io" model="risk_management.business_process.input_output">
+            <field name="name">Customer Purchase Order</field>
+            <field name="description" type="html">
+                <p>
+                    This is a standard commercial document and first official offer issued by a buyer to us
+                    indicating types, quantities, and agreed prices for products or services
+                </p>
+            </field>
+            <field name="source_part_cat_id" ref="risk_management.process_external_customer"/>
+            <field name="user_process_ids" eval="[(4, ref('risk_management.sales_process'))]"/>
+        </record>
+
+        <record id="customer_invoice_io" model="risk_management.business_process.input_output">
+            <field name="name">Customer Invoice</field>
+            <field name="description" type="html">
+                <p>
+                    Standard commercial document send to a buyer listing in detail the services or goods that we sold to the customer.
+                </p>
+            </field>
+            <field name="business_process_id" ref="sales_process"/>
+            <field name="user_process_ids" eval="[(4, ref('risk_management.delivery_process')), (4, ref('risk_management.accounting_process'))]"/>
+            <field name="dest_partner_ids" eval="[(4, ref('risk_management.process_external_customer'))]"/>
+            <field name="ref_input_ids" eval="[(4, ref('risk_management.order_io'))]"/>
+        </record>
+
+        <record id="delivery_form_io" model="risk_management.business_process.input_output">
+            <field name="name">Delivery note</field>
+            <field name="description" type="html">
+                <p>
+                    The delivery note is a document that is given to the customer indicating the quantity and the nature
+                    of the goods received by him. It is established at least in 2 signed copies of the parties: the seller
+                    or the carrier and the recipient customer.
+                </p>
+            </field>
+            <field name="business_process_id" ref="delivery_process"/>
+            <field name="user_process_ids" eval="[(4, ref('risk_management.accounting_process'))]"/>
+            <field name="dest_partner_ids" eval="[(4, ref('risk_management.process_external_customer'))]"/>
+            <field name="ref_input_ids" eval="[(4, ref('risk_management.customer_invoice_io'))]"/>
+        </record>
+
+        <record id="sales_journal_io" model="risk_management.business_process.input_output">
+            <field name="name">Sales Journal</field>
+            <field name="description" type="html">
+                <p>
+                    The sales journal is the prime entry book used in our accounting system to keep track of the sales of items
+                that customers(debtors) have purchased on account by charging a receivable on the debit side of an accounts
+                receivable account and crediting revenue on the credit side.
+                </p>
+            </field>
+            <field name="business_process_id" ref="accounting_process"/>
+            <field name="user_process_ids" eval="[(4, ref('risk_management.finance_management'))]"/>
+            <field name="ref_input_ids" eval="[(4, ref('risk_management.customer_invoice_io'))]"/>
+        </record>
 
         <!-- risk infos -->
         <record id="risk_info_1" model="risk_management.risk.info">
