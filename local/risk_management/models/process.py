@@ -18,7 +18,7 @@ class BaseProcess(models.AbstractModel):
     description = fields.Html(translate=True, string="Description", track_visibility='onchange', index=True)
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
     sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True, compute_sudo=True)
-    color = fields.Integer(string='Color Index', default=1)
+    color = fields.Integer(string='Color Index', compute='_compute_color', inverse='_inverse_color', store=True)
 
 
 class BusinessProcess(models.Model):
@@ -124,13 +124,20 @@ class BusinessProcess(models.Model):
                 src['internal'] |= data.business_process_id
         return src
 
-    @api.onchange('color')
-    def _onchange_color(self):
-        if self.is_core or self.process_type == 'O':
-            recs = self.env[self._name].search(['|', ('is_core', '=', True), ('process_type', '=', 'O')])
-        else:
-            recs = self.env[self._name].search([('process_type', '=', self.process_type)])
-        (recs - self).write({'color': self.color})
+    @api.depends('process_type')
+    def _compute_color(self):
+        for rec in self:
+            if rec.process_type == 'O' or rec.is_core:
+                rec.color = 1
+            elif rec.process_type == 'M':
+                rec.color = 5
+            elif rec.process_type == 'S':
+                rec.color = 2
+            elif rec.process_type == 'PM':
+                rec.color = 8
+
+    def _inverse_color(self):
+        pass
 
     @api.depends('task_ids')
     def _compute_task_count(self):
@@ -241,6 +248,32 @@ class BusinessProcess(models.Model):
         """ Unsubscribe from all existing risks when unsubscribing from a business process """
         self.mapped('risk_ids').message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
         return super(BusinessProcess, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
+
+    @api.multi
+    def write(self, vals):
+        # all the processes with the same process_type have the same color
+        if 'color' in vals:
+            proc = to_change = self.env[self._name]
+            color = vals.pop('color')
+            existing = proc.search([('color', '=', color)])
+            if existing:
+                # there is already a group of process with this color
+                import random
+                _logger.info('COLOR IS: ' + str(color))
+                colors = list(range(1, 11))
+                colors.remove(color)
+                _logger.info('COLORS: ' + str(colors))
+                existing.write({'color': random.choice(colors)})  # assign a random color to it
+            for rec in self:
+                recs = proc.search([('process_type', '=', rec.process_type)]) - rec
+                if recs:
+                    to_change |= recs
+            to_change |= self
+            super(BusinessProcess, to_change).write({'color': color})
+
+        res = super(BusinessProcess, self).write(vals)
+
+        return res
 
 
 class BusinessProcessIO(models.Model):
@@ -383,16 +416,16 @@ class BusinessProcessIO(models.Model):
         if self.source_part_cat_id and self.dest_partner_ids:
             raise exceptions.ValidationError("Input from partner can't have other partners as recipients")
 
-    @api.constrains('is_customer_voice', 'user_process_ids')
+    @api.constrains('user_process_ids')
     def _check_customer_voice_dont_u_turn(self):
         """
         The customer-supplier relationship is not reciprocal between the business processes, hence customer's voice
         goes through the company in one direction only
         """
         if self.is_customer_voice and self.business_process_id:
-            if self.business_process_id.get_customer()['internal'] & self.user_process_ids:
-                inters = self.business_process_id.get_customer()['internal'] & self.user_process_ids
-                processes = ', '.join([rec.name for rec in inters])
+            if self.business_process_id.get_customers()['internal'] & self.user_process_ids:
+                intersect = self.business_process_id.get_customers()['internal'] & self.user_process_ids
+                processes = ', '.join([rec.name for rec in intersect])
                 raise exceptions.ValidationError(
                     'This document cannot have among its recipients the following process(es): %s' % processes
                 )
