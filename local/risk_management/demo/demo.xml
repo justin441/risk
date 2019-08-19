@@ -84,6 +84,22 @@
             <field name="process_type" eval="'M'"/>
         </record>
 
+        <record id="project_charter_dev_process" model="risk_management.business_process">
+            <field name="name">Develop Project Charter</field>
+            <field name="description" type="html">
+                <p>
+                  This process aim at developing a document that formally authorizes the existence of the project and
+                    provides the Project Manager with the authority to apply organizational resources to project activities.
+                </p>
+                <p>
+                    The key benefit of this process is a well-defined project start and project boundaries, creation of a
+                    formal record of the project, and a direct way for senior management to formally accept and commit to
+                    the project.
+                </p>
+            </field>
+            <field name="process_type" eval="'PM'"/>
+        </record>
+
         <!--Process Data-->
         <record id="quote_req_io" model="risk_management.business_process.input_output">
             <field name="name">Request for Quote</field>
@@ -119,7 +135,7 @@
             <field name="business_process_id" ref="sales_process"/>
             <field name="user_process_ids" eval="[(4, ref('risk_management.delivery_process')), (4, ref('risk_management.accounting_process'))]"/>
             <field name="dest_partner_ids" eval="[(4, ref('risk_management.process_external_customer'))]"/>
-            <field name="ref_input_ids" eval="[(4, ref('risk_management.order_io'))]"/>
+            <field name="ref_input_ids" eval="[(4, ref('risk_management.purchase_order_io'))]"/>
         </record>
 
         <record id="delivery_form_io" model="risk_management.business_process.input_output">
@@ -147,8 +163,21 @@
                 </p>
             </field>
             <field name="business_process_id" ref="accounting_process"/>
-            <field name="user_process_ids" eval="[(4, ref('risk_management.finance_management'))]"/>
+            <field name="user_process_ids" eval="[(4, ref('risk_management.finance_management_process'))]"/>
             <field name="ref_input_ids" eval="[(4, ref('risk_management.customer_invoice_io'))]"/>
+        </record>
+
+        <record id="project_charter" model="risk_management.business_process.input_output">
+            <field name="name">Project Charter</field>
+            <field name="description" type="html">
+                <p>
+                    The project charter is the document issued by the project initiator or sponsor that formally authorizes
+                    the existence of the project and provides the Project Manager with the authority to apply organizational
+                    resources to project activities.
+                </p>
+            </field>
+            <field name="business_process_id" ref="project_charter_dev_process"/>
+
         </record>
 
         <!-- risk infos -->
