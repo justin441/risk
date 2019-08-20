@@ -12,6 +12,39 @@
         <record id="risk_treatment_project" model="project.project">
             <field name="subtask_project_id" ref="risk_management.risk_treatment_project"/>
         </record>
+
+        <record id="risk_treatment_stage_0" model="project.task.type">
+            <field name="sequence">1</field>
+            <field name="name">New</field>
+            <field name="project_ids" eval="[(4, ref('risk_treatment_project'))]"/>
+        </record>
+
+        <record id="risk_treatment_stage_1" model="project.task.type">
+            <field name="sequence">2</field>
+            <field name="name">To do</field>
+            <field name="project_ids" eval="[(4, ref('risk_treatment_project'))]"/>
+        </record>
+
+        <record id="risk_treatment_stage_2" model="project.task.type">
+            <field name="sequence">3</field>
+            <field name="name">In progress</field>
+            <field name="project_ids" eval="[(4, ref('risk_treatment_project'))]"/>
+        </record>
+
+        <record id="risk_treatment_stage_3" model="project.task.type">
+            <field name="sequence">4</field>
+            <field name="name">Done</field>
+            <field name="fold" eval="True"/>
+            <field name="project_ids" eval="[(4, ref('risk_treatment_project'))]"/>
+        </record>
+
+        <record id="risk_treatment_stage_4" model="project.task.type">
+            <field name="sequence">5</field>
+            <field name="name">Cancelled</field>
+            <field name="fold" eval="True"/>
+            <field name="project_ids" eval="[(4, ref('risk_treatment_project'))]"/>
+        </record>
+
     </data>
 
     <!--    Risk Management activity type-->

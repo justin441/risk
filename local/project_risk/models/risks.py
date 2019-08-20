@@ -102,7 +102,8 @@ class ProjectRiskEvaluation(models.Model):
     _name = 'project_risk.evaluation'
     _description = 'Project Risk Evaluation'
 
-    project_risk_id = fields.Many2one('project_risk.project_risk', string='Risk', required=True)
+    project_risk_id = fields.Many2one('project_risk.project_risk', string='Risk', required=True,
+                                      ondelete='cascade')
     risk_type = fields.Selection(related='project_risk_id.risk_type', readonly=True)
     threshold_value = fields.Integer(related='project_risk_id.threshold_value', store=True, readonly=True)
     value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
@@ -125,11 +126,13 @@ class ProjectRiskEvaluation(models.Model):
         ])
         # if another estimation was created the same day, just update it
         if same_day_eval.exists():
+            vals.update({'is_valid': False})
             if len(same_day_eval.exists()) > 1:
                 # Hardly necessary, but you never know, there may be more than one record in `same_day_eval`
                 same_day_eval.exists()[1:].unlink()
-            evaluation = same_day_eval.exists()
-            evaluation.write(vals)
+            same_day_eval = same_day_eval.exists()
+            same_day_eval.write(vals)
+            evaluation = same_day_eval.id
 
         else:
             evaluation = super(ProjectRiskEvaluation, self).create(vals)
@@ -169,4 +172,19 @@ class ProjectRiskEvaluation(models.Model):
                         'summary': 'Select and implement measures to modify risk',
                         'date_deadline': fields.Date.to_string(act_deadline_date)
                     })
+
+                    if not rec.project_risk_id.treatment_task_ids:
+                        # create a risk treatment task for the risk being evaluated
+                        self.env['project.task'].create({
+                            'name': 'Treatment for %s' % rec.project_risk_id.name,
+                            'description': """
+                                <p>
+                                    Select and implement options for modifying %s, and/or improve risk control for
+                                    this risk.
+                                </p>
+                            """ % rec.project_risk_id.name,
+                            'priority': '1',
+                            'project_id': self.env.ref('risk_management.risk_treatment_project').id,
+                            'project_risk_id': rec.project_risk_id.id
+                        })
         return res

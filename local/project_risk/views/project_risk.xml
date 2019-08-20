@@ -95,7 +95,8 @@
                 <xpath expr="//small[hasclass('o_kanban_record_subtitle')]/t"
                        position="before">
                     <field name="project_id" invisible="context.get('default_project_id', False)"/>
-                    <field name="task_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                    <field name="task_ids" widget="many2many_tags"
+                           options="{'color_field': 'color', 'no_create_edit': True}"/>
                 </xpath>
                 <xpath expr="//div[hasclass('o_kanban_record_body')]/field[@name='business_process_ids']"
                        position="replace"/>
@@ -109,6 +110,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='assign_to_me']" position="attributes">
                     <attribute name="groups" eval="project_risk.group_risk_manager"/>
+                </xpath>
+                <xpath expr="//button[@name='get_treatments_view']" position="attributes">
+                    <attribute name="context" eval="{'default_project_risk_id': active_id}"/>
                 </xpath>
                 <xpath expr="//header/button[2]" position="replace">
                     <button name="%(project_risk.act_set_project_risk_threshold_wizard)d"
@@ -190,21 +194,6 @@
             </field>
         </record>
 
-        <!-- task form-->
-         <record id="view_task_form2" model="ir.ui.view">
-        <field name="model">project.task</field>
-        <field name="inherit_id" ref="project.view_task_form2"/>
-        <field name="arch" type="xml">
-            <field name="project_id" position="after">
-                <field name="project_risk_id"
-                       invisible="not context.get('default_project_risk_id', False)"
-                />
-                <field name="target_criterium"
-                       invisible="not context.get('default_target_criterium', False)"
-                />
-            </field>
-        </field>
-    </record>
 
         <!-- risk form -->
 

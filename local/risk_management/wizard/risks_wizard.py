@@ -81,7 +81,7 @@ class BaseRiskLevelWizard(models.AbstractModel):
         default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
-    def _get_default_criteria(self):
+    def default_criteria(self):
         # returns a dict of the  latest evaluation's criteria of the risk being evaluated
         risk_id = self.env.context.get('default_risk_id', False)
         risk_model = self.env.context.get('risk_model', False)

@@ -450,7 +450,6 @@
                 <field name="risk_info_id"/>
                 <field name="business_process_ids" widget="many2many_tags"/>
                 <field name="report_date"/>
-                <field name="priority"/>
                 <field name="status" invisible="1"/>
                 <field name="active" invisible="1"/>
                 <field name="is_confirmed" invisible="1"/>
@@ -591,13 +590,13 @@
                             type="action"
                             class="btn-primary oe_read_only" groups="risk_management.group_manager"
                             string="Set Threshold"
-                            attrs="{'invisible': ['|', ('state', '=', False), ('state', '&lt;', '2')]}"
+                            attrs="{'invisible': [('is_confirmed', '=', False)]}"
                     />
                     <button name="%(risk_management.act_eval_business_risk_wizard)d"
                             type="action"
                             class="btn-danger oe_read_only" groups="risk_management.group_risk_manager"
                             string="Evaluation"
-                            attrs="{'invisible': ['|', ('state', '=', False), ('state', '&lt;', '2')]}"
+                            attrs="{'invisible': [('is_confirmed', '=', False)]}"
                     />
                     <field name="state" widget="statusbar"/>
                 </header>
@@ -619,8 +618,6 @@
                                class="oe_read_only"
                         />
                         <field name="active" invisible="1"/>
-                        <field name="priority" class="oe_right text-danger oe_read_only"
-                               attrs="{'invisible': [('status', '!=', 'N')]}"/>
                         <h1>
                             <field name="name"/>
                         </h1>
@@ -670,6 +667,11 @@
                                 <field name="risk_info_consequence"/>
                             </group>
                         </page>
+                        <page name="eval_timeline" string="Timeline"
+                              attrs="{'invisible': [('evaluation_ids', '=', False)]}">
+                            <field name="evaluation_ids"
+                                   mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph" is not rendering for some reason -->
+                        </page>
                         <page name="help_page" string="Treatment guides" class="oe_read_only">
                             <group>
                                 <button
@@ -693,11 +695,7 @@
                                 <field name="comment"/>
                             </group>
                         </page>
-                        <page name="eval_timeline" string="Timeline"
-                              attrs="{'invisible': [('evaluation_ids', '=', False)]}" class="oe_read_only">
-                            <field name="evaluation_ids"
-                                   mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph" is not rendering for some reason -->
-                        </page>
+
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
@@ -936,12 +934,19 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <field name="project_id" position="after">
-                <field name="business_risk_id"
-                       invisible="not context.get('default_business_risk_id', False)"
-                />
                 <field name="target_criterium"
                        invisible="not context.get('default_target_criterium', False)"
                 />
+            </field>
+        </field>
+    </record>
+
+    <record id="view_task_search_form" model="ir.ui.view">
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form"/>
+        <field name="arch" type="xml">
+            <field name="project_id" position="after">
+                <field name="parent_id"/>
             </field>
         </field>
     </record>
@@ -1090,5 +1095,9 @@
     </record>
 
     <menuitem id="menu_risk_category" parent="config_menu" sequence="10" action="act_risk_category_list"/>
+
+    <data noupdate="1">
+         <function model="risk_management.settings" name="set_subtask_project"/>
+    </data>
 
 </odoo>
