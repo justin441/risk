@@ -259,10 +259,8 @@ class BusinessProcess(models.Model):
             if existing:
                 # there is already a group of process with this color
                 import random
-                _logger.info('COLOR IS: ' + str(color))
                 colors = list(range(1, 11))
                 colors.remove(color)
-                _logger.info('COLORS: ' + str(colors))
                 existing.write({'color': random.choice(colors)})  # assign a random color to it
             for rec in self:
                 recs = proc.search([('process_type', '=', rec.process_type)]) - rec
@@ -324,7 +322,7 @@ class BusinessProcessIO(models.Model):
     user_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                         relation='risk_management_input_ids_user_ids_rel',
                                         column1='input_id', column2='business_process_id',
-                                        string="Recipient processes")
+                                        string="Internal Recipients")
     channel_ids = fields.Many2many('risk_management.business_process.channel', string='Authorized Channels',
                                    relation='risk_management_data_channel_rel', column1='data_id',
                                    column2='channel_id')
@@ -336,7 +334,8 @@ class BusinessProcessIO(models.Model):
         for rec in self:
             if rec.id:
                 if rec.business_process_id:
-                    rec.origin_id = self._name + ',' + str(rec.business_process_id.id)
+                    rec.origin_id = 'risk_management.business_process' + ',' + str(
+                        rec.business_process_id.id)
                 elif rec.source_part_cat_id:
                     rec.origin_id = 'res.partner.category' + ',' + str(rec.source_part_cat_id.id)
             else:

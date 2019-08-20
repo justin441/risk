@@ -38,7 +38,8 @@ class ProjectRisk(models.Model):
             if rec.treatment_task_ids:
                 task = self.env['project.task'].browse(rec.treatment_task_ids[0].id)
                 task.project_risk_id = False
-            rec.treatment_task_id.project_risk_id = rec
+            if rec.treatment_task_id:
+                rec.treatment_task_id.project_risk_id = rec
 
     @api.multi
     def _track_subtype(self, init_values):
@@ -59,6 +60,10 @@ class ProjectRisk(models.Model):
     def create(self, vals):
         # context: no_log, because subtype already handle this
         context = dict(self.env.context, mail_create_nolog=True)
+        act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+        act_deadline = fields.Date.to_string(act_deadline_date)
+        ir_model = self.env['ir.model']
+        act_type = self.env.ref('risk_management.risk_activity_todo')
         existing = self.env[self._name].search(
             [('risk_info_id', '=', vals.get('risk_info_id', False)),
              ('project_id', '=', vals.get('project_id', False)),
@@ -67,6 +72,13 @@ class ProjectRisk(models.Model):
             existing = existing.exists()[0]
             if not existing.active:
                 existing.write(vals)
+                self.env['mail.activity'].create({
+                    'res_id': existing.id,
+                    'res_model_id': ir_model._get_id(self._name),
+                    'activity_type_id': act_type.id,
+                    'summary': 'Check and confirm the existence of the risk',
+                    'date_deadline': act_deadline
+                })
                 return existing.id
             else:
                 raise exceptions.UserError((_("This risk has already been reported. ")))
@@ -74,11 +86,6 @@ class ProjectRisk(models.Model):
             if vals.get('project_id') and not context.get('default_project_id'):
                 context['default_project_id'] = vals.get('project_id')
         risk = super(ProjectRisk, self).create(vals)
-
-        act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
-        act_deadline = fields.Date.to_string(act_deadline_date)
-        ir_model = self.env['ir.model']
-        act_type = self.env.ref('risk_management.risk_activity_todo')
         # Next activity
         self.env['mail.activity'].create({
             'res_id': risk,
@@ -100,19 +107,6 @@ class ProjectRiskEvaluation(models.Model):
     threshold_value = fields.Integer(related='project_risk_id.threshold_value', store=True, readonly=True)
     value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
-    @api.model
-    def create(self, vals):
-        same_day = self.env['project_risk.evaluation'].search([
-            ('eval_date', '=', fields.Date.context_today(self))
-        ])
-        # if another estimation was created the same day, just update it
-        if same_day:
-            if len(same_day) > 1:
-                same_day[1:].unlink()
-            same_day.exists().write(vals)
-        else:
-            return super(ProjectRiskEvaluation, self).create(vals)
-
     @api.depends('project_risk_id',
                  'detectability',
                  'occurrence',
@@ -123,3 +117,56 @@ class ProjectRiskEvaluation(models.Model):
                 rec.value = rec.value_threat
             elif rec.risk_type == 'O':
                 rec.value = rec.value_opportunity
+
+    @api.model
+    def create(self, vals):
+        same_day_eval = self.env['project_risk.evaluation'].search([
+            ('eval_date', '=', fields.Date.context_today(self))
+        ])
+        # if another estimation was created the same day, just update it
+        if same_day_eval.exists():
+            if len(same_day_eval.exists()) > 1:
+                # Hardly necessary, but you never know, there may be more than one record in `same_day_eval`
+                same_day_eval.exists()[1:].unlink()
+            evaluation = same_day_eval.exists()
+            evaluation.write(vals)
+
+        else:
+            evaluation = super(ProjectRiskEvaluation, self).create(vals)
+            act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+            # add an activity to validate the risk evaluation.
+            self.env['mail.activity'].create({
+                'res_id': vals.get('project_risk_id'),
+                'res_model_id': self.env['ir.model']._get_id('project_risk.project_risk'),
+                'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
+                'summary': 'Validate the risk assessment',
+                'date_deadline': fields.Date.to_string(act_deadline_date)
+            })
+        return evaluation
+
+    @api.multi
+    def write(self, vals):
+        res = super(ProjectRiskEvaluation, self).write(vals)
+        if res and vals.get('is_valid', False):
+            res_model_id = self.env['ir.model']._get_id('project_risk.project_risk')
+            act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+            for rec in self:
+                # mark previous activities as done
+                self.env['mail.activity'].search(['&', ('res_id', '=', rec.project_risk_id.id),
+                                                  ('res_model_id', '=', res_model_id),
+                                                  '|',
+                                                  ('summary', 'like', 'Validate the risk assessment'),
+                                                  ('summary', 'like',
+                                                   'Assess the probability of risk occurring and its possible impact,'
+                                                   'as well as the company\'s ability to detect it should it occur.')
+                                                  ]).action_done()
+                if rec.value > rec.threshold_value:
+                    # add an activity to treat the risk
+                    self.env['mail.activity'].create({
+                        'res_id': rec.project_risk_id.id,
+                        'res_model_id': res_model_id,
+                        'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
+                        'summary': 'Select and implement measures to modify risk',
+                        'date_deadline': fields.Date.to_string(act_deadline_date)
+                    })
+        return res

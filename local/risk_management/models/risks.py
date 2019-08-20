@@ -98,12 +98,12 @@ class RiskCriteriaMixin(models.AbstractModel):
 
     detectability = fields.Selection(selection=_get_detectability, string='Detectability', required=True,
                                      help='What is the ability of the company to detect'
-                                          ' this failure (or gain) if it were to occur?')
+                                          ' this failure (or gain) if it were to occur?', default='1')
     occurrence = fields.Selection(selection=_get_occurrence, string='Occurrence', required=True,
-                                  help='How likely is it for this failure (or gain) to occur?')
+                                  help='How likely is it for this failure (or gain) to occur?', default='1')
     severity = fields.Selection(selection=_get_severity, string='Impact', required=True,
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
-                                     'would have on company assets?')
+                                     'would have on company assets?', default='1')
 
     comment = fields.Html(string='Comments', translate=True)
     value_threat = fields.Integer(compute='_compute_value_threat')
@@ -198,7 +198,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
         'risk_management.risk_treatment_project'), readonly=True, required=True)
     treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment',
-                                        inverse='_inverse_treatment')
+                                        inverse='_inverse_treatment', store=True)
     treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
                                           store=True)
 
@@ -454,7 +454,7 @@ class RiskIdentificationMixin(models.AbstractModel):
         res = super(RiskIdentificationMixin, self).write(vals)
         if 'status' in vals and vals['status'] == 'N':
             vals.pop('status')
-            for rec in res:
+            for rec in self:
                 if not rec.treatment_task_id:
                     rec.write({
                         'treatment_task_id': [(0, 0, {
@@ -469,84 +469,30 @@ class RiskIdentificationMixin(models.AbstractModel):
                             'priority': '1',
                         })]
                     })
-        if 'state' in vals:
-            state = vals.pop('state')
-            activity = self.env['mail.activity']
-            ir_model = self.env['ir.model']
-            act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
-            act_deadline = fields.Date.to_string(act_deadline_date)
-            act_type = self.env.ref('risk_management.risk_activity_todo')
+        activity = self.env['mail.activity']
+        ir_model = self.env['ir.model']
+        act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+        act_deadline = fields.Date.to_string(act_deadline_date)
+        act_type = self.env.ref('risk_management.risk_activity_todo')
 
-            if state == '2':
-                # close preceding activities
-                activity.search([
-                    ('res_id', 'in', res.ids),
-                    ('summary', 'like', 'Check and confirm the existence of the risk')
-                ]).action_done()
+        if 'is_confirmed' in vals and vals.get('is_confirmed'):
+            # close preceding activities
+            activity.search([
+                ('res_id', 'in', self.ids),
+                ('summary', 'like', 'Check and confirm the existence of the risk')
+            ]).action_done()
 
-                # add next activities
-                for rec in res:
-                    rec.write({'activity_ids': [(0, False, {
-                        'res_id': rec.id,
-                        'res_model_id': ir_model._get_id(self._name),
-                        'activity_type_id': act_type.id,
-                        'summary': 'Assess the probability of risk occurring and its possible impact,'
-                                   'as well as the company\'s ability to detect it should it occur.',
-                        'date_deadline': act_deadline
-                    })]})
+            # add next activities
+            for rec in self:
+                rec.write({'activity_ids': [(0, False, {
+                    'res_id': rec.id,
+                    'res_model_id': ir_model._get_id(self._name),
+                    'activity_type_id': act_type.id,
+                    'summary': 'Assess the probability of risk occurring and its possible impact,'
+                               'as well as the company\'s ability to detect it should it occur.',
+                    'date_deadline': act_deadline
+                })]})
 
-            elif state == '3':
-                # next activities
-                for rec in res:
-                    rec.write({'activity_ids': [(0, False, {
-                        'res_id': rec.id,
-                        'res_model_id': ir_model._get_id(self._name),
-                        'activity_type_id': act_type.id,
-                        'summary': 'Validate the risk assessment',
-                        'date_deadline': act_deadline
-                    })]})
-
-            elif state == '4':
-                # close preceding activities
-                activity.search(['&',
-                                 ('res_id', 'in', res.ids),
-                                 '|',
-                                 ('summary', 'like', 'Validate the risk assessment'),
-                                 ('summary', 'like',
-                                  'Assess the probability of risk occurring and its possible impact,'
-                                  'as well as the company\'s ability to detect it should it occur.'),
-                                 ]).action_done()
-                for rec in res:
-                    # Next activities
-                    if rec.status == 'N':
-                        rec.write({
-                            'activity_ids': [(0, False, {
-                                'res_id': rec.id,
-                                'res_model_id': ir_model._get_id(self._name),
-                                'activity_type_id': act_type.id,
-                                'summary': 'Select and implement measures to modify risk',
-                                'date_deadline': act_deadline
-                            })]
-                        })
-
-            elif state == '6':
-                # close preceding activities
-                activity.search([
-                    ('res_id', 'in', res.ids),
-                    ('summary', 'like', 'Select and implement measures to modify risk')
-                ]).action_done()
-
-                # Next activities
-                for rec in res:
-                    rec.write({
-                        'activity_ids': [(0, False, {
-                            'res_id': rec.id,
-                            'res_model_id': ir_model._get_id(self._name),
-                            'activity_type_id': act_type.id,
-                            'summary': 'Reassess the  risk to make sure that risk treatment has been effective',
-                            'date_deadline': act_deadline
-                        })]
-                    })
         return res
 
 
@@ -572,7 +518,8 @@ class BusinessRisk(models.Model):
             if rec.treatment_task_ids:
                 task = self.env['project.task'].browse(rec.treatment_task_ids[0].id)
                 task.business_risk_id = False
-            rec.treatment_task_id.business_risk_id = rec
+            if rec.treatment_task_id:
+                rec.treatment_task_id.business_risk_id = rec
 
     @api.multi
     def _track_subtype(self, init_values):
@@ -597,26 +544,35 @@ class BusinessRisk(models.Model):
             [('risk_info_id', '=', vals.get('risk_info_id')),
              ('risk_type', '=', vals.get('risk_type')),
              ('company_id', '=', vals.get('company_id'))])
+        act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+        act_deadline = fields.Date.to_string(act_deadline_date)
+        ir_model = self.env['ir.model']
+        act_type = self.env.ref('risk_management.risk_activity_todo')
 
         if existing:
             existing = existing.exists()[0]
             if not existing.active:
-                # if the risk was already submitted but is inactive
+                # the risk was already submitted but is inactive, just update it with vals
                 existing.write(vals)
+                # add an activity to verify the risk
+                self.env['mail.activity'].create({
+                    'res_id': existing.id,
+                    'res_model_id': ir_model._get_id(self._name),
+                    'activity_type_id': act_type.id,
+                    'summary': 'Check and confirm the existence of the risk',
+                    'date_deadline': act_deadline
+                })
                 return existing.id
             else:
                 if 'business_process_ids' in vals:
                     existing.write({'business_process_ids': vals['business_process_ids']})
                 raise exceptions.UserError(_("This risk has already been reported."))
+
         if vals.get('company_id') and not context.get('default_company_id'):
             context['default_company_id'] = vals.get('company_id')
 
         risk = super(BusinessRisk, self).create(vals)
 
-        act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
-        act_deadline = fields.Date.to_string(act_deadline_date)
-        ir_model = self.env['ir.model']
-        act_type = self.env.ref('risk_management.risk_activity_todo')
         # Next activity
         self.env['mail.activity'].create({
             'res_id': risk,
@@ -683,21 +639,6 @@ class BusinessRiskEvaluation(models.Model):
     threshold_value = fields.Integer(related='business_risk_id.threshold_value', store=True, readonly=True)
     value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
-    @api.model
-    def create(self, vals):
-        same_day = self.env['risk_management.business_risk.evaluation'].search([
-            ('eval_date', '=', fields.Date.context_today(self)),
-            ('business_risk_id', '=', vals['business_risk_id'])
-        ])
-        # if another estimation was created the same day, just update it
-        if same_day:
-            if len(same_day) > 1:
-                # Hardly necessary, but you never know, there may be more than one record in `same_day`
-                same_day[1:].unlink()
-            same_day.exists().write(vals)
-        else:
-            return super(BusinessRiskEvaluation, self).create(vals)
-
     @api.depends('business_risk_id',
                  'detectability',
                  'occurrence',
@@ -708,3 +649,58 @@ class BusinessRiskEvaluation(models.Model):
                 rec.value = rec.value_threat
             elif rec.risk_type == 'O':
                 rec.value = rec.value_opportunity
+
+    @api.model
+    def create(self, vals):
+        same_day_eval = self.env['risk_management.business_risk.evaluation'].search([
+            ('eval_date', '=', fields.Date.context_today(self)),
+            ('business_risk_id', '=', vals['business_risk_id'])
+        ])
+        # if another estimation was created the same day, just update it
+        if same_day_eval.exists():
+            if len(same_day_eval.exists()) > 1:
+                # Hardly necessary, but you never know, there may be more than one record in `same_day_eval`
+                same_day_eval.exists()[1:].unlink()
+            evaluation = same_day_eval.exists()
+            evaluation.write(vals)
+
+        else:
+            evaluation = super(BusinessRiskEvaluation, self).create(vals)
+            act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+            # add an activity to validate the risk evaluation.
+            self.env['mail.activity'].create({
+                'res_id': vals.get('business_risk_id'),
+                'res_model_id': self.env['ir.model']._get_id('risk_management.business_risk'),
+                'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
+                'summary': 'Validate the risk assessment',
+                'date_deadline': fields.Date.to_string(act_deadline_date)
+            })
+        return evaluation
+
+    @api.multi
+    def write(self, vals):
+        res = super(BusinessRiskEvaluation, self).write(vals)
+        if res and vals.get('is_valid', False):
+            res_model_id = self.env['ir.model']._get_id('risk_management.business_risk')
+            act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+            for rec in self:
+                # mark previous activities as done
+                self.env['mail.activity'].search(['&', ('res_id', '=', rec.business_risk_id.id),
+                                                  ('res_model_id', '=', res_model_id),
+                                                  '|',
+                                                  ('summary', 'like', 'Validate the risk assessment'),
+                                                  ('summary', 'like',
+                                                   'Assess the probability of risk occurring and its possible impact,'
+                                                   'as well as the company\'s ability to detect it should it occur.')
+                                                  ]).action_done()
+                if rec.value > rec.threshold_value:
+                    # add an activity to treat the risk
+                    self.env['mail.activity'].create({
+                        'res_id': rec.business_risk_id.id,
+                        'res_model_id': res_model_id,
+                        'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
+                        'summary': 'Select and implement measures to modify risk',
+                        'date_deadline': fields.Date.to_string(act_deadline_date)
+                    })
+        return res
+

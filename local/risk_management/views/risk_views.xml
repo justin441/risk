@@ -24,19 +24,20 @@
                             <field name="is_customer_voice"/>
                         </group>
                     </group>
-                    <group>
+                    <group class="oe_edit_only">
                         <field name="default_partner_cat_parent_id" invisible="1"/>
                         <field name="business_process_id"
                                attrs="{'invisible': [('source_part_cat_id', '!=', False)], 'required': [('source_part_cat_id', '=', False)],}"
-                               class="oe_edit_only"
                         />
                         <field name="source_part_cat_id"
                                attrs="{'invisible': [('business_process_id', '!=', False)], 'required': [('business_process_id', '=', False)]}"
                                context="{'default_parent_id': default_partner_cat_parent_id}"
-                               class="oe_edit_only"
                         />
-                        <label for="origin_id" class="oe_read_only"/>
-                        <field name="origin_id" class="oe_read_only" nolabel="1"/>
+                    </group>
+                    <group class="oe_read_only">
+                        <field name="origin_id"/>
+                    </group>
+                    <group>
                         <field name="ref_input_ids" widget="many2many_tags"
                                attrs="{'invisible': [('source_part_cat_id', '!=', False)]}"/>
                         <field name="channel_ids" widget="many2many_tags"/>
@@ -51,7 +52,9 @@
                                 <field name="dest_partner_ids" widget="many2many_tags"
                                        context="{'default_parent_id': default_partner_cat_parent_id}"
                                        attrs="{'invisible': [('source_part_cat_id', '!=', False)]}"/>
-                                <field name="user_process_ids" widget="many2many_tags"/>
+                            </group>
+                            <group>
+                                 <field name="user_process_ids" widget="many2many_tags"  options="{'color_field': 'color'}"/>
                             </group>
                         </page>
                     </notebook>
@@ -68,9 +71,9 @@
                 <field name="origin_id"/>
                 <field name="name"/>
                 <field name="is_customer_voice"/>
-                <field name="dest_partner_ids" readonly="1" widget="many2many_tags"
+                <field name="dest_partner_ids" readonly="1" widget="many2many_tags"  options="{'color_field': 'color'}"
                        attrs="{'invisible': [('dest_partner_ids', '=', False)]}"/>
-                <field name="user_process_ids" readonly="1" widget="many2many_tags"
+                <field name="user_process_ids" readonly="1" widget="many2many_tags"  options="{'color_field': 'color'}"
                        attrs="{'invisible': [('user_process_ids', '=', False)]}"/>
             </tree>
         </field>
@@ -83,9 +86,9 @@
             <tree>
                 <field name="name"/>
                 <field name="is_customer_voice"/>
-                <field name="dest_partner_ids" widget="many2many_tags"
+                <field name="dest_partner_ids" widget="many2many_tags"  options="{'color_field': 'color'}"
                        attrs="{'invisible': [('dest_partner_ids', '=', False)]}"/>
-                <field name="user_process_ids" widget="many2many_tags"
+                <field name="user_process_ids" widget="many2many_tags"  options="{'color_field': 'color'}"
                        attrs="{'invisible': [('user_process_ids', '=', False)]}"/>
             </tree>
         </field>
