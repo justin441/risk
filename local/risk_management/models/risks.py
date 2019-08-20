@@ -706,7 +706,7 @@ class BusinessRiskEvaluation(models.Model):
                         'date_deadline': fields.Date.to_string(act_deadline_date)
                     })
 
-                    if not rec.business_risk_id.treatment_task_ids:
+                    if not rec.business_risk_id.treatment_task_id:
                         # create a risk treatment task for the risk being evaluated
                         self.env['project.task'].create({
                             'name': 'Treatment for %s' % rec.business_risk_id.name,
