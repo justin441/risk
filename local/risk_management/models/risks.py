@@ -192,15 +192,15 @@ class RiskIdentificationMixin(models.AbstractModel):
     status = fields.Selection(selection=[('U', 'Unknown status'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                               compute='_compute_status', string='Status', search='_search_status',
                               track_visibility="onchange")
-    state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage',
-                             store=True, track_visibility="onchange")
+    state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage')
+    stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, compute_sudo=True, copy=False,
+                        track_visibility="onchange")
     priority = fields.Integer('Priority', compute='_compute_priority', store=True)
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
         'risk_management.risk_treatment_project'), readonly=True, required=True)
     treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment',
                                         inverse='_inverse_treatment', store=True)
-    treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks',
-                                          store=True)
+    treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks')
 
     @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
@@ -352,6 +352,24 @@ class RiskIdentificationMixin(models.AbstractModel):
             elif not risk.treatment_task_id.child_ids.filtered(lambda task: not task.stage_id.fold):
                 # risk treatment done
                 risk.state = '6'
+
+    @api.depends('state')
+    def _compute_stage_str(self):
+        for risk_id in self:
+            if not risk_id.state:
+                risk_id.stage = 'New'
+            elif risk_id.state == '1':
+                risk_id.stage = 'Identification'
+            elif risk_id.state == '2':
+                risk_id.stage = 'Id. Done'
+            elif risk_id.state == '3':
+                risk_id.stage = 'Evaluation'
+            elif risk_id.state == '4':
+                risk_id.stage = 'Eval. Done'
+            elif risk_id.state == '5':
+                risk_id.stage = 'Treatment'
+            elif risk_id.state == '6':
+                risk_id.stage = 'Done'
 
     @api.multi
     def get_treatments_view(self):

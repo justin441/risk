@@ -35,15 +35,13 @@ class BaseEvaluationWizard(models.AbstractModel):
 
     detectability = fields.Selection(selection=_get_detectability, string='Detectability',
                                      default=lambda self: self.default_criteria().get('detectability', '3'),
-                                     required=True,
                                      help='What is the ability of the company to detect'
                                           ' this failure (or gain) if it were to occur?')
     occurrence = fields.Selection(selection=_get_occurrence, string='Occurrence',
                                   default=lambda self: self.default_criteria().get('occurrence', '3'),
-                                  required=True,
                                   help='How likely is it for this failure (or gain) to occur?')
     severity = fields.Selection(selection=_get_severity, string='Impact',
-                                default=lambda self: self.default_criteria().get('severity', '3'), required=True,
+                                default=lambda self: self.default_criteria().get('severity', '3'),
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
 

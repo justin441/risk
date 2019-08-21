@@ -430,7 +430,7 @@
                         domain="[('latest_level_value', '!=', False), ('treatment_task_id.child_ids', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Category" name="Category" context="{'group_by': 'risk_info_category'}"/>
-                    <filter string="Stage" name="Stage" context="{'group_by': 'state'}"/>
+                    <filter string="Stage" name="Stage" context="{'group_by': 'stage'}"/>
                     <filter string="Type" name="Type" context="{'group_by':'risk_type'}"/>
                 </group>
             </search>
@@ -462,7 +462,7 @@
         <field name="name">business_risk.kanban</field>
         <field name="model">risk_management.business_risk</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="state" class="o_kanban_small_column o_kanban_project_tasks"
+            <kanban default_group_by="stage" class="o_kanban_small_column o_kanban_project_tasks"
                     group_create="false" group_delete="false" group_edit="false" create="false">
                 <field name="name"/>
                 <field name="business_process_ids"/>
@@ -473,7 +473,7 @@
                 <field name="owner"/>
                 <field name="status"/>
                 <field name="activity_ids"/>
-                <field name="state"/>
+                <field name="stage"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_card oe_kanban_global_click">
@@ -524,7 +524,7 @@
                                     </div>
                                 </div>
                                 <div class="o_kanban_record_body">
-                                    <field name="risk_info_id"/>
+                                    <field name="risk_info_id"/><br/>
                                     <field name="status" widget="label_selection"
                                            options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                                     <field name="business_process_ids" widget="many2many_tags"
@@ -572,7 +572,7 @@
                 <field name="activity_date_deadline"/>
                 <field name="activity_type_id"/>
                 <field name="activity_summary"/>
-                <field name="state"/>
+                <field name="stage"/>
             </tree>
         </field>
     </record>
