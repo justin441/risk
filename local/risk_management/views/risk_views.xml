@@ -54,7 +54,8 @@
                                        attrs="{'invisible': [('source_part_cat_id', '!=', False)]}"/>
                             </group>
                             <group>
-                                 <field name="user_process_ids" widget="many2many_tags"  options="{'color_field': 'color'}"/>
+                                <field name="user_process_ids" widget="many2many_tags"
+                                       options="{'color_field': 'color'}"/>
                             </group>
                         </page>
                     </notebook>
@@ -71,9 +72,9 @@
                 <field name="origin_id"/>
                 <field name="name"/>
                 <field name="is_customer_voice"/>
-                <field name="dest_partner_ids" readonly="1" widget="many2many_tags"  options="{'color_field': 'color'}"
+                <field name="dest_partner_ids" readonly="1" widget="many2many_tags" options="{'color_field': 'color'}"
                        attrs="{'invisible': [('dest_partner_ids', '=', False)]}"/>
-                <field name="user_process_ids" readonly="1" widget="many2many_tags"  options="{'color_field': 'color'}"
+                <field name="user_process_ids" readonly="1" widget="many2many_tags" options="{'color_field': 'color'}"
                        attrs="{'invisible': [('user_process_ids', '=', False)]}"/>
             </tree>
         </field>
@@ -86,9 +87,9 @@
             <tree>
                 <field name="name"/>
                 <field name="is_customer_voice"/>
-                <field name="dest_partner_ids" widget="many2many_tags"  options="{'color_field': 'color'}"
+                <field name="dest_partner_ids" widget="many2many_tags" options="{'color_field': 'color'}"
                        attrs="{'invisible': [('dest_partner_ids', '=', False)]}"/>
-                <field name="user_process_ids" widget="many2many_tags"  options="{'color_field': 'color'}"
+                <field name="user_process_ids" widget="many2many_tags" options="{'color_field': 'color'}"
                        attrs="{'invisible': [('user_process_ids', '=', False)]}"/>
             </tree>
         </field>
@@ -153,7 +154,7 @@
 
     <!--actions-->
     <record model="ir.actions.act_window" id="act_business_process_io_channel">
-       <field name="name">Business process i/o channel</field>
+        <field name="name">Business process i/o channel</field>
         <field name="res_model">risk_management.business_process.channel</field>
         <field name="view_mode">tree,form</field>
         <field name="help" type="html">
@@ -390,6 +391,37 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="view_risk_eval_edit_form">
+        <field name="name">business_risk.evaluation.edit</field>
+        <field name="model">risk_management.business_risk.evaluation</field>
+        <field name="arch" type="xml">
+            <form string="Risk evaluation">
+                <group>
+                    <field name="business_risk_id" readonly="1"/>
+                    <field name="detectability" readonly="1"/>
+                    <field name="occurrence" readonly="1"/>
+                    <field name="severity" readonly="1"/>
+                </group>
+                <group>
+                    <group>
+                        <field name="review_date" attrs="{'readonly': [('is_valid', '=', True)]}"/>
+                        <field name="is_valid"/>
+                    </group>
+                    <group>
+                        <field name="threshold_value"/>
+                        <field name="value"/>
+                    </group>
+                </group>
+                <notebook>
+                    <page>
+                        <field name="comment" type="html"/>
+                        <div class="oe_clear"/>
+                    </page>
+                </notebook>
+            </form>
+        </field>
+    </record>
+
     <record model="ir.actions.act_window" id="act_business_risk_evaluation">
         <field name="name">Business Risk Evaluation</field>
         <field name="res_model">risk_management.business_risk.evaluation</field>
@@ -524,7 +556,8 @@
                                     </div>
                                 </div>
                                 <div class="o_kanban_record_body">
-                                    <field name="risk_info_id"/><br/>
+                                    <field name="risk_info_id"/>
+                                    <br/>
                                     <field name="status" widget="label_selection"
                                            options="{'classes': {'U': 'default', 'A': 'success', 'N': 'danger'}}"/>
                                     <field name="business_process_ids" widget="many2many_tags"
@@ -608,7 +641,7 @@
                                     type="object"
                                     class="oe_stat_button oe_read_only"
                                     icon="fa-tasks"
-                                    attrs="{'invisible': [('treatment_task_id', '=', False)]}"
+                                    attrs="{'invisible': ['|', '|', ('owner', '=', False), ('stage', 'not in', ['Eval. Done', 'Treatment', 'Done']), ('treatment_task_id', '=', False)]}"
                             >
                                 <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                             </button>
@@ -622,7 +655,9 @@
                             <field name="name"/>
                         </h1>
                     </div>
-
+                    <group>
+                        <field name="risk_info_id"/>
+                    </group>
                     <group>
                         <group>
                             <field name="company_id" groups="base.group_multi_company"/>
@@ -637,9 +672,6 @@
                             <field name="review_date"/>
                         </group>
                     </group>
-                    <group>
-                        <field name="risk_info_id"/>
-                    </group>
                     <group class="oe_read_only">
                         <group>
                             <field name="max_level_value" invisible="1"/>
@@ -652,6 +684,7 @@
                         <group>
                             <field name="reported_by"/>
                             <field name="report_date"/>
+                            <field name="stage" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -672,6 +705,11 @@
                             <field name="evaluation_ids"
                                    mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph" is not rendering for some reason -->
                         </page>
+                         <page name="comment_page" string="Comments">
+                            <group>
+                                <field name="comment"/>
+                            </group>
+                        </page>
                         <page name="help_page" string="Treatment guides" class="oe_read_only">
                             <group>
                                 <button
@@ -690,12 +728,6 @@
                                 <field name="risk_info_action"/>
                             </group>
                         </page>
-                        <page name="comment_page" string="Comments" class="oe_read_only">
-                            <group>
-                                <field name="comment"/>
-                            </group>
-                        </page>
-
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
@@ -1024,7 +1056,7 @@
                     </div>
                     <div class="oe_title">
                         <h6>
-                            <field name="name" placeholder="Risk Title" widget="text" />
+                            <field name="name" placeholder="Risk Title" widget="text"/>
                         </h6>
                     </div>
                     <group name="classification" string="Classification">
@@ -1097,7 +1129,7 @@
     <menuitem id="menu_risk_category" parent="config_menu" sequence="10" action="act_risk_category_list"/>
 
     <data noupdate="1">
-         <function model="risk_management.settings" name="set_subtask_project"/>
+        <function model="risk_management.settings" name="set_subtask_project"/>
     </data>
 
 </odoo>

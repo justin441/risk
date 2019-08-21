@@ -156,7 +156,7 @@ class RiskIdentificationMixin(models.AbstractModel):
             ('2', 'Id. done'),
             ('3', 'Evaluation'),
             ('4', 'Eval. done'),
-            ('5', 'Ongoing treatment'),
+            ('5', 'Treatment'),
             ('6', 'Done')
         ]
 
@@ -164,7 +164,14 @@ class RiskIdentificationMixin(models.AbstractModel):
     name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  required=True, track_visibility="onchange")
-    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk', required=True)
+    risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk', required=True,
+                                   states={'2': [('readonly', True)],
+                                           '3': [('readonly', True)],
+                                           '4': [('readonly', True)],
+                                           '5': [('readonly', True)],
+                                           '6': [('readonly', True)]
+                                           },
+                                   )
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
                                      store=True)
     risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)
@@ -175,7 +182,10 @@ class RiskIdentificationMixin(models.AbstractModel):
     risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
     report_date = fields.Date(string='Reported On', default=fields.Date.context_today)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
-    is_confirmed = fields.Boolean('Confirmed',
+    is_confirmed = fields.Boolean('Confirmed', states={'3': [('readonly', True)],
+                                                       '4': [('readonly', True)],
+                                                       '5': [('readonly', True)],
+                                                       '6': [('readonly', True)]},
                                   groups='risk_management.group_risk_manager', track_visibility="onchange")
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True,
                                      track_visibility="onchange")
@@ -621,6 +631,8 @@ class RiskEvaluationMixin(models.AbstractModel):
     eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on',
                             readonly=True)
     is_valid = fields.Boolean('Valid', groups='risk_management.group_manager')
+    state = fields.Selection([('draft', 'Draft'), ('final', 'Final')], compute='_compute_state')
+    # state depends on the *_risk_id model hence _compute_state is implemented on the related *RiskEvaluation model
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):
