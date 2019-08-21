@@ -485,6 +485,7 @@
                 <field name="status" invisible="1"/>
                 <field name="active" invisible="1"/>
                 <field name="is_confirmed" invisible="1"/>
+                <field name="state" invisible="1"/>
 
             </tree>
         </field>
@@ -895,7 +896,7 @@
                         <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                         <field name="process_type"/>
                         <field name="responsible_id"/>
-                        <field name="module" class="oe_no_link"/>
+                        <field name="module" options="{'no_open': True}"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">
@@ -991,7 +992,7 @@
         <field name="model">risk_management.risk.info</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name"/>
+                <field name="long_name"/>
                 <field name="risk_category_id"/>
                 <field name="subcategory"/>
                 <field name="description"/>
@@ -1056,7 +1057,7 @@
                     </div>
                     <div class="oe_title">
                         <h6>
-                            <field name="name" placeholder="Risk Title" widget="text"/>
+                            <field name="long_name" placeholder="Risk Title" widget="text"/>
                         </h6>
                     </div>
                     <group name="classification" string="Classification">

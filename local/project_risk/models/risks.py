@@ -52,7 +52,7 @@ class ProjectRisk(models.Model):
             return 'project_risk.mt_project_risk_new'
         elif 'status' in init_values:
             return 'project_risk.mt_project_risk_status'
-        elif 'state' in init_values:
+        elif 'stage' in init_values:
             return 'project_risk.mt_project_risk_stage'
         return super(ProjectRisk, self)._track_subtype(init_values)
 
@@ -76,7 +76,7 @@ class ProjectRisk(models.Model):
                     'res_id': existing.id,
                     'res_model_id': ir_model._get_id(self._name),
                     'activity_type_id': act_type.id,
-                    'summary': 'Check and confirm the existence of the risk',
+                    'note': '<p>Check and confirm the existence of the risk</p>',
                     'date_deadline': act_deadline
                 })
                 return existing.id
@@ -91,7 +91,7 @@ class ProjectRisk(models.Model):
             'res_id': risk,
             'res_model_id': ir_model._get_id(self._name),
             'activity_type_id': act_type.id,
-            'summary': 'Check and confirm the existence of the risk',
+            'note': '<p>Check and confirm the existence of the risk</p>',
             'date_deadline': act_deadline
         })
         return risk
@@ -142,7 +142,7 @@ class ProjectRiskEvaluation(models.Model):
                 'res_id': vals.get('project_risk_id'),
                 'res_model_id': self.env['ir.model']._get_id('project_risk.project_risk'),
                 'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                'summary': 'Validate the risk assessment',
+                'note': '<p>Validate the risk assessment</p>',
                 'date_deadline': fields.Date.to_string(act_deadline_date)
             })
         return evaluation
@@ -155,11 +155,11 @@ class ProjectRiskEvaluation(models.Model):
             act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
             for rec in self:
                 # mark previous activities as done
-                self.env['mail.activity'].search(['&', ('res_id', '=', rec.project_risk_id.id),
+                self.env['mail.activity'].search(['&', '&', ('res_id', '=', rec.project_risk_id.id),
                                                   ('res_model_id', '=', res_model_id),
                                                   '|',
-                                                  ('summary', 'like', 'Validate the risk assessment'),
-                                                  ('summary', 'like',
+                                                  ('note', 'like', 'Validate the risk assessment'),
+                                                  ('note', 'like',
                                                    'Assess the probability of risk occurring and its possible impact,'
                                                    'as well as the company\'s ability to detect it should it occur.')
                                                   ]).action_done()
@@ -169,7 +169,7 @@ class ProjectRiskEvaluation(models.Model):
                         'res_id': rec.project_risk_id.id,
                         'res_model_id': res_model_id,
                         'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                        'summary': 'Select and implement measures to modify risk',
+                        'note': '<p>Select and implement measures to modify risk.</p>',
                         'date_deadline': fields.Date.to_string(act_deadline_date)
                     })
 

@@ -49,7 +49,7 @@
 
     <!--    Risk Management activity type-->
     <record id="risk_activity_todo" model="mail.activity.type">
-        <field name="name">TODO</field>
+        <field name="name">Risk Management To Do</field>
         <field name="summary">Next step in managing risk</field>
         <field name="icon">fa-clipboard-list-check</field>
     </record>

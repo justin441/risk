@@ -52,7 +52,8 @@ class RiskInfo(models.Model):
     risk_category_id = fields.Many2one(comodel_name='risk_management.risk.category', string='Category',
                                        ondelete='restrict')
     subcategory = fields.Char(translate=True, string='Sub-category')
-    name = fields.Char(translate=True, index=True, copy=False, required=True)
+    long_name = fields.Char(translate=True, index=True, copy=False, required=True, string='Name')
+    name = fields.Char(translate=True, compute='_compute_name', store=True)
     description = fields.Html(translate=True, string='Description', required=True)
     cause = fields.Html(Translate=True, string='Cause', index=True)
     consequence = fields.Html(translate=True, string='Consequence', index=True)
@@ -62,12 +63,20 @@ class RiskInfo(models.Model):
                                         string='Occurrence(Business)')
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
 
+    @api.depends('long_name')
+    def _compute_name(self):
+        for rec in self:
+            if rec.long_name and len(rec.long_name) >= 64:
+                rec.name = rec.long_name.strip()[:61] + '...'
+            else:
+                rec.name = rec.long_name
+
     @api.model
     def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
         """Searches risk by name or description"""
         args = [] if args is None else args.copy()
         if not (name == '' and operator == 'ilike'):
-            args += ['|', ('name', operator, name), ('description', operator, name)]
+            args += ['|', ('long_name', operator, name), ('description', operator, name)]
         return super(RiskInfo, self)._name_search(name='', args=args, operator='ilike', limit=limit,
                                                   name_get_uid=name_get_uid)
 
@@ -507,7 +516,8 @@ class RiskIdentificationMixin(models.AbstractModel):
             # close preceding activities
             activity.search([
                 ('res_id', 'in', self.ids),
-                ('summary', 'like', 'Check and confirm the existence of the risk')
+                ('note', 'like', 'Check and confirm the existence of the risk'),
+                ('summary', 'like', 'Next step in Risk Management')
             ]).action_done()
 
             # add next activities
@@ -516,8 +526,8 @@ class RiskIdentificationMixin(models.AbstractModel):
                     'res_id': rec.id,
                     'res_model_id': ir_model._get_id(self._name),
                     'activity_type_id': act_type.id,
-                    'summary': 'Assess the probability of risk occurring and its possible impact,'
-                               'as well as the company\'s ability to detect it should it occur.',
+                    'note': '<p>Assess the probability of risk occurring and its possible impact,'
+                               'as well as the company\'s ability to detect it should it occur.</p>',
                     'date_deadline': act_deadline
                 })]})
 
@@ -560,7 +570,7 @@ class BusinessRisk(models.Model):
             return 'risk_management.mt_business_risk_new'
         elif 'status' in init_values:
             return 'risk_management.mt_business_risk_status'
-        elif 'state' in init_values:
+        elif 'stage' in init_values:
             return 'risk_management.mt_business_risk_stage'
         return super(BusinessRisk, self)._track_subtype(init_values)
 
@@ -587,7 +597,7 @@ class BusinessRisk(models.Model):
                     'res_id': existing.id,
                     'res_model_id': ir_model._get_id(self._name),
                     'activity_type_id': act_type.id,
-                    'summary': 'Check and confirm the existence of the risk',
+                    'note': '<p>Check and confirm the existence of the risk</p>',
                     'date_deadline': act_deadline
                 })
                 return existing.id
@@ -606,7 +616,7 @@ class BusinessRisk(models.Model):
             'res_id': risk,
             'res_model_id': ir_model._get_id(self._name),
             'activity_type_id': act_type.id,
-            'summary': 'Check and confirm the existence of the risk',
+            'note': '<p>Check and confirm the existence of the risk</p>',
             'date_deadline': act_deadline
         })
 
@@ -631,8 +641,6 @@ class RiskEvaluationMixin(models.AbstractModel):
     eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on',
                             readonly=True)
     is_valid = fields.Boolean('Valid', groups='risk_management.group_manager')
-    state = fields.Selection([('draft', 'Draft'), ('final', 'Final')], compute='_compute_state')
-    # state depends on the *_risk_id model hence _compute_state is implemented on the related *RiskEvaluation model
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):
@@ -705,7 +713,7 @@ class BusinessRiskEvaluation(models.Model):
                 'res_id': vals.get('business_risk_id'),
                 'res_model_id': self.env['ir.model']._get_id('risk_management.business_risk'),
                 'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                'summary': 'Validate the risk assessment',
+                'note': '<p>Validate the risk assessment.</p>',
                 'date_deadline': fields.Date.to_string(act_deadline_date)
             })
         return evaluation
@@ -718,11 +726,11 @@ class BusinessRiskEvaluation(models.Model):
             act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
             for rec in self:
                 # mark previous activities as done
-                self.env['mail.activity'].search(['&', ('res_id', '=', rec.business_risk_id.id),
+                self.env['mail.activity'].search(['&', '&', ('res_id', '=', rec.business_risk_id.id),
                                                   ('res_model_id', '=', res_model_id),
                                                   '|',
-                                                  ('summary', 'like', 'Validate the risk assessment'),
-                                                  ('summary', 'like',
+                                                  ('note', 'like', 'Validate the risk assessment'),
+                                                  ('note', 'like',
                                                    'Assess the probability of risk occurring and its possible impact,'
                                                    'as well as the company\'s ability to detect it should it occur.')
                                                   ]).action_done()
@@ -732,7 +740,7 @@ class BusinessRiskEvaluation(models.Model):
                         'res_id': rec.business_risk_id.id,
                         'res_model_id': res_model_id,
                         'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                        'summary': 'Select and implement measures to modify risk',
+                        'note': '<p>Select and implement measures to modify risk.</p>',
                         'date_deadline': fields.Date.to_string(act_deadline_date)
                     })
 
