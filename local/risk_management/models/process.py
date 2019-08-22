@@ -153,7 +153,7 @@ class BusinessProcess(models.Model):
     @api.depends('output_data_ids', 'input_data_ids')
     def _compute_is_core(self):
         """
-        Returns: - True if self outputs or relays data that are 'customer voice' to other processes or if self has an
+        A core process is one that outputs or relays data that are 'customer voice' to other processes or if self has an
         input that is a 'customer voice' and directly output to the customer partner category;
                 - False otherwise
         """
