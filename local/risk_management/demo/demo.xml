@@ -184,7 +184,7 @@
         <record id="risk_info_1" model="risk_management.risk.info">
             <field name="risk_category_id" ref="risk_management.risk_cat_1"/>
             <field name="subcategory">Country Risk</field>
-            <field name="long_name">Political instability (risk of war, terrorism, local conflict, attacks ...)</field>
+            <field name="name">Political instability (risk of war, terrorism, local conflict, attacks ...)</field>
             <field name="description" type="html">
                 <p>Risk of loss of business or profitability outside the company's natural boundary, due to geopolitical instability in the area of presence.</p>
             </field>
@@ -217,7 +217,7 @@
         <record id="risk_info_2" model="risk_management.risk.info">
             <field name="risk_category_id" ref="risk_management.risk_cat_2"/>
             <field name="subcategory">Cyclical risk</field>
-            <field name="long_name">Unfavorable economic climate impacting the dynamics of the company's activity: inflation, slowdown, GDP decline, unemployment</field>
+            <field name="name">Unfavorable economic climate impacting the dynamics of the company's activity: inflation, slowdown, GDP decline, unemployment</field>
             <field name="description" type="html">
                 <p>Deteriorating economic conditions for carrying out business activities</p>
             </field>
@@ -254,7 +254,7 @@
         <record id="risk_info_3" model="risk_management.risk.info">
             <field name="risk_category_id" ref="risk_management.risk_cat_3"/>
             <field name="subcategory">Strategic model</field>
-            <field name="long_name">Poor identification or poor definition of the strategic segments of the strategic business model</field>
+            <field name="name">Poor identification or poor definition of the strategic segments of the strategic business model</field>
             <field name="description" type="html">
                 <p>
                     Incorrect determination of the strategic business model segments to which the commercial offer is deployed.
@@ -291,7 +291,7 @@
         <record id="risk_info_4" model="risk_management.risk.info">
             <field name="risk_category_id" ref="risk_management.risk_cat_4"/>
             <field name="subcategory">Cash flow</field>
-            <field name="long_name">Company cashflow shortage</field>
+            <field name="name">Company cashflow shortage</field>
             <field name="description" type="html">
                 <p>
                     Inability of the company to meet its financial commitments, for lack of liquid cash.

@@ -48,12 +48,13 @@ class RiskInfo(models.Model):
             'Name must be unique per category'
         )
     ]
+    _rec_name = 'short_name'
 
     risk_category_id = fields.Many2one(comodel_name='risk_management.risk.category', string='Category',
                                        ondelete='restrict')
     subcategory = fields.Char(translate=True, string='Sub-category')
-    long_name = fields.Char(translate=True, index=True, copy=False, required=True, string='Name')
-    name = fields.Char(translate=True, compute='_compute_name', store=True)
+    name = fields.Char(translate=True, index=True, copy=False, required=True, string='Name')
+    short_name = fields.Char(translate=True, compute='_compute_short_name')
     description = fields.Html(translate=True, string='Description', required=True)
     cause = fields.Html(Translate=True, string='Cause', index=True)
     consequence = fields.Html(translate=True, string='Consequence', index=True)
@@ -63,20 +64,20 @@ class RiskInfo(models.Model):
                                         string='Occurrence(Business)')
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
 
-    @api.depends('long_name')
+    @api.depends('name')
     def _compute_name(self):
         for rec in self:
-            if rec.long_name and len(rec.long_name) >= 64:
-                rec.name = rec.long_name.strip()[:61] + '...'
+            if rec.name and len(rec.name) >= 64:
+                rec.short_name = rec.name.strip()[:61] + '...'
             else:
-                rec.name = rec.long_name
+                rec.short_name = rec.name
 
     @api.model
     def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
         """Searches risk by name or description"""
         args = [] if args is None else args.copy()
         if not (name == '' and operator == 'ilike'):
-            args += ['|', ('long_name', operator, name), ('description', operator, name)]
+            args += ['|', ('name', operator, name), ('description', operator, name)]
         return super(RiskInfo, self)._name_search(name='', args=args, operator='ilike', limit=limit,
                                                   name_get_uid=name_get_uid)
 

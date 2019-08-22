@@ -13,8 +13,8 @@
                     <field name="eval_date"/>
                     <field name="create_uid"/>
                     <field name="project_risk_id"
-                           invisible="context.get('search_default_project_risk_id', False)"/>
-                    <field name="risk_type" invisible="context.get('search_default_project_risk_id', False)"/>
+                           invisible="context.get('default_project_risk_id', False)"/>
+                    <field name="risk_type" invisible="context.get('default_project_risk_id', False)"/>
                     <field name="detectability"/>
                     <field name="severity"/>
                     <field name="occurrence"/>
@@ -179,6 +179,9 @@
                 <field name="business_process_ids" position="replace">
                     <field name="task_ids"
                            widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                </field>
+                <field name="evaluation_ids" position="attributes">
+                    <attribute name="context" eval="{'default_project_risk_id': active_id}"/>
                 </field>
             </field>
         </record>

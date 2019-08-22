@@ -366,8 +366,8 @@
             >
                 <field name="eval_date"/>
                 <field name="create_uid"/>
-                <field name="business_risk_id" invisible="context.get('search_default_business_risk_id', False)"/>
-                <field name="risk_type" invisible="context.get('search_default_business_risk_id', False)"/>
+                <field name="business_risk_id" invisible="context.get('default_business_risk_id', False)"/>
+                <field name="risk_type" invisible="context.get('default_business_risk_id', False)"/>
                 <field name="detectability"/>
                 <field name="severity"/>
                 <field name="occurrence"/>
@@ -440,7 +440,7 @@
                 <field name="risk_info_cause"/>
                 <field name="risk_info_consequence"/>
                 <field name="business_process_ids" domain_filter="['business_process_ids', '&#8805;;', self]"/>
-                <filter name="evaluated" string="Evaluated" domain="[('latest_level_value', '!=', False)]"/>
+                <filter name="evaluated" string="Evaluated" domain="[('latest_level_value', '!=', 0)]"/>
                 <separator/>
                 <filter name="acceptable" string="Acceptable" domain="[('status', '=', 'A')]"/>
                 <filter name="not_acceptable" string="Unacceptable" domain="[('status', '=', 'N')]"/>
@@ -457,7 +457,7 @@
                 <filter name="inactive" string="Latent" domain="[('active', '=', False)]"
                         groups="risk_management.group_risk_manager"/>
                 <separator/>
-                <filter name="unevaluated" string="Un-evaluated" domain="[('latest_level_value', '=', False)]"/>
+                <filter name="unevaluated" string="Un-evaluated" domain="[('latest_level_value', '=', 0)]"/>
                 <filter name="untreated" string="Untreated"
                         domain="[('latest_level_value', '!=', False), ('treatment_task_id.child_ids', '=', False)]"/>
                 <group expand="0" string="Group By">
@@ -706,7 +706,7 @@
                         </page>
                         <page name="eval_timeline" string="Timeline"
                               attrs="{'invisible': [('evaluation_ids', '=', False)]}">
-                            <field name="evaluation_ids"/>
+                            <field name="evaluation_ids" context="{'default_business_risk_id': active_id}"/>
                         </page>
                         <page name="comment_page" string="Comments">
                             <group>
@@ -994,7 +994,7 @@
         <field name="model">risk_management.risk.info</field>
         <field name="arch" type="xml">
             <search>
-                <field name="long_name"/>
+                <field name="name"/>
                 <field name="risk_category_id"/>
                 <field name="subcategory"/>
                 <field name="description"/>
@@ -1059,7 +1059,7 @@
                     </div>
                     <div class="oe_title">
                         <h6>
-                            <field name="long_name" placeholder="Risk Title" widget="text"/>
+                            <field name="name" placeholder="Risk Title" widget="text"/>
                         </h6>
                     </div>
                     <group name="classification" string="Classification">
