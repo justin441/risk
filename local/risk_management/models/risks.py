@@ -206,7 +206,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     review_date = fields.Date(default=_compute_default_review_date, string="Review Date", track_visibility="onchange")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
                             track_visibility="onchange")
-    active = fields.Boolean(compute='_compute_active', inverse='_inverse_active', search='_search_active',
+    active = fields.Boolean('Active', compute='_compute_active', inverse='_inverse_active', search='_search_active',
                             track_visibility="onchange")
     status = fields.Selection(selection=[('U', 'Unknown status'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                               compute='_compute_status', string='Status', search='_search_status',
@@ -463,12 +463,6 @@ class RiskIdentificationMixin(models.AbstractModel):
             if (rec.review_date and rec.report_date) and (rec.review_date < rec.report_date):
                 raise exceptions.ValidationError('Review date must be after report date')
 
-    @api.constrains('report_date', 'create_date')
-    def _check_report_date_post_create_date(self):
-        for rec in self:
-            if rec.report_date and rec.create_date < rec.report_date:
-                raise exceptions.ValidationError('Report date must post or same as create date')
-
     @api.multi
     def write(self, vals):
         if 'active' in vals:
@@ -480,11 +474,16 @@ class RiskIdentificationMixin(models.AbstractModel):
                 vals.update({'review_date': fields.Date.to_string(review_date),
                              'report_date': new_report_date,
                              'reported_by': self.env.user.id,
-                             'is_confirmed': False})
+                             'is_confirmed': False,
+                             'latest_level_value': False})
             else:
+                # The risk is being archived
+                # first make the evaluations obsolete
+                self.mapped('evaluation_ids').filtered(lambda ev: not ev.is_obsolete).write({
+                    'review_date': fields.Date.context_today(self)
+                })
                 vals.update({
                     'review_date': fields.Date.context_today(self),
-                    'is_confirmed': False,
                     'owner': False
                 })
             self.with_context(active_test=False).mapped('treatment_task_id').write({'active': vals['active']})
