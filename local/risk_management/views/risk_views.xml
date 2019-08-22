@@ -747,11 +747,7 @@
         <field name="res_model">risk_management.business_risk</field>
         <field name="view_mode">tree,form,kanban,calendar</field>
         <field name="search_view_id" ref="view_business_risk_search"/>
-        <field name="context">
-            {
-            'search_default_evaluated':1, 'active_test': 0
-            }
-        </field>
+        <field name="context" eval="{'search_default_evaluated':1}"/>
         <field name="help" type="html">
             <p class="oe_view_nocontent">
                 There is no risk in this risk register at the moment.
