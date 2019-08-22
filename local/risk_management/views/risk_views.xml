@@ -645,7 +645,8 @@
                             <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                         </button>
                         <button class="oe_stat_button" type="object" name="toggle_active" icon="fa-archive"
-                                attrs="{'invisible': [('stage', 'in', ['Identification', 'Id. Done']}"
+                                attrs="{'invisible': [('stage', 'in', ['New', 'Identification'])]}"
+                                groups="risk_management.group_risk_manager"
                         >
                             <field name="active" widget="boolean_button"
                                    options='{"terminology": "archive"}'/>

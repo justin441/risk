@@ -65,7 +65,7 @@ class RiskInfo(models.Model):
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
 
     @api.depends('name')
-    def _compute_name(self):
+    def _compute_short_name(self):
         for rec in self:
             if rec.name and len(rec.name) >= 64:
                 rec.short_name = rec.name.strip()[:61] + '...'
