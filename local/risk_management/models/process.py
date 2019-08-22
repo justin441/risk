@@ -26,11 +26,6 @@ class BusinessProcess(models.Model):
     _description = 'Business process'
     _inherit = ['risk_management.base_process']
     _inherits = {'account.analytic.account': "analytic_account_id"}
-    _sql_constraints = [
-        ('process_name_unique',
-         'UNIQUE(description, analytic_account_id)',  # TODO: review constraint
-         'The process name must be unique.')
-    ]
 
     task_ids = fields.One2many('risk_management.business_process.task', inverse_name='business_process_id',
                                string='Tasks')
