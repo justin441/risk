@@ -2,36 +2,77 @@
     <data>
         <!-- PROJECT RISK EVALUATION -->
 
-        <record model="ir.ui.view" id="view_project_risk_evaluation_list">
+        <record model="ir.ui.view" id="view_project_risk_evaluation_list2">
             <field name="name">project_risk.evaluation.tree</field>
             <field name="model">project_risk.evaluation</field>
-            <field name="inherit_id" ref="risk_management.view_business_risk_evaluation_list"/>
             <field name="arch" type="xml">
-                <field name="business_risk_id" position="replace">
-                    <field name="project_risk_id" invisible="context.get('search_default_project_risk_id', False)"/>
-                </field>
-                <field name="risk_type" position="attributes">
-                    <attribute name="invisible" eval="context.get('search_default_project_risk_id', False)"/>
-                </field>
+                <tree create="false"
+                      decoration-danger="(risk_type == 'T' and value &gt; threshold_value) or (risk_type == 'O' and value &lt; threshold_value)"
+                      decoration-success="(risk_type == 'T' and value &lt; threshold_value) or (risk_type == 'O' and value &gt; threshold_value)"
+                      decoration-it="is_obsolete">
+                    <field name="eval_date"/>
+                    <field name="create_uid"/>
+                    <field name="project_risk_id"
+                           invisible="context.get('search_default_project_risk_id', False)"/>
+                    <field name="risk_type" invisible="context.get('search_default_project_risk_id', False)"/>
+                    <field name="detectability"/>
+                    <field name="severity"/>
+                    <field name="occurrence"/>
+                    <field name="threshold_value" invisible="1"/>
+                    <field name="is_obsolete" invisible="1"/>
+                    <field name="value"/>
+                </tree>
             </field>
         </record>
 
-        <record model="ir.ui.view" id="view_project_risk_eval_graph">
+        <record model="ir.ui.view" id="view_project_risk_eval_graph2">
             <field name="name">project_risk.evaluation.graph</field>
             <field name="model">project_risk.evaluation</field>
-            <field name="inherit_id" ref="risk_management.view_business_risk_eval_graph"/>
             <field name="arch" type="xml">
-                <field name="business_risk_id" position="replace">
-                    <field name="project_risk_id"/>
-                </field>
+                <graph string="Timeline" type="line">
+                <field name="eval_date"/>
+                <field name="project_risk_id"/>
+                <field name="value" type="measure"/>
+                <field name="threshold_value" type="measure"/>
+            </graph>
+            </field>
+        </record>
 
+        <record model="ir.ui.view" id="view_project_risk_eval_edit_form2">
+            <field name="name">project_risk.evaluation.edit</field>
+            <field name="model">project_risk.evaluation</field>
+            <field name="arch" type="xml">
+                <form string="Risk evaluation">
+                    <group>
+                        <field name="project_risk_id" readonly="1"/>
+                        <field name="detectability" readonly="1"/>
+                        <field name="occurrence" readonly="1"/>
+                        <field name="severity" readonly="1"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="review_date" attrs="{'readonly': [('is_valid', '=', True)]}"/>
+                            <field name="is_valid"/>
+                        </group>
+                        <group>
+                            <field name="threshold_value"/>
+                            <field name="value"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page>
+                            <field name="comment" type="html"/>
+                            <div class="oe_clear"/>
+                        </page>
+                    </notebook>
+                </form>
             </field>
         </record>
 
         <record model="ir.actions.act_window" id="act_project_risk_evaluation">
             <field name="name">Project Risk Evaluation</field>
             <field name="res_model">project_risk.evaluation</field>
-            <field name="view_mode">tree,graph</field>
+            <field name="view_mode">tree,graph,form</field>
         </record>
 
         <!-- PROJECT RISK-->
@@ -114,25 +155,31 @@
                 <xpath expr="//button[@name='get_treatments_view']" position="attributes">
                     <attribute name="context" eval="{'default_project_risk_id': active_id}"/>
                 </xpath>
-                <xpath expr="//header/button[2]" position="replace">
+                <xpath expr="//button[@name='%(risk_management.act_set_business_risk_threshold_wizard)d']"
+                       position="replace">
                     <button name="%(project_risk.act_set_project_risk_threshold_wizard)d"
                             type="action"
-                            class="btn-primary" groups="project.group_project_manager"
-                            string="Set Threshold"/>
+                            class="btn-primary oe_read_only" groups="project.group_project_manager"
+                            string="Set Threshold"
+                            attrs="{'invisible' : [('is_confirmed', '=', False)]}"/>
                 </xpath>
-                <xpath expr="//header/button[3]" position="replace">
+                <xpath expr="//button[@name='%(risk_management.act_eval_business_risk_wizard)d']" position="replace">
                     <button name="%(project_risk.act_eval_project_risk_wizard)d"
                             type="action"
-                            class="btn-danger" groups="project_risk.group_risk_manager"
+                            class="btn-danger oe_read_only" groups="risk_management.group_risk_manager"
                             string="Evaluation"
-                            attrs="{'invisible' : [('is_confirmed', '=', False)]}"/>
+                            attrs="{'invisible': [('is_confirmed', '=', False)]}"
+                    />
                 </xpath>
                 <field name="company_id" position="replace">
                     <field name="project_id"
                            invisible="context.get('default_project_id', False)"
                     />
                 </field>
-                <field name="business_process_ids" position="replace"/>
+                <field name="business_process_ids" position="replace">
+                    <field name="task_ids"
+                           widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}"/>
+                </field>
             </field>
         </record>
 

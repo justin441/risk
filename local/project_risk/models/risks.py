@@ -76,7 +76,8 @@ class ProjectRisk(models.Model):
                     'res_id': existing.id,
                     'res_model_id': ir_model._get_id(self._name),
                     'activity_type_id': act_type.id,
-                    'note': '<p>Check and confirm the existence of the risk</p>',
+                    'summary': 'Next step in Risk Management: Confirm',
+                    'note': '<p>Check and confirm the existence of the risk.</p>',
                     'date_deadline': act_deadline
                 })
                 return existing.id
@@ -91,7 +92,8 @@ class ProjectRisk(models.Model):
             'res_id': risk,
             'res_model_id': ir_model._get_id(self._name),
             'activity_type_id': act_type.id,
-            'note': '<p>Check and confirm the existence of the risk</p>',
+            'summary': 'Next step in Risk Management: Confirm',
+            'note': '<p>Check and confirm the existence of the risk.</p>',
             'date_deadline': act_deadline
         })
         return risk
@@ -142,7 +144,8 @@ class ProjectRiskEvaluation(models.Model):
                 'res_id': vals.get('project_risk_id'),
                 'res_model_id': self.env['ir.model']._get_id('project_risk.project_risk'),
                 'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                'note': '<p>Validate the risk assessment</p>',
+                'summary': 'Next step in Risk Management: Validate',
+                'note': '<p>Validate the risk assessment.</p>',
                 'date_deadline': fields.Date.to_string(act_deadline_date)
             })
         return evaluation
@@ -158,8 +161,8 @@ class ProjectRiskEvaluation(models.Model):
                 self.env['mail.activity'].search(['&', '&', ('res_id', '=', rec.project_risk_id.id),
                                                   ('res_model_id', '=', res_model_id),
                                                   '|',
-                                                  ('note', 'like', 'Validate the risk assessment'),
-                                                  ('note', 'like',
+                                                  ('note', 'ilike', 'Validate the risk assessment'),
+                                                  ('note', 'ilike',
                                                    'Assess the probability of risk occurring and its possible impact,'
                                                    'as well as the company\'s ability to detect it should it occur.')
                                                   ]).action_done()
@@ -169,6 +172,7 @@ class ProjectRiskEvaluation(models.Model):
                         'res_id': rec.project_risk_id.id,
                         'res_model_id': res_model_id,
                         'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
+                        'summary': 'Next step in Risk Management: Treat risk',
                         'note': '<p>Select and implement measures to modify risk.</p>',
                         'date_deadline': fields.Date.to_string(act_deadline_date)
                     })

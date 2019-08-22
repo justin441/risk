@@ -425,7 +425,7 @@
     <record model="ir.actions.act_window" id="act_business_risk_evaluation">
         <field name="name">Business Risk Evaluation</field>
         <field name="res_model">risk_management.business_risk.evaluation</field>
-        <field name="view_mode">tree,graph</field>
+        <field name="view_mode">tree,graph,form</field>
     </record>
 
     <!-- BUSINESS RISKS -->
@@ -703,8 +703,7 @@
                         </page>
                         <page name="eval_timeline" string="Timeline"
                               attrs="{'invisible': [('evaluation_ids', '=', False)]}">
-                            <field name="evaluation_ids"
-                                   mode="tree"/> <!-- FIXME: Need a graph view here, but mode="graph" is not rendering for some reason -->
+                            <field name="evaluation_ids"/>
                         </page>
                          <page name="comment_page" string="Comments">
                             <group>

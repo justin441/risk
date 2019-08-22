@@ -516,8 +516,8 @@ class RiskIdentificationMixin(models.AbstractModel):
             # close preceding activities
             activity.search([
                 ('res_id', 'in', self.ids),
-                ('note', 'like', 'Check and confirm the existence of the risk'),
-                ('summary', 'like', 'Next step in Risk Management')
+                ('note', 'ilike', 'Check and confirm the existence of the risk'),
+                ('summary', 'ilike', 'Next step in Risk Management:')
             ]).action_done()
 
             # add next activities
@@ -526,6 +526,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                     'res_id': rec.id,
                     'res_model_id': ir_model._get_id(self._name),
                     'activity_type_id': act_type.id,
+                    'summary': 'Next step in Risk Management: Evaluation',
                     'note': '<p>Assess the probability of risk occurring and its possible impact,'
                                'as well as the company\'s ability to detect it should it occur.</p>',
                     'date_deadline': act_deadline
@@ -597,7 +598,8 @@ class BusinessRisk(models.Model):
                     'res_id': existing.id,
                     'res_model_id': ir_model._get_id(self._name),
                     'activity_type_id': act_type.id,
-                    'note': '<p>Check and confirm the existence of the risk</p>',
+                    'note': '<p>Check and confirm the existence of the risk.</p>',
+                    'summary': 'Next step in Risk Management: Confirm',
                     'date_deadline': act_deadline
                 })
                 return existing.id
@@ -616,7 +618,8 @@ class BusinessRisk(models.Model):
             'res_id': risk,
             'res_model_id': ir_model._get_id(self._name),
             'activity_type_id': act_type.id,
-            'note': '<p>Check and confirm the existence of the risk</p>',
+            'note': '<p>Check and confirm the existence of the risk.</p>',
+            'summary': 'Next step in Risk Management: Confirm',
             'date_deadline': act_deadline
         })
 
@@ -713,6 +716,7 @@ class BusinessRiskEvaluation(models.Model):
                 'res_id': vals.get('business_risk_id'),
                 'res_model_id': self.env['ir.model']._get_id('risk_management.business_risk'),
                 'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
+                'summary': 'Next step in Risk Management: Validate Evaluation',
                 'note': '<p>Validate the risk assessment.</p>',
                 'date_deadline': fields.Date.to_string(act_deadline_date)
             })
@@ -729,8 +733,8 @@ class BusinessRiskEvaluation(models.Model):
                 self.env['mail.activity'].search(['&', '&', ('res_id', '=', rec.business_risk_id.id),
                                                   ('res_model_id', '=', res_model_id),
                                                   '|',
-                                                  ('note', 'like', 'Validate the risk assessment'),
-                                                  ('note', 'like',
+                                                  ('note', 'ilike', 'Validate the risk assessment'),
+                                                  ('note', 'ilike',
                                                    'Assess the probability of risk occurring and its possible impact,'
                                                    'as well as the company\'s ability to detect it should it occur.')
                                                   ]).action_done()
@@ -740,6 +744,7 @@ class BusinessRiskEvaluation(models.Model):
                         'res_id': rec.business_risk_id.id,
                         'res_model_id': res_model_id,
                         'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
+                        'summary': 'Next step in Risk Management: Treat risk',
                         'note': '<p>Select and implement measures to modify risk.</p>',
                         'date_deadline': fields.Date.to_string(act_deadline_date)
                     })

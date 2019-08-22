@@ -34,14 +34,14 @@ class BaseEvaluationWizard(models.AbstractModel):
         return {}
 
     detectability = fields.Selection(selection=_get_detectability, string='Detectability',
-                                     default=lambda self: self.default_criteria().get('detectability', '3'),
+                                     default=lambda self: self.default_criteria().get('detectability', False),
                                      help='What is the ability of the company to detect'
                                           ' this failure (or gain) if it were to occur?')
     occurrence = fields.Selection(selection=_get_occurrence, string='Occurrence',
-                                  default=lambda self: self.default_criteria().get('occurrence', '3'),
+                                  default=lambda self: self.default_criteria().get('occurrence', False),
                                   help='How likely is it for this failure (or gain) to occur?')
     severity = fields.Selection(selection=_get_severity, string='Impact',
-                                default=lambda self: self.default_criteria().get('severity', '3'),
+                                default=lambda self: self.default_criteria().get('severity', False),
                                 help='If this failure (or gain) were to occur, what is the level of the impact it '
                                      'would have on company assets?')
 
@@ -118,12 +118,12 @@ class BaseRiskLevelWizard(models.AbstractModel):
     @api.onchange('detectability', 'occurrence', 'severity')
     def _onchange_criteria(self):
         if self.risk_id.risk_type == 'T':
-            self.latest_level = int(self.detectability) * int(self.occurrence) * int(self.severity)
+            self.latest_level = (int(self.detectability) or 1) * (int(self.occurrence) or 1) * (int(self.severity) or 1)
         elif self.risk_id.risk_type == 'O':
             inv_detectability_score = [str(x) for x in range(1, 6)]
             opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
             detectability_opp = opp_detectability_dict.get(self.detectability)
-            self.latest_level = detectability_opp * int(self.occurrence) * int(self.severity)
+            self.latest_level = detectability_opp * (int(self.occurrence) or 1) * (int(self.severity) or 1)
 
     @api.depends('risk_id')
     def _compute_latest_eval(self):
