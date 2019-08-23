@@ -98,7 +98,7 @@ class BusinessProcess(models.Model):
         self.ensure_one()
         proc = self.env[self._name]
         for data in self.output_data_ids.filtered('is_customer_voice'):
-            proc |= data.user_process_ids
+            proc |= data.user_process_ids.filtered('is_core')
         return proc
 
     @api.multi
@@ -115,7 +115,7 @@ class BusinessProcess(models.Model):
         for data in self.input_data_ids.filtered('is_customer_voice'):
             if data.source_part_cat_id:
                 src['external'] |= data.source_part_cat_id
-            elif data.business_process_id and data.business_process_id.is_core:
+            elif self.is_core and data.business_process_id and data.business_process_id.is_core:
                 src['internal'] |= data.business_process_id
         return src
 
@@ -353,39 +353,6 @@ class BusinessProcessIO(models.Model):
             else:
                 rec.is_customer_voice = False
 
-    def _compute_attachments(self):
-        attachment = self.env['ir.attachment']
-        for io in self:
-            self.attachment_ids = attachment.search([
-                    ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', io.id)
-                ])
-
-    def _compute_attached_docs_count(self):
-        for io in self:
-            io.doc_count = len(io.attachment_ids)
-
-    @api.multi
-    def attachment_tree_view(self):
-        self.ensure_one()
-        domain = [
-            ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', self.id)
-        ]
-        return {
-            'name': _('Attachments'),
-            'domain': domain,
-            'res_model': 'ir.attachment',
-            'type': 'ir.actions.act_window',
-            'view_id': False,
-            'view_mode': 'kanban,tree,form',
-            'view_type': 'form',
-            'help': _('''
-            <p class="oe_view_nocontent_create">
-                Attach Documents to your processes input/output.
-            </p>'''),
-            'limit': 80,
-            'context': "{'default_res_model': '%s','default_res_id': %d}" % (self._name, self.id)
-        }
-
     def _search_is_customer_voice(self, operator, value):
         customers = self.env[
             'res.partner.category'
@@ -426,6 +393,39 @@ class BusinessProcessIO(models.Model):
                         ('id', '!=', self.business_process_id.id),
                         ('company_id', '=', self.business_process_id.company_id.id)]
                 }}
+
+    def _compute_attachments(self):
+        attachment = self.env['ir.attachment']
+        for io in self:
+            self.attachment_ids = attachment.search([
+                    ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', io.id)
+                ])
+
+    def _compute_attached_docs_count(self):
+        for io in self:
+            io.doc_count = len(io.attachment_ids)
+
+    @api.multi
+    def attachment_tree_view(self):
+        self.ensure_one()
+        domain = [
+            ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', self.id)
+        ]
+        return {
+            'name': _('Attachments'),
+            'domain': domain,
+            'res_model': 'ir.attachment',
+            'type': 'ir.actions.act_window',
+            'view_id': False,
+            'view_mode': 'kanban,tree,form',
+            'view_type': 'form',
+            'help': _('''
+            <p class="oe_view_nocontent_create">
+                Attach Documents to your processes input/output.
+            </p>'''),
+            'limit': 80,
+            'context': "{'default_res_model': '%s','default_res_id': %d}" % (self._name, self.id)
+        }
 
     @api.constrains('user_process_ids', 'business_process_id')
     def _check_provider_not_in_consumers(self):

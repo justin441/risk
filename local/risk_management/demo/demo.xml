@@ -100,7 +100,7 @@
             <field name="process_type" eval="'PM'"/>
         </record>
 
-        <!--Process Data-->
+        <!--Process IO-->
         <record id="quote_req_io" model="risk_management.business_process.input_output">
             <field name="name">Request for Quote</field>
             <field name="description" type="html">
