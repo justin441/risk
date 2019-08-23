@@ -16,6 +16,11 @@
         <field name="arch" type="xml">
             <form string="Input/Output">
                 <sheet>
+                    <div class="oe_button_box" name="button_box" groups="base.group_user">
+                        <button  class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-files-o">
+                            <field string="Documents" name="doc_count" widget="statinfo"/>
+                        </button>
+                    </div>
                     <group col="6">
                         <group colspan="4" col="2">
                             <field name="name" placeholder="Name"/>
@@ -298,6 +303,11 @@
         <field name="arch" type="xml">
             <form string="Method / Business rule ">
                 <sheet>
+                    <div class="oe_button_box" name="button_box" groups="base.group_user">
+                        <button  class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-files-o">
+                            <field string="Documents" name="doc_count" widget="statinfo"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
                         <h1>

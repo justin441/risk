@@ -148,7 +148,8 @@ class BusinessProcess(models.Model):
     def _compute_risk_count(self):
         for rec in self:
             if rec.risk_ids:
-                rec.risk_count = len(rec.risk_ids.filtered('active'))
+                # only take into account risk that have been evaluated
+                rec.risk_count = len(rec.risk_ids.filtered('latest_level_value'))
 
     @api.depends('output_data_ids', 'input_data_ids')
     def _compute_is_core(self):
@@ -323,6 +324,8 @@ class BusinessProcessIO(models.Model):
                                    column2='channel_id')
     default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
         'risk_management.process_partner'), readonly=True)
+    attachment_ids = fields.One2many('ir.attachment', string='Attached Documents', compute='_compute_attachments')
+    doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Attachments")
 
     @api.depends('source_part_cat_id', 'business_process_id')
     def _compute_origin(self):
@@ -349,6 +352,39 @@ class BusinessProcessIO(models.Model):
                 rec.is_customer_voice = True
             else:
                 rec.is_customer_voice = False
+
+    def _compute_attachments(self):
+        attachment = self.env['ir.attachment']
+        for io in self:
+            self.attachment_ids = attachment.search([
+                    ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', io.id)
+                ])
+
+    def _compute_attached_docs_count(self):
+        for io in self:
+            io.doc_count = len(io.attachment_ids)
+
+    @api.multi
+    def attachment_tree_view(self):
+        self.ensure_one()
+        domain = [
+            ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', self.id)
+        ]
+        return {
+            'name': _('Attachments'),
+            'domain': domain,
+            'res_model': 'ir.attachment',
+            'type': 'ir.actions.act_window',
+            'view_id': False,
+            'view_mode': 'kanban,tree,form',
+            'view_type': 'form',
+            'help': _('''
+            <p class="oe_view_nocontent_create">
+                Attach Documents to your processes input/output.
+            </p>'''),
+            'limit': 80,
+            'context': "{'default_res_model': '%s','default_res_id': %d}" % (self._name, self.id)
+        }
 
     def _search_is_customer_voice(self, operator, value):
         customers = self.env[
@@ -484,7 +520,7 @@ class BusinessProcessMethod(models.Model):
     ]
 
     name = fields.Char(translate=True, string='Title', required=True, copy=False, index=True)
-    content = fields.Html(translate=True)
+    content = fields.Html(translate=True)  # todo: Add version control
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', string='User process',
                                           required=True)
     company_id = fields.Many2one('res.company', related='business_process_id.company_id', string='Company')
@@ -495,3 +531,16 @@ class BusinessProcessMethod(models.Model):
                                     ],
                                     help='Output Reference', required=True)
     author_name = fields.Char('From process', related='output_ref_id.business_process_id.name', readonly=True)
+    attachment_ids = fields.One2many('ir.attachment', string='Attached documents',
+                                     related='output_ref_id.attachment_ids')
+    doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Number of documents attached")
+
+    def _compute_attached_docs_count(self):
+        for method in self:
+            method.doc_count = len(method.attachment_ids)
+
+    @api.multi
+    def attachment_tree_view(self):
+        self.ensure_one()
+        return self.output_ref_id.attachment_tree_view()
+
