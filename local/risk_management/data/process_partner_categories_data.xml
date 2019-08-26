@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <data>
-        <record id="process_partner" model="res.partner.category" >
+        <record id="process_partner_cat" model="res.partner.category" >
             <field name="name">Process partner</field>
             <field name="color" eval="1"/>
         </record>
-        <record id="process_external_vendor" model="res.partner.category">
+        <record id="process_partner_cat_vendor" model="res.partner.category">
             <field name="name">Vendor</field>
-            <field name="parent_id" ref="process_partner"/>
+            <field name="parent_id" ref="process_partner_cat"/>
             <field name="color" eval="8"/>
         </record>
-        <record id="process_government" model="res.partner.category">
+        <record id="process_partner_cat_gov" model="res.partner.category">
             <field name="name">Government</field>
-            <field name="parent_id" ref="process_partner"/>
+            <field name="parent_id" ref="process_partner_cat"/>
             <field name="color" eval="3"/>
         </record>
-        <record id="process_external_customer" model="res.partner.category">
+        <record id="process_partner_cat_customer" model="res.partner.category">
             <field name="name">Customer</field>
-            <field name="parent_id" ref="process_partner"/>
+            <field name="parent_id" ref="process_partner_cat"/>
             <field name="color" eval="7"/>
         </record>
-        <record id="process_employee" model="res.partner.category">
+        <record id="process_partner_cat_employee" model="res.partner.category">
             <field name="name">Employee</field>
-            <field name="parent_id" ref="process_partner"/>
+            <field name="parent_id" ref="process_partner_cat"/>
             <field name="color" eval="6"/>
         </record>
     </data>

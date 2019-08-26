@@ -11,7 +11,7 @@ class ResConfigSettings(models.TransientModel):
 
     @api.model
     def set_subtask_project(self):
-        _logger.warning("> Settings sign-up parameters")
+        _logger.warning("> Setting project sub-task parameter to True")
         settings = self.env['res.config.settings'].create({
             'group_subtask_project': True,
         })

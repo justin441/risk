@@ -52,7 +52,9 @@ class TestProcessIOCases(TestProcessCases):
         super(TestProcessIOCases, self).setUp()
 
         # get process IO
-        self.quote_request_id = self.ref('risk_management.quote_req_io')
-        self.purchase_order_id = self.ref('risk_management.purchase_order_io')
-        self.customer_invoice_id = self.ref('risk_management.customer_invoice_io')
-        self.delivery_note_id = self.ref('risk_management.delivery_form_io')
+        proc_io = self.env['risk_management.business_process.input_output']
+        self.quote_request = proc_io.browse(self.ref('risk_management.quote_req_io'))
+        self.purchase_order = proc_io.browse(self.ref('risk_management.purchase_order_io'))
+        self.customer_invoice = proc_io.browse(self.ref('risk_management.customer_invoice_io'))
+        self.delivery_note = proc_io.browse(self.ref('risk_management.delivery_form_io'))
+        self.project_charter = proc_io.browse(self.ref('risk_management.project_charter_io'))

@@ -109,7 +109,7 @@
                     specific products or services. RfQ generally means the same thing as Call for bids (CfB) and Invitation for bid (IfB)
                 </p>
             </field>
-            <field name="source_part_cat_id" ref="risk_management.process_external_customer"/>
+            <field name="source_part_cat_id" ref="risk_management.process_partner_cat_customer"/>
             <field name="user_process_ids" eval="[(4, ref('risk_management.sales_process'))]"/>
         </record>
 
@@ -121,7 +121,7 @@
                     indicating types, quantities, and agreed prices for products or services
                 </p>
             </field>
-            <field name="source_part_cat_id" ref="risk_management.process_external_customer"/>
+            <field name="source_part_cat_id" ref="risk_management.process_partner_cat_customer"/>
             <field name="user_process_ids" eval="[(4, ref('risk_management.sales_process'))]"/>
         </record>
 
@@ -134,7 +134,7 @@
             </field>
             <field name="business_process_id" ref="sales_process"/>
             <field name="user_process_ids" eval="[(4, ref('risk_management.delivery_process')), (4, ref('risk_management.accounting_process'))]"/>
-            <field name="dest_partner_ids" eval="[(4, ref('risk_management.process_external_customer'))]"/>
+            <field name="dest_partner_ids" eval="[(4, ref('risk_management.process_partner_cat_customer'))]"/>
             <field name="ref_input_ids" eval="[(4, ref('risk_management.purchase_order_io'))]"/>
         </record>
 
@@ -149,7 +149,7 @@
             </field>
             <field name="business_process_id" ref="delivery_process"/>
             <field name="user_process_ids" eval="[(4, ref('risk_management.accounting_process'))]"/>
-            <field name="dest_partner_ids" eval="[(4, ref('risk_management.process_external_customer'))]"/>
+            <field name="dest_partner_ids" eval="[(4, ref('risk_management.process_partner_cat_customer'))]"/>
             <field name="ref_input_ids" eval="[(4, ref('risk_management.customer_invoice_io'))]"/>
         </record>
 
@@ -167,7 +167,7 @@
             <field name="ref_input_ids" eval="[(4, ref('risk_management.customer_invoice_io'))]"/>
         </record>
 
-        <record id="project_charter" model="risk_management.business_process.input_output">
+        <record id="project_charter_io" model="risk_management.business_process.input_output">
             <field name="name">Project Charter</field>
             <field name="description" type="html">
                 <p>

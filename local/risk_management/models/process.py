@@ -68,7 +68,7 @@ class BusinessProcess(models.Model):
         self.ensure_one()
         form = self.env.ref('risk_management.process_data_form')
         ctx = {
-            'default_source_part_cat_id': self.env.ref('risk_management.process_external_customer').id,
+            'default_source_part_cat_id': self.env.ref('risk_management.process_partner_cat_customer').id,
             'default_user_process_ids': [(4, self.id)]
 
         }
@@ -162,12 +162,12 @@ class BusinessProcess(models.Model):
             if rec.output_data_ids.filtered('is_customer_voice').mapped('user_process_ids') or (
                     rec.input_data_ids.filtered('is_customer_voice') and
                     rec.output_data_ids.mapped('dest_partner_ids'
-                                               ) >= self.env.ref('risk_management.process_external_customer')):
+                                               ) >= self.env.ref('risk_management.process_partner_cat_customer')):
                 rec.is_core = True
             else:
                 rec.is_core = False
 
-    @api.depends("process_type", 'input_data_ids')
+    @api.depends("process_type", 'input_data_ids', 'output_data_ids')
     def _compute_sequence(self):
         """
         The sequence of a process depends on its type: operations come first and are ordered according to their proximity
@@ -192,19 +192,19 @@ class BusinessProcess(models.Model):
                 if rec.output_data_ids:
                     rec.sequence = default + math.floor(default * (1 / len(rec.output_data_ids)))
                 else:
-                    rec.sequence = default + 100
+                    rec.sequence = default + 150
             elif rec.process_type == 'S':
                 default = max([rec.sequence for rec in mp]) if mp else 50
                 if rec.output_data_ids:
                     rec.sequence = default + math.floor(default * (1 / len(rec.output_data_ids)))
                 else:
-                    rec.sequence = default + 100
+                    rec.sequence = default + 300
             else:
-                default = max([rec.sequence for rec in sp]) if mp else 70
+                default = max([rec.sequence for rec in sp]) if sp else 70
                 if rec.output_data_ids:
                     rec.sequence = default + math.floor(default * (1 / len(rec.output_data_ids)))
                 else:
-                    rec.sequence = default + 100
+                    rec.sequence = default + 600
 
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
@@ -269,6 +269,16 @@ class BusinessProcess(models.Model):
 
         return res
 
+    @api.model
+    def create(self, vals):
+        same_type = self.env['risk_management.business_process'].search(
+            [('process_type', '=', vals.get('process_type', 'O'))])
+
+        if same_type:
+            vals.update({'color': same_type.exists()[0].color})
+
+        return super(BusinessProcess, self).create(vals)
+
 
 class BusinessProcessIO(models.Model):
     _name = 'risk_management.business_process.input_output'
@@ -297,7 +307,7 @@ class BusinessProcessIO(models.Model):
     company_id = fields.Many2one('res.company', related='business_process_id.company_id', string='Company')
     source_part_cat_id = fields.Many2one('res.partner.category', string='External Source', ondelete='cascade',
                                          domain=lambda self: [('id', 'child_of',
-                                                               self.env.ref('risk_management.process_partner').id)],
+                                                               self.env.ref('risk_management.process_partner_cat').id)],
                                          help='Must be a child of `Process partner` category')
     origin_id = fields.Reference(selection=[('res.partner.category', 'Partner Category'),
                                             ('risk_management.business_process', 'Business Process')],
@@ -313,7 +323,7 @@ class BusinessProcessIO(models.Model):
                                         relation='risk_management_data_partner_cat_rel', column1='data_id',
                                         column2='partner_category_id',
                                         domain=lambda self: [('id', 'child_of',
-                                                              self.env.ref('risk_management.process_partner').id)],
+                                                              self.env.ref('risk_management.process_partner_cat').id)],
                                         help='Must be a child of `Process partner` category', )
     user_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
                                         relation='risk_management_input_ids_user_ids_rel',
@@ -323,7 +333,7 @@ class BusinessProcessIO(models.Model):
                                    relation='risk_management_data_channel_rel', column1='data_id',
                                    column2='channel_id')
     default_partner_cat_parent_id = fields.Many2one('res.partner.category', default=lambda self: self.env.ref(
-        'risk_management.process_partner'), readonly=True)
+        'risk_management.process_partner_cat'), readonly=True)
     attachment_ids = fields.One2many('ir.attachment', string='Attached Documents', compute='_compute_attachments')
     doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Attachments")
 
@@ -344,7 +354,7 @@ class BusinessProcessIO(models.Model):
         """a data is customer voice if it was input by an Customer or if it relays one."""
         customers = self.env[
             'res.partner.category'
-        ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
+        ].search([('id', 'child_of', self.env.ref('risk_management.process_partner_cat_customer').id)])
 
         for rec in self:
             if (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids) \
@@ -356,7 +366,7 @@ class BusinessProcessIO(models.Model):
     def _search_is_customer_voice(self, operator, value):
         customers = self.env[
             'res.partner.category'
-        ].search([('id', 'child_of', self.env.ref('risk_management.process_external_customer').id)])
+        ].search([('id', 'child_of', self.env.ref('risk_management.process_partner_cat_customer').id)])
 
         def customer_voice(rec):
             return (rec.source_part_cat_id and rec.source_part_cat_id.id in customers.ids) or (
