@@ -441,6 +441,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                 rec.treatment_task_id = rec.treatment_task_ids[0]
 
     # implement _inverse_treatment on BusinessRisk and ProjectRisk models
+    # FIXME: _inverse_treatment here
 
     @api.multi
     def _notification_recipients(self, message, groups):
