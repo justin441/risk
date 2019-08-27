@@ -1,6 +1,6 @@
 <odoo>
     <data>
-        <!--Processes-->
+        <!-- Processes -->
         <record id="sales_process" model="risk_management.business_process">
             <field name="name">Sales</field>
             <field name="description" type="html">
@@ -100,7 +100,7 @@
             <field name="process_type" eval="'PM'"/>
         </record>
 
-        <!--Process IO-->
+        <!-- Process IO -->
         <record id="quote_req_io" model="risk_management.business_process.input_output">
             <field name="name">Request for Quote</field>
             <field name="description" type="html">
@@ -326,6 +326,16 @@
 
                 </p>
             </field>
+        </record>
+
+        <!-- business risk -->
+        <record id="business_risk_1" model="risk_management.business_risk">
+            <field name="risk_info_id" ref="risk_info_1"/>
+        </record>
+
+        <record id="business_risk_2" model="risk_management.business_risk">
+            <field name="risk_info_id" ref="risk_info_2"/>
+            <field name="risk_type" eval="'O'"/>
         </record>
 
     </data>

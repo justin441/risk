@@ -190,7 +190,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
     risk_info_control = fields.Html('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
     risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
-    report_date = fields.Date(string='Reported On', default=fields.Date.context_today)
+    report_date = fields.Date(string='Reported On', default=fields.Date.context_today, required=True)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
     is_confirmed = fields.Boolean('Confirmed', states={'3': [('readonly', True)],
                                                        '4': [('readonly', True)],
@@ -215,7 +215,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage')
     stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, compute_sudo=True, copy=False,
                         track_visibility="onchange")
-    priority = fields.Integer('Priority', compute='_compute_priority', store=True)
+    priority = fields.Integer('Priority', compute='_compute_priority')
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
         'risk_management.risk_treatment_project'), readonly=True, required=True)
     treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment',
@@ -224,13 +224,10 @@ class RiskIdentificationMixin(models.AbstractModel):
 
     @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
+        risks = self.env[self._name].with_context(active_test=False).search([]).sorted('create_date')
+        sorted_risks = risks.sorted(lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
         for risk in self:
-            risks = self.env[self._name].search([]).sorted(lambda rec:
-                                                           rec.latest_level_value - rec.threshold_value, reverse=True)
-            if risk.id and risk.id in risks.ids:
-                risk.priority = list(risks).index(risk) + 1
-            else:
-                risk.priority = len(risks) + 1
+            risk.priority = list(sorted_risks).index(risk.id) + 1
 
     @api.depends('uuid')
     def _compute_name(self):
@@ -468,7 +465,8 @@ class RiskIdentificationMixin(models.AbstractModel):
     @api.multi
     def write(self, vals):
         if 'active' in vals:
-            if vals['active']:
+            active = vals.pop('active')
+            if active:
                 # The risk is being activated
                 new_report_date = fields.Date.context_today(self)
                 review_date = fields.Date.from_string(new_report_date) + datetime.timedelta(
@@ -480,7 +478,8 @@ class RiskIdentificationMixin(models.AbstractModel):
                              'latest_level_value': False})
             else:
                 # The risk is being archived
-                # first make the evaluations obsolete
+
+                # First, make the evaluations obsolete
                 self.mapped('evaluation_ids').filtered(lambda ev: not ev.is_obsolete).write({
                     'review_date': fields.Date.context_today(self)
                 })
@@ -488,32 +487,43 @@ class RiskIdentificationMixin(models.AbstractModel):
                     'review_date': fields.Date.context_today(self),
                     'owner': False
                 })
-            self.with_context(active_test=False).mapped('treatment_task_id').write({'active': vals['active']})
+                self.with_context(active_test=False).mapped('treatment_task_id').write({'active': active})
+
         res = super(RiskIdentificationMixin, self).write(vals)
-        if 'status' in vals and vals['status'] == 'N':
-            vals.pop('status')
-            for rec in self:
-                if not rec.treatment_task_id:
-                    rec.write({
-                        'treatment_task_id': [(0, 0, {
+        if res and (vals.get('detectability', False) or vals.get('occurrence', False) or vals.get('severity', False) or
+                    vals.get('evaluation_ids', False)):
+            self.invalidate_cache(ids=self.ids)
+            updated_self = self.env[self._name].browse(self.ids)
+            for rec in updated_self:
+                if rec.status == 'N':
+                    if not rec.treatment_task_id:
+                        task = self.env['project.task'].create({
                             'name': 'Treatment for %s' % rec.name,
                             'description': """
-                            <p>
-                            The purpose of this task is to select and implement measures to modify 
-                            %s. These measures can include avoiding, optimizing, transferring or retaining risk.
-                            </p>
-                                """ % rec.name,
-                            'project_id': rec.treatment_project_id,
-                            'priority': '1',
-                        })]
-                    })
+                                <p>
+                                    The purpose of this task is to select and implement measures to modify %s.
+                                    These measures can include avoiding, optimizing, transferring or retaining risk.
+                                </p>
+                                        """ % rec.name,
+                            'project_id': rec.treatment_project_id.id,
+                            'priority': '1'
+                        })
+                        rec.write({
+                            'treatment_task_id': task.id
+                        })
+
+                    elif not rec.treatment_task_id.active:
+                        rec.treatment_task_id.active = True
+                elif rec.treatment_task_id and rec.treatment_task_id.active:
+                    rec.treatment_task_id.active = False
+
         activity = self.env['mail.activity']
         ir_model = self.env['ir.model']
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
         act_type = self.env.ref('risk_management.risk_activity_todo')
 
-        if 'is_confirmed' in vals and vals.get('is_confirmed'):
+        if vals.get('is_confirmed', False):
             # close preceding activities
             activity.search([
                 ('res_id', 'in', self.ids),
@@ -529,7 +539,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                     'activity_type_id': act_type.id,
                     'summary': 'Next step in Risk Management: Evaluation',
                     'note': '<p>Assess the probability of risk occurring and its possible impact,'
-                               'as well as the company\'s ability to detect it should it occur.</p>',
+                            'as well as the company\'s ability to detect it should it occur.</p>',
                     'date_deadline': act_deadline
                 })]})
 
@@ -765,4 +775,3 @@ class BusinessRiskEvaluation(models.Model):
                             'business_risk_id': rec.business_risk_id.id
                         })
         return res
-

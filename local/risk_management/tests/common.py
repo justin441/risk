@@ -68,6 +68,5 @@ class TestRiskReportCases(TestProcessCases):
         self.risk_info1 = risk_info.browse(self.ref('risk_management.risk_info_1'))
         self.risk_info2 = risk_info.browse(self.ref('risk_management.risk_info_2'))
         self.risk_info3 = risk_info.browse(self.ref('risk_management.risk_info_3'))
-        self.business_risk1 = business_risk.create({'risk_info_id': self.risk_info1.id})
-        self.business_risk2 = business_risk.create({'risk_info_id': self.risk_info1.id,
-                                                                           'risk_type': 'O'})
+        self.business_risk1 = business_risk.browse(self.ref('risk_management.business_risk_1'))
+        self.business_risk2 = business_risk.browse(self.ref('risk_management.business_risk_2'))
