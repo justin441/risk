@@ -131,18 +131,30 @@ class TestBusinessRisk(TestRiskReportCases):
         self.assertEqual(self.business_risk2.latest_level_value, 75)
 
     def test_create(self):
-        pass
+        """- If a risk that already exist in the database is reported, two things: if it is active, return an error,
+        otherwise reactivate the risk
+           - on risk creation or reactivation add a risk verification activity to do
+        """
 
-    def test_write(self):
-        pass
+        self.assertTrue(self.business_risk1.active)
+        with self.assertRaises(exceptions.UserError) as cm:
+            self.env['risk_management.business_risk'].create({
+                'risk_info_id': self.business_risk1.risk_info_id.id,
+                'business_process_ids': [(4, self.sales.id)]
+            })
+        self.assertIsInstance(cm.exception, exceptions.UserError)
 
+        # existing active risk's field 'business_process_ids' should be modified nevertheless
+        self.assertIn(self.sales, self.business_risk1.business_process_ids)
 
-class TestRiskEvaluation(TestRiskReportCases):
-    def setUp(self):
-        super(TestRiskEvaluation, self).setUp()
+        self.business_risk1.active = False
+        self.assertFalse(self.business_risk1.active)
 
-    def test_create(self):
-        pass
+        self.env['risk_management.business_risk'].create({
+            'risk_info_id': self.risk_info1.id
+        })
+        self.assertTrue(self.business_risk1.active)
+        self.assertTrue(bool(self.business_risk1.activity_ids))
 
     def test_write(self):
         pass

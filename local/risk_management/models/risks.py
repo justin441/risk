@@ -590,19 +590,20 @@ class BusinessRisk(models.Model):
     def create(self, vals):
         # context: no_log, because subtype already handle this
         context = dict(self.env.context, mail_create_nolog=True)
-        existing = self.env[self._name].search(
+        existing = self.env[self._name].with_context(active_test=False).search(
             [('risk_info_id', '=', vals.get('risk_info_id')),
-             ('risk_type', '=', vals.get('risk_type')),
-             ('company_id', '=', vals.get('company_id'))])
+             ('risk_type', '=', vals.get('risk_type', False) or 'T'),
+             ('company_id', '=', vals.get('company_id', False) or self.env.user.company_id.id)])
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
         ir_model = self.env['ir.model']
         act_type = self.env.ref('risk_management.risk_activity_todo')
 
         if existing:
-            existing = existing.exists()[0]
+            existing = existing.exists()[0]  # if by chance there is more than one existing, which should not be!
             if not existing.active:
-                # the risk was already submitted but is inactive, just update it with vals
+                # the risk was already submitted but is inactive, just reactivate it
+                vals.update({'active': True})
                 existing.write(vals)
                 # add an activity to verify the risk
                 self.env['mail.activity'].create({
@@ -613,7 +614,7 @@ class BusinessRisk(models.Model):
                     'summary': 'Next step in Risk Management: Confirm',
                     'date_deadline': act_deadline
                 })
-                return existing.id
+                return existing
             else:
                 if 'business_process_ids' in vals:
                     existing.write({'business_process_ids': vals['business_process_ids']})
