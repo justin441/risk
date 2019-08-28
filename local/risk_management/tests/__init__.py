@@ -1,1 +1,1 @@
-from . import test_process_base, test_risks_base, common
+from . import test_process, test_risks, common
