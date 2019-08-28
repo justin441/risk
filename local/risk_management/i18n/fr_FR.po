@@ -1,21 +1,20 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-#	* project_risk
 #	* risk_management
+#	* project_risk
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 15:36+0000\n"
-"PO-Revision-Date: 2019-08-28 15:36+0000\n"
-"Last-Translator: <Justin Fotue Kamga fotuejustin441@gmail.com>\n"
+"POT-Creation-Date: 2019-08-28 16:02+0000\n"
+"PO-Revision-Date: 2019-08-28 16:02+0000\n"
+"Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Language: fr_FR\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: \n"
 
 #. module: risk_management
 #: code:addons/risk_management/models/process.py:432
@@ -234,7 +233,7 @@ msgstr "Risque d'entreprise"
 msgid "Business risk evaluation"
 msgstr "Evaluation du risque d'entreprise"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_evaluation_wizard
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_threshold_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_evaluation_wizard
@@ -298,7 +297,7 @@ msgstr "Classification"
 msgid "Color Index"
 msgstr "Index de la couleur"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_evaluation_wizard
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_threshold_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_evaluation_wizard
@@ -306,7 +305,7 @@ msgstr "Index de la couleur"
 msgid "Comment"
 msgstr "Commentaires"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_comment
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_set_threshold_wizard_comment
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_evaluation_comment
@@ -384,14 +383,14 @@ msgstr "Processus clés?"
 #: model:risk_management.business_risk,risk_info_subcategory:risk_management.business_risk_1
 #: model:risk_management.risk.info,subcategory:risk_management.risk_info_1
 msgid "Country Risk"
-msgstr "Country Risk"
+msgstr "Risque pays"
 
 #. module: risk_management
 #: model:ir.actions.act_window,help:risk_management.business_process_list_action
 msgid "Create your first Process!"
 msgstr "Créez votre premier Processus!"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_create_uid
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_create_uid
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk_create_uid
@@ -412,7 +411,7 @@ msgstr "Créez votre premier Processus!"
 msgid "Created by"
 msgstr "Créé par"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_create_date
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_create_date
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk_create_date
@@ -438,7 +437,7 @@ msgstr "Créé le"
 msgid "Credit"
 msgstr "Crédit"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_evaluation_wizard
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_threshold_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_evaluation_wizard
@@ -451,7 +450,7 @@ msgstr "Scores des critères"
 msgid "Currency"
 msgstr "Devise"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_latest_level
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_set_threshold_wizard_latest_level
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_eval_wizard_latest_level
@@ -459,7 +458,7 @@ msgstr "Devise"
 msgid "Current Level"
 msgstr "Niveau Actuel"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_threshold_value
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_set_threshold_wizard_threshold_value
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_eval_wizard_threshold_value
@@ -467,7 +466,7 @@ msgstr "Niveau Actuel"
 msgid "Current Threshold"
 msgstr "Seuil Actuel"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.actions.act_window,help:project_risk.act_project_risk_activity
 #: model:ir.actions.act_window,help:risk_management.act_business_risk_activity
 msgid "Currently there are not any activity scheduled."
@@ -503,7 +502,7 @@ msgstr "Voix du Client?"
 #: model:risk_management.business_risk,risk_info_subcategory:risk_management.business_risk_2
 #: model:risk_management.risk.info,subcategory:risk_management.risk_info_2
 msgid "Cyclical risk"
-msgstr "Cyclical risk"
+msgstr "Risque conjoncturel"
 
 #. module: risk_management
 #: selection:risk_management.business_process.task,frequency:0
@@ -593,7 +592,7 @@ msgstr "Development of a precise forecast of cash flow; absolute control of the 
 "                    implementation of short term financing solutions (overdraft, factoring, discount); reinforcement of\n"
 "                    equity; setting up an appropriate debt for long-term financing; current account contributions."
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_display_name
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_display_name
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk_display_name
@@ -646,7 +645,7 @@ msgstr "Economic and financial losses."
 #: model:risk_management.business_risk,risk_info_category:risk_management.business_risk_2
 #: model:risk_management.risk.category,name:risk_management.risk_cat_2
 msgid "Economic risks"
-msgstr "Economic risks"
+msgstr "Risques économiques"
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.business_process_kanban_view
@@ -692,7 +691,7 @@ msgstr "Évalué par"
 msgid "Evaluated on"
 msgstr "Évalué le"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_edit
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_evaluation_ids
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_edit
@@ -722,7 +721,7 @@ msgstr "Origine externe"
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_4
 msgid "Financial risks"
-msgstr "Financial risks"
+msgstr "Risques financiers"
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_search
@@ -743,7 +742,7 @@ msgstr "Processus émetteur"
 #: model:risk_management.business_risk,risk_info_category:risk_management.business_risk_1
 #: model:risk_management.risk.category,name:risk_management.risk_cat_1
 msgid "Geopolitical risks"
-msgstr "Geopolitical risks"
+msgstr "Risques géopolitiques"
 
 #. module: risk_management
 #: model:res.partner.category,name:risk_management.process_partner_cat_gov
@@ -828,9 +827,9 @@ msgstr "Quelle est la probabilité que ce problème (ou opportunité) survienne?
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_9
 msgid "Human resource risks"
-msgstr "Human resource risks"
+msgstr "Risques ressources humaines"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_id
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_id
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk_id
@@ -875,7 +874,7 @@ msgstr "IT management is the process of overseeing all matters related to inform
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_8
 msgid "IT risks"
-msgstr "IT risks"
+msgstr "Risques informatiques"
 
 #. module: risk_management
 #: model:risk_management.business_risk,stage:risk_management.business_risk_1
@@ -978,9 +977,9 @@ msgstr "Incorrect determination of the strategic business model segments to whic
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_6
 msgid "Industrial risks"
-msgstr "Industrial risks"
+msgstr "Risques industriels"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model,name:project_risk.model_risk_management_risk_info
 #: model:ir.model,name:risk_management.model_risk_management_risk_info
 msgid "Information on risk"
@@ -1021,7 +1020,7 @@ msgstr "Entrée/Sortie"
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_12
 msgid "Integrity risks"
-msgstr "Integrity risks"
+msgstr "Risque d'intégrité"
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.process_data_search
@@ -1064,7 +1063,7 @@ msgstr "Issues related to the safety of people and property."
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_11
 msgid "Knowledge Management risks"
-msgstr "Knowledge Management risks"
+msgstr "Risque gestion de la connaissance"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_last_evaluate_date
@@ -1073,7 +1072,7 @@ msgstr "Knowledge Management risks"
 msgid "Last Evaluation Date"
 msgstr "Date de la dernière évaluation"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard___last_update
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation___last_update
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk___last_update
@@ -1100,7 +1099,7 @@ msgstr "Date de la dernière évaluation"
 msgid "Last Modified on"
 msgstr "Dernière modification le"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_write_uid
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_write_uid
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk_write_uid
@@ -1121,7 +1120,7 @@ msgstr "Dernière modification le"
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_write_date
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_write_date
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk_write_date
@@ -1142,7 +1141,7 @@ msgstr "Dernière mise à jour par"
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_latest_level_date
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_eval_wizard_latest_level_date
 msgid "Last evaluated on"
@@ -1153,7 +1152,7 @@ msgstr "Dernière évaluation le"
 msgid "Latent"
 msgstr "Latent"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_latest_eval
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_eval_wizard_latest_eval
 msgid "Latest Eval"
@@ -1162,7 +1161,7 @@ msgstr "Dernière Éval"
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_7
 msgid "Legal risks"
-msgstr "Legal risks"
+msgstr "Risques juridiques"
 
 #. module: risk_management
 #: model:ir.model.fields,help:risk_management.field_risk_management_business_process_analytic_account_id
@@ -1304,7 +1303,7 @@ msgstr "Nouveau"
 msgid "New Input from partner"
 msgstr "Nouvel input d'un partenaire"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_project_risk_new
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_new
 #: model:mail.message.subtype,name:risk_management.mt_business_process_risk_new
@@ -1312,7 +1311,7 @@ msgstr "Nouvel input d'un partenaire"
 msgid "New Risk"
 msgstr "Nouveau risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_new_treatment_task
 #: model:mail.message.subtype,name:risk_management.mt_business_risk_new_treatment_task
 msgid "New Treatment Task"
@@ -1328,7 +1327,7 @@ msgstr "Nouveau processus"
 msgid "New process added"
 msgstr "Nouveau processus ajouté"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,description:project_risk.mt_project_risk_new
 #: model:mail.message.subtype,description:risk_management.mt_business_risk_new
 msgid "New risk added"
@@ -1339,7 +1338,7 @@ msgstr "Nouveau risque ajouté"
 msgid "New stage in Risk management"
 msgstr "Nouvelle étape de la gestion du risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,description:project_risk.mt_project_risk_new_treatment_task
 #: model:mail.message.subtype,description:risk_management.mt_business_risk_new_treatment_task
 msgid "New treatment task opened"
@@ -1355,7 +1354,7 @@ msgstr "Prochaine étape de la gestion du risque "
 msgid "Number of documents attached"
 msgstr "Nombre de documents joints"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_project_risk_obsolete
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_obsolete
 #: model:mail.message.subtype,name:risk_management.mt_business_process_risk_obsolete
@@ -1410,7 +1409,7 @@ msgstr "Module Odoo"
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_5
 msgid "Operational risks"
-msgstr "Operational risks"
+msgstr "Risques opérationnels"
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.business_process_search_view
@@ -1689,12 +1688,12 @@ msgstr "Signalé par moi"
 #: model:risk_management.business_risk,risk_info_consequence:risk_management.business_risk_1
 #: model:risk_management.risk.info,consequence:risk_management.risk_info_1
 msgid "Reputational risk; risk of business failure."
-msgstr "Reputational risk; risk of business failure."
+msgstr "Risque image; risque de faillite"
 
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_10
 msgid "Reputational risks"
-msgstr "Reputational risks"
+msgstr "Risques d'image et/ou de réputation"
 
 #. module: risk_management
 #: model:risk_management.business_process.input_output,name:risk_management.quote_req_io
@@ -1725,7 +1724,7 @@ msgstr "Date de réévaluation"
 msgid "Review date must be after report date"
 msgstr "La date de réévaluation doit être postérieure à la date de signalement du risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_project_risk_id
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_risk_info_id
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_risk_ids
@@ -1743,13 +1742,13 @@ msgstr "Risque"
 msgid "Risk Category"
 msgstr "Catégorie de Risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_evaluation_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_evaluation_wizard
 msgid "Risk Evaluation"
 msgstr "Évaluation du risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_evaluation_wizard
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_threshold_wizard
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_help_wizard_risk_info_id
@@ -1758,7 +1757,7 @@ msgstr "Évaluation du risque"
 msgid "Risk Info"
 msgstr "Info du Risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_value
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_latest_level_value
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_evaluation_value
@@ -1770,14 +1769,14 @@ msgstr "Facteur Risque"
 #. module: risk_management
 #: model:mail.activity.type,name:risk_management.risk_activity_todo
 msgid "Risk Management To Do"
-msgstr "Risk Management To Do"
+msgstr "Gestion des risques: À Faire"
 
 #. module: risk_management
 #: model:res.groups,name:risk_management.group_risk_manager
 msgid "Risk Manager"
 msgstr "gestionnaire des risques"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.actions.act_window,name:project_risk.act_project_risk_reg
 #: model:ir.ui.menu,name:project_risk.menu_project_risk_register
 #: model:ir.actions.act_window,name:risk_management.act_business_risk_register
@@ -1785,13 +1784,13 @@ msgstr "gestionnaire des risques"
 msgid "Risk Register"
 msgstr "Registre des risques"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_stage
 #: model:mail.message.subtype,name:risk_management.mt_business_risk_stage
 msgid "Risk Stage Changed"
 msgstr "Nouvelle étape du management du risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_project_risk_status
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_status
 #: model:mail.message.subtype,name:risk_management.mt_business_process_risk_status
@@ -1804,19 +1803,19 @@ msgstr "Le status du risque a changé"
 msgid "Risk Title"
 msgstr "Titre"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_treatment_task_blocked
 #: model:mail.message.subtype,name:risk_management.mt_business_risk_treatment_task_blocked
 msgid "Risk Treatment Task Blocked"
 msgstr "Tâche de traitement du risque bloquée"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_treatment_task_ready
 #: model:mail.message.subtype,name:risk_management.mt_business_risk_treatment_task_ready
 msgid "Risk Treatment Task Ready"
 msgstr "Tâche de traitement du risque prête"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,name:project_risk.mt_project_risk_treatment_task_stage
 #: model:mail.message.subtype,name:risk_management.mt_business_risk_treatment_task_stage
 msgid "Risk Treatment Task Stage Changed"
@@ -1834,7 +1833,7 @@ msgstr "Tâches de traitement du risque"
 msgid "Risk Treatment guidelines"
 msgstr "Directives de traitement des risques"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.actions.act_window,name:project_risk.act_project_risk_activity
 #: model:ir.ui.menu,name:project_risk.menu_project_risk_activity
 #: model:ir.actions.act_window,name:risk_management.act_business_risk_activity
@@ -1853,13 +1852,13 @@ msgstr "Le nom de la catégorie de risque doit être unique."
 msgid "Risk details"
 msgstr "Détails du risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_eval_edit_form2
 #: model:ir.ui.view,arch_db:risk_management.view_risk_eval_edit_form
 msgid "Risk evaluation"
 msgstr "Évaluation du risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,description:project_risk.mt_project_risk_obsolete
 #: model:mail.message.subtype,description:risk_management.mt_business_risk_obsolete
 msgid "Risk has become obsolete"
@@ -1876,13 +1875,13 @@ msgstr "Nouvelle étape du management du risque"
 msgid "Risk of loss of business or profitability outside the company's natural boundary, due to geopolitical instability in the area of presence."
 msgstr "Risk of loss of business or profitability outside the company's natural boundary, due to geopolitical instability in the area of presence."
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:mail.message.subtype,description:project_risk.mt_project_risk_status
 #: model:mail.message.subtype,description:risk_management.mt_business_risk_status
 msgid "Risk status changed"
 msgstr "Le status du risque a changé"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_threshold_value
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_threshold_value
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_evaluation_threshold_value
@@ -1891,7 +1890,7 @@ msgstr "Le status du risque a changé"
 msgid "Risk threshold"
 msgstr "Seuil de risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_project_risk_ids
 #: model:ir.model.fields,field_description:project_risk.field_project_task_project_risk_ids
 #: model:ir.ui.view,arch_db:project_risk.project_form
@@ -1908,7 +1907,7 @@ msgstr "Seuil de risque"
 msgid "Risks"
 msgstr "Risques"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.menu,name:project_risk.project_risk_db
 #: model:ir.actions.act_window,name:risk_management.act_risk_category_list
 #: model:ir.ui.menu,name:risk_management.menu_risk_category
@@ -1930,7 +1929,7 @@ msgstr "Règles et procédures du processus"
 msgid "Sales Journal"
 msgstr "Sales Journal"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_evaluation_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_evaluation_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_risk_help_wizard
@@ -1942,7 +1941,7 @@ msgstr "Sauvegarder"
 msgid "Sequence"
 msgstr "Séquence"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_threshold_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_threshold_wizard
 msgid "Set"
@@ -1958,13 +1957,13 @@ msgstr "Définir le Seuil de risque"
 msgid "Set Project Risk Threshold"
 msgstr "Définir le seuil de risque du projet"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_edit
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_edit
 msgid "Set Threshold"
 msgstr "Définir le seuil"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_threshold_wizard
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_threshold_wizard
 msgid "Set risk Threshold"
@@ -2023,7 +2022,7 @@ msgstr "Strategic model"
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_3
 msgid "Strategic risks"
-msgstr "Strategic risks"
+msgstr "Risques stratégiques"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_risk_info_subcategory
@@ -2059,7 +2058,7 @@ msgstr "Étiquettes"
 msgid "Target Criterium"
 msgstr "Critère cible"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model,name:project_risk.model_project_task
 #: model:ir.model,name:risk_management.model_project_task
 #: model:ir.ui.view,arch_db:risk_management.process_task_form
@@ -2158,7 +2157,7 @@ msgstr "The second group is comprised of the steps needed to record individual b
 msgid "The third group is the period-end processing required to close the books and produce financial statements."
 msgstr "The third group is the period-end processing required to close the books and produce financial statements."
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.actions.act_window,help:project_risk.act_project_risk_reg
 #: model:ir.actions.act_window,help:risk_management.act_business_risk_register
 msgid "There is no risk in this risk register at the moment."
@@ -2236,7 +2235,7 @@ msgstr "Menace"
 msgid "ThreatS"
 msgstr "Menaces"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.ui.view,arch_db:project_risk.view_project_risk_eval_graph2
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_edit
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_eval_graph
@@ -2265,7 +2264,7 @@ msgstr "Risque traité"
 msgid "Treatment Project"
 msgstr "Projet de Traitement des risques"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_project_risk_treatment_task_ids
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_treatment_task_id
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_treatment_task_id
@@ -2290,7 +2289,7 @@ msgstr "Guide de traitement du risque"
 msgid "Treatment tasks"
 msgstr "Tâche de traitement du risque"
 
-#. modules: project_risk, risk_management
+#. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_risk_type
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_risk_type
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_evaluation_risk_type
@@ -2323,7 +2322,7 @@ msgstr "Non assigné"
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_13
 msgid "Uncategorized risks(Environmental, Overquality, Governance...)"
-msgstr "Uncategorized risks(Environmental, Overquality, Governance...)"
+msgstr "Autres risques (surqualité, pilotage, environement, gouvernance...)"
 
 #. module: risk_management
 #: model:risk_management.risk.info,short_name:risk_management.risk_info_2
