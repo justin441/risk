@@ -144,7 +144,7 @@ class TestBusinessRisk(TestRiskReportCases):
             })
         self.assertIsInstance(cm.exception, exceptions.UserError)
 
-        # existing active risk's field 'business_process_ids' should be modified nevertheless
+        # existing active risk's field 'business_process_ids' should be updated nevertheless
         self.assertIn(self.sales, self.business_risk1.business_process_ids)
 
         self.business_risk1.active = False
