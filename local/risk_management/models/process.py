@@ -293,7 +293,7 @@ class BusinessProcessIO(models.Model):
         ('check_only_one_source',
          'CHECK((source_part_cat_id IS NOT NULL AND business_process_id IS NULL) OR'
          '(source_part_cat_id IS NULL and business_process_id IS NOT NULL))',
-         'A process can only have one source, either internal or external.'
+         'A input or output can only have one source, either internal or external.'
          )
     ]
     name = fields.Char(required=True, index=True, translate=True, copy=False)
