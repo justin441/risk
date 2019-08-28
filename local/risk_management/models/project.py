@@ -14,7 +14,7 @@ class Task(models.Model):
     @api.multi
     def write(self, vals):
         res = super(Task, self).write(vals)
-        if res and 'active' in vals and not vals['active']:
+        if res and vals.get('active', False):
             activity = self.env['mail.activity']
             res_model_id = self.env['ir.model']._get_id('risk_management.business_risk')
             act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)

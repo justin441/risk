@@ -26,7 +26,8 @@ class ProjectRisk(models.Model):
     _name = 'project_risk.project_risk'
     _description = 'Project Risk'
 
-    project_id = fields.Many2one('project.project', string='Project')
+    project_id = fields.Many2one('project.project', string='Project', required=True, index=True,
+                                 default=lambda self: self.env.context.get('default_project_id'))
     task_ids = fields.Many2many('project.task', relation='project_risk_task_ids_risk_ids_rel',
                                 column1='project_risk_id', column2='task_id',
                                 domain="[('project_id', '=', project_id)]", string='Impacted tasks')
@@ -65,12 +66,13 @@ class ProjectRisk(models.Model):
         ir_model = self.env['ir.model']
         act_type = self.env.ref('risk_management.risk_activity_todo')
         existing = self.env[self._name].search(
-            [('risk_info_id', '=', vals.get('risk_info_id', False)),
-             ('project_id', '=', vals.get('project_id', False)),
-             ('risk_type', '=', vals.get('risk_type', False))])
+            [('risk_info_id', '=', vals.get('risk_info_id')),
+             ('project_id', '=', vals.get('project_id', False) or self.env.context.get('default_project_id')),
+             ('risk_type', '=', vals.get('risk_type', False) or 'T')])
         if existing:
             existing = existing.exists()[0]
             if not existing.active:
+                vals.update({'active': True})
                 existing.write(vals)
                 self.env['mail.activity'].create({
                     'res_id': existing.id,
@@ -80,8 +82,10 @@ class ProjectRisk(models.Model):
                     'note': '<p>Check and confirm the existence of the risk.</p>',
                     'date_deadline': act_deadline
                 })
-                return existing.id
+                return existing
             else:
+                if 'task_ids' in vals:
+                    existing.write({'task_ids': vals['task_ids']})
                 raise exceptions.UserError((_("This risk has already been reported. ")))
         else:
             if vals.get('project_id') and not context.get('default_project_id'):

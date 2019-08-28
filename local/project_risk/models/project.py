@@ -31,6 +31,14 @@ class Project(models.Model):
             if project.risk_ids:
                 project.risk_count = len(project.risk_ids.filtered('active'))
 
+    @api.multi
+    def write(self, vals):
+        res = super(Project, self).write(vals) if vals else True
+        if 'active' in vals and not vals.get('active'):
+            # unarchiving a project does it on its risks, too
+            self.mapped('risk_ids').write({'active': vals['active']})
+        return res
+
 
 class Task(models.Model):
     _inherit = 'project.task'
@@ -38,3 +46,16 @@ class Task(models.Model):
     project_risk_ids = fields.Many2many('project_risk.project_risk', relation='project_risk_task_ids_risk_ids_rel',
                                         column1='task_id', column2='project_risk_id', string='Risks')
     project_risk_id = fields.Many2one('project_risk.project_risk', string='Treated Risk')
+
+    @api.multi
+    def write(self, vals):
+        res = super(Task, self).write(vals) if vals else True
+        if 'active' in vals and not vals.get('active'):
+            risks = self.mapped('project_id.risk_ids')
+            for rec in self:
+                risks.write({
+                    'task_ids': [(3, rec.id)]
+                })
+        return res
+
+

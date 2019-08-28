@@ -214,7 +214,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                               track_visibility="onchange")
     state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage')
     stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, compute_sudo=True, copy=False,
-                        track_visibility="onchange")
+                        track_visibility="onchange", translate=True)
     priority = fields.Integer('Priority', compute='_compute_priority')
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
         'risk_management.risk_treatment_project'), readonly=True, required=True)
@@ -460,7 +460,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     def _check_review_after_report(self):
         for rec in self:
             if (rec.review_date and rec.report_date) and (rec.review_date < rec.report_date):
-                raise exceptions.ValidationError('Review date must be after report date')
+                raise exceptions.ValidationError(_('Review date must be after report date'))
 
     @api.multi
     def write(self, vals):

@@ -73,7 +73,7 @@ class BusinessProcess(models.Model):
 
         }
         return {
-            'name': _('New partner input'),
+            'name': _('New Input from partner'),
             'type': 'ir.actions.act_window',
             'res_model': 'risk_management.business_process.input_output',
             'view_type': 'form',
@@ -90,7 +90,7 @@ class BusinessProcess(models.Model):
         for process in self:
             for data in process.output_data_ids:
                 if data in process.input_data_ids:
-                    raise exceptions.ValidationError("A process cannot consume its own output")
+                    raise exceptions.ValidationError(_("A process cannot consume its own output"))
 
     @api.returns('self')
     def get_provider_processes(self):
@@ -444,17 +444,17 @@ class BusinessProcessIO(models.Model):
             if (data.business_process_id and data.business_process_id in data.user_process_ids) or (
                     data.source_part_cat_id and data.source_part_cat_id in data.dest_partner_ids
             ):
-                raise exceptions.ValidationError("The data source cannot be a recipient of the data")
+                raise exceptions.ValidationError(_("The data source cannot be a recipient of the data"))
 
     @api.constrains('source_part_cat_id', 'ref_input_ids')
     def _check_ext_input_no_ref(self):
         if self.source_part_cat_id and self.ref_input_ids:
-            raise exceptions.ValidationError("Input from partner can't have input references")
+            raise exceptions.ValidationError(_("Input from partner can't have input references"))
 
     @api.constrains('source_part_cat_id', 'dest_partner_ids')
     def _check_ext_input_no_ext_recip(self):
         if self.source_part_cat_id and self.dest_partner_ids:
-            raise exceptions.ValidationError("Input from partner can't have other partners as recipients")
+            raise exceptions.ValidationError(_("Input from partner can't have other partners as recipients"))
 
     @api.constrains('user_process_ids')
     def _check_customer_voice_dont_u_turn(self):
@@ -467,7 +467,7 @@ class BusinessProcessIO(models.Model):
                 intersect = self.business_process_id.get_customers()['internal'] & self.user_process_ids
                 processes = ', '.join([rec.name for rec in intersect])
                 raise exceptions.ValidationError(
-                    'This document cannot have among its recipients the following process(es): %s' % processes
+                    _('This document cannot have among its recipients the following process(es): %s') % processes
                 )
 
 
