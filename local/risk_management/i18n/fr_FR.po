@@ -1543,7 +1543,7 @@ msgstr "Données des processus"
 #. module: risk_management
 #: model:ir.ui.menu,name:risk_management.menu_business_process_io_channels
 msgid "Process I/O Channels"
-msgstr "Canaux d'entrée/sortie du processus"
+msgstr "Canaux Inter-processus"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_task_manager_id
