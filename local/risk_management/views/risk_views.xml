@@ -870,7 +870,7 @@
                     <button name="add_partner_input"
                             type="object"
                             string="Add partner input"
-                            class="btn-success"
+                            class="btn-danger oe_read_only"
                     />
                 </header>
                 <sheet string="Process">
