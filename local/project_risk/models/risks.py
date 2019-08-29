@@ -91,6 +91,17 @@ class ProjectRisk(models.Model):
             if vals.get('project_id') and not context.get('default_project_id'):
                 context['default_project_id'] = vals.get('project_id')
         risk = super(ProjectRisk, self).create(vals)
+
+        # add risk channel as follower
+        obsolete = self.env.ref('project_risk.mt_project_risk_obsolete')
+        status = self.env.ref('risk_project.mt_project_risk_status')
+        self.env['mail.followers'].create({
+            'res_model': self._name,
+            'res_id': risk.id,
+            'channel_id': self.env.ref('project_risk.mail_channel_project_risk').id,
+            'subtype_ids': [(6, False, [obsolete.id, status.id])]
+        })
+
         # Next activity
         self.env['mail.activity'].create({
             'res_id': risk,

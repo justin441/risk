@@ -24,11 +24,11 @@
     # always loaded
     'data': [
         'security/project_risk_security.xml',
+        'security/ir.model.access.csv',
         'wizard/risks_wizard_views.xml',
         'data/risk_data.xml',
         'views/project_risk.xml',
         'views/templates.xml',
-        'security/ir.model.access.csv',
     ],
     # only loaded in demonstration mode
     'demo': [

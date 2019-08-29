@@ -2,6 +2,13 @@
 <odoo>
 
     <!-- Project risk subtypes for messaging / Chatter -->
+
+    <record id="mail_channel_project_risk" model="mail.channel">
+        <field name="name">Project risks</field>
+        <field name="group_public_id" ref="project.group_project_user"/>
+        <field name="group_ids" eval="[(4, ref('project.group_project_user'))]"/>
+    </record>
+
     <record id="mt_project_risk_new" model="mail.message.subtype">
         <field name="name">New Risk</field>
         <field name="res_model">project_risk.project_risk</field>
@@ -99,7 +106,7 @@
         <field name="relation_field">project_id</field>
     </record>
 
-     <record id="mt_project_project_risk_status" model="mail.message.subtype">
+    <record id="mt_project_project_risk_status" model="mail.message.subtype">
         <field name="name">Risk Status Changed</field>
         <field name="res_model">project.project</field>
         <field name="default" eval="True"/>

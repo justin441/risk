@@ -21,15 +21,15 @@
 
     # always loaded
     'data': [
+        'security/risk_security.xml',
+        'security/ir.model.access.csv',
         'data/process_partner_categories_data.xml',
         'data/risk_categories_data.xml',
         'data/risk_data.xml',
         'data/process_data.xml',
-        'security/risk_security.xml',
         'wizard/risks_wizard_views.xml',
         'views/risk_views.xml',
         'views/risk_templates.xml',
-        'security/ir.model.access.csv',
     ],
     # only loaded in demonstration mode
     'demo': [

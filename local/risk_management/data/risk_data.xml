@@ -47,7 +47,7 @@
 
     <!-- Mail Channel -->
         <record id="mail_channel_risk_management_risk" model="mail.channel">
-            <field name="name">Risks</field>
+            <field name="name">Busines risks</field>
             <field name="group_public_id" ref="group_risk_user"/>
             <field name="group_ids" eval="[(4, ref('group_risk_user'))]"/>
         </record>

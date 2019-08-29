@@ -447,15 +447,6 @@ class RiskIdentificationMixin(models.AbstractModel):
 
         return groups
 
-    @api.multi
-    def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
-        """ Subscribe to all existing active tasks when subscribing to a project """
-        if channel_ids is None:
-            channel_ids = [self.env.ref('risk_management.mail_channel_risk_management_risk').id]
-        res = super(RiskIdentificationMixin, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids,
-                                                                     subtype_ids=subtype_ids, force=force)
-        return res
-
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
         user_field_lst = super(RiskIdentificationMixin, self)._message_get_auto_subscribe_fields(updated_fields,
@@ -640,6 +631,16 @@ class BusinessRisk(models.Model):
             'note': '<p>Check and confirm the existence of the risk.</p>',
             'summary': 'Next step in Risk Management: Confirm',
             'date_deadline': act_deadline
+        })
+
+        # add risk channel as follower
+        obsolete = self.env.ref('risk_management.mt_business_risk_obsolete')
+        status = self.env.ref('risk_management.mt_business_risk_status')
+        self.env['mail.followers'].create({
+            'res_model': self._name,
+            'res_id': risk.id,
+            'channel_id': self.env.ref('risk_management.mail_channel_risk_management_risk').id,
+            'subtype_ids': [(6, False, [obsolete.id, status.id])]
         })
 
         return risk
