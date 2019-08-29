@@ -69,9 +69,7 @@
             <field name="model_id" ref="model_risk_management_risk_info"/>
             <field name="domain_force">[('write_uid', '=', user.id)]</field>
             <field name="groups" eval="[(4,ref('base.group_user'))]"/>
-            <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="True"/>
             <field name="perm_read" eval="False"/>
         </record>
 
@@ -85,8 +83,8 @@
         <record id="business_risk_change_rule" model="ir.rule">
             <field name="name">Change Business Risk</field>
             <field name="model_id" ref="model_risk_management_business_risk"/>
-            <field name="domain_force">[('write_uid', '=', user.id)]</field>
-            <field name="groups" eval="[(4,ref('risk_management.group_risk_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id), ('is_confirmed', '=', False)]</field>
+            <field name="groups" eval="[(4,ref('base.group_user'))]"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_read" eval="False"/>
         </record>
