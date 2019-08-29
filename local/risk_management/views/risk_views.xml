@@ -17,7 +17,7 @@
             <form string="Input/Output">
                 <sheet>
                     <div class="oe_button_box" name="button_box" groups="base.group_user">
-                        <button  class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-files-o">
+                        <button class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-files-o">
                             <field string="Documents" name="doc_count" widget="statinfo"/>
                         </button>
                     </div>
@@ -304,7 +304,7 @@
             <form string="Method / Business rule ">
                 <sheet>
                     <div class="oe_button_box" name="button_box" groups="base.group_user">
-                        <button  class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-files-o">
+                        <button class="oe_stat_button" name="attachment_tree_view" type="object" icon="fa-files-o">
                             <field string="Documents" name="doc_count" widget="statinfo"/>
                         </button>
                     </div>
@@ -415,7 +415,7 @@
                 <group>
                     <group>
                         <field name="review_date" attrs="{'readonly': [('is_valid', '=', True)]}"/>
-                        <field name="is_valid"/>
+                        <field name="is_valid" groups="risk_management.group_manager"/>
                     </group>
                     <group>
                         <field name="threshold_value"/>
@@ -684,7 +684,7 @@
                             />
                         </group>
                         <group>
-                            <field name="is_confirmed"/>
+                            <field name="is_confirmed" groups="risk_management.group_risk_manager"/>
                             <field name="owner"/>
                             <field name="review_date"/>
                         </group>
@@ -896,7 +896,7 @@
                         >
                             <field string="Risks" name="risk_count" widget="statinfo"/>
                         </button>
-                        <button class="oe_stat_button" type="object" name="toggle_active" icon="fa-archive">
+                        <button class="oe_stat_button" type="object" name="toggle_active" icon="fa-archive" groups="risk_management.group_manager">
                             <field name="active" widget="boolean_button"
                                    options='{"terminology": "archive"}'/>
                         </button>
@@ -911,7 +911,7 @@
                         <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                         <field name="process_type"/>
                         <field name="responsible_id"/>
-                        <field name="module" options="{'no_open': True}"/>
+                        <field name="user_ids" widget="many2many_tags"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">
@@ -925,6 +925,11 @@
                         <page string="Output" name="output_page">
                             <field name="output_data_ids"
                                    context="{ 'tree_view_ref':'risk_management.process_output_data_list', 'default_business_process_id': active_id}"/>
+                        </page>
+                        <page name="extra" string="Extra info">
+                            <group>
+                                <field name="module" options="{'no_open': True}"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>

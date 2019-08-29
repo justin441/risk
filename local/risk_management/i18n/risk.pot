@@ -114,7 +114,7 @@ msgstr ""
 
 #. module: risk_management
 #: selection:risk_management.business_process.task,frequency:0
-msgid "Annualy"
+msgid "Annually"
 msgstr ""
 
 #. module: risk_management

@@ -158,3 +158,55 @@ class TestBusinessRisk(TestRiskReportCases):
 
     def test_write(self):
         pass
+
+
+class TestSecurity(TestRiskReportCases):
+    def setUp(self):
+        super(TestSecurity, self).setUp()
+
+    def test_report_risks_rights(self):
+        br_risk_usr = self.env['risk_management.business_risk'].sudo(self.risk_user_2)
+        risk_info_usr = self.env['risk_management.risk.info'].sudo(self.risk_user_1)
+
+        # every employee can report risk
+        self.assertTrue(bool(risk_info_usr.create({'risk_category_id': self.ref('risk_management.risk_cat_1'),
+                                                   'name': 'Risk of rain',
+                                                   'description': 'It might rain this week'})))
+        self.assertTrue(bool(br_risk_usr.create({'risk_info_id': self.risk_info3.id})))
+
+    def test_write_unlink_risk(self):
+
+        # risk info creation
+        risk_info_usr = self.env['risk_management.risk.info'].sudo(self.risk_user_1)
+        risk_info_1 = risk_info_usr.create({'risk_category_id': self.ref('risk_management.risk_cat_1'),
+                                            'name': 'Risk of rain',
+                                            'description': 'It might rain this week'})
+        risk_info_2 = risk_info_usr.create({'risk_category_id': self.ref('risk_management.risk_cat_1'),
+                                            'name': 'Risk of Fraud',
+                                            'description': 'Some one might steal a company asset'})
+
+        # business risks creation
+        br_risk_usr = self.env['risk_management.business_risk'].sudo(self.risk_user_2)
+        risk1 = br_risk_usr.create({'risk_info_id': risk_info_1.id})
+        risk2 = br_risk_usr.create({'risk_info_id': self.risk_info3.id, 'risk_type': 'O'})
+
+        # users can modify or unlink the risks they have reported as long as it has not been confirmed
+        self.assertTrue(risk1.sudo(self.risk_user_2).write({'risk_type': 'O'}))
+        self.assertTrue(risk_info_1.sudo(self.risk_user_1).write({'description': 'It might rain today'}))
+        self.assertTrue(risk1.sudo(self.risk_user_2).unlink())
+        self.assertTrue(risk_info_1.sudo(self.risk_user_1).unlink())
+
+        # users can only delete modify or delete the risk the have submitted
+        with self.assertRaises(exceptions.AccessError):
+            risk_info_2.sudo(self.risk_user_2).unlink()
+
+        with self.assertRaises(exceptions.AccessError):
+            risk2.sudo(self.risk_user_1).unlink()
+
+        # if a risk is confirmed or a risk info is modified the user who created them can no longer modify them
+        risk2.sudo(self.risk_manager).write({'is_confirmed': True})
+        risk_info_2.sudo(self.risk_manager).write({'description': 'Some one might defraud the company'})
+
+        with self.assertRaises(exceptions.AccessError):
+            risk2.sudo(self.risk_user_2).unlink()
+            risk_info_2.sudo(self.risk_user_1).unlink()

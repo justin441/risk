@@ -136,3 +136,64 @@ class TestBusinessProcessIO(TestProcessIOCases):
             self.delivery_note.write({'user_process_ids': [(4, self.sales.id)]})
         self.assertIsInstance(cm.exception, exceptions.ValidationError)
 
+
+class TestSecurity(TestProcessIOCases):
+    def setUp(self):
+        super(TestSecurity, self).setUp()
+
+    def test_create_process_rights(self):
+        """Test Business Processes creation rights for users in different groups.
+        Only user of group 'group_manager' can create business processes and related objects: tasks, methods,
+        input/output, channels"""
+
+        bpm = self.env['risk_management.business_process'].sudo(self.proc_manager)
+        bp_task_m = self.env['risk_management.business_process.task'].sudo(self.proc_manager)
+        bp_io_m = self.env['risk_management.business_process.input_output'].sudo(self.proc_manager)
+        bp_meth_m = self.env['risk_management.business_process.method'].sudo(self.proc_manager)
+        bp_chan_m = self.env['risk_management.business_process.channel'].sudo(self.proc_manager)
+        bprm = self.env['risk_management.business_process'].sudo(self.risk_manager)
+        bpru = self.env['risk_management.business_process'].sudo(self.risk_user_1)
+        bp_task_ru = self.env['risk_management.business_process.task'].sudo(self.risk_user_1)
+        bp_io_ru = self.env['risk_management.business_process.input_output'].sudo(self.risk_user_1)
+        bp_meth_ru = self.env['risk_management.business_process.method'].sudo(self.risk_user_1)
+        bp_chan_ru = self.env['risk_management.business_process.channel'].sudo(self.risk_user_1)
+        proc = self.env['risk_management.business_process'].create({'name': 'Dummy process'})
+        proc_mgt = self.env['risk_management.business_process'].create({'name': 'Dummy process 0',
+                                                                        'process_type': 'M'})
+        io_method = self.env['risk_management.business_process.input_output'].create(
+            {'name': 'Some method', 'business_process_id': proc_mgt.id})
+
+        self.assertTrue(bool(bpm.create({'name': 'Dummy process 1 '})))
+        self.assertTrue(bool(bp_task_m.create({'name': 'Dummy task', 'business_process_id': proc.id})))
+        self.assertTrue(bool(bp_io_m.create({'name': 'Dummy output', 'business_process_id': proc.id})))
+        self.assertTrue(bool(bp_meth_m.create({'name': 'Dummy method', 'business_process_id': proc.id,
+                                               'output_ref_id': io_method.id})))
+        self.assertTrue(bool(bp_chan_m.create({'name': 'Dummy channel'})))
+
+        with self.assertRaises(exceptions.AccessError) as cm:
+            bprm.create({'name': 'Dummy process 2'})
+        self.assertIsInstance(cm.exception, exceptions.AccessError)
+
+        with self.assertRaises(exceptions.AccessError) as cm:
+            bpru.create({'name': 'Dummy process 3'})
+        self.assertIsInstance(cm.exception, exceptions.AccessError)
+
+        with self.assertRaises(exceptions.AccessError) as cm:
+            bp_task_ru.create({'name': 'Dummy task 1', 'business_process_id': proc.id})
+        self.assertIsInstance(cm.exception, exceptions.AccessError)
+
+        with self.assertRaises(exceptions.AccessError) as cm:
+            bp_io_ru.create({'name': 'Dummy output 1', 'business_process_id': proc.id})
+        self.assertIsInstance(cm.exception, exceptions.AccessError)
+
+        with self.assertRaises(exceptions.AccessError) as cm:
+            bp_meth_ru.create({'name': 'Dummy method 1', 'business_process_id': proc.id,
+                              'output_ref_id': io_method.id})
+        self.assertIsInstance(cm.exception, exceptions.AccessError)
+
+        with self.assertRaises(exceptions.AccessError) as cm:
+            bp_chan_ru.create({'name': 'Dummy channel 1'})
+        self.assertIsInstance(cm.exception, exceptions.AccessError)
+
+
+

@@ -51,15 +51,15 @@ class RiskInfo(models.Model):
     _rec_name = 'short_name'
 
     risk_category_id = fields.Many2one(comodel_name='risk_management.risk.category', string='Category',
-                                       ondelete='restrict')
+                                       ondelete='restrict', required=True)
     subcategory = fields.Char(translate=True, string='Sub-category')
     name = fields.Char(translate=True, index=True, copy=False, required=True, string='Name')
     short_name = fields.Char(translate=True, compute='_compute_short_name')
     description = fields.Html(translate=True, string='Description', required=True)
     cause = fields.Html(Translate=True, string='Cause', index=True)
     consequence = fields.Html(translate=True, string='Consequence', index=True)
-    control = fields.Html(translate=True, string='Steering / Monitoring', groups='risk_management.group_risk_manager')
-    action = fields.Html(translate=True, string='Action / Hedging policy', groups='risk_management.group_risk_manager')
+    control = fields.Html(translate=True, string='Steering / Monitoring')
+    action = fields.Html(translate=True, string='Action / Hedging policy')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
@@ -173,12 +173,12 @@ class RiskIdentificationMixin(models.AbstractModel):
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
     name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
-                                 required=True, track_visibility="onchange")
+                                 required=True, track_visibility="onchange",
+                                 states={'4': [('readonly', True)], '5': [('readonly', True)],
+                                         '6': [('readonly', True)]})
     risk_info_id = fields.Many2one(comodel_name='risk_management.risk.info', string='Risk', required=True,
-                                   states={'2': [('readonly', True)],
-                                           '3': [('readonly', True)],
-                                           '4': [('readonly', True)],
-                                           '5': [('readonly', True)],
+                                   states={'2': [('readonly', True)], '3': [('readonly', True)],
+                                           '4': [('readonly', True)], '5': [('readonly', True)],
                                            '6': [('readonly', True)]
                                            },
                                    )
@@ -188,15 +188,13 @@ class RiskIdentificationMixin(models.AbstractModel):
     risk_info_description = fields.Html('Description', related='risk_info_id.description', readonly=True)
     risk_info_cause = fields.Html('Cause', related='risk_info_id.cause', readonly=True)
     risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
-    risk_info_control = fields.Html('Monitoring', related='risk_info_id.control', readonly=True, related_sudo=True)
-    risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True, related_sudo=True)
+    risk_info_control = fields.Html('Monitoring', related='risk_info_id.control', readonly=True)
+    risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True)
     report_date = fields.Date(string='Reported On', default=fields.Date.context_today, required=True)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
-    is_confirmed = fields.Boolean('Confirmed', states={'3': [('readonly', True)],
-                                                       '4': [('readonly', True)],
-                                                       '5': [('readonly', True)],
-                                                       '6': [('readonly', True)]},
-                                  groups='risk_management.group_risk_manager', track_visibility="onchange")
+    is_confirmed = fields.Boolean('Confirmed', states={'3': [('readonly', True)], '4': [('readonly', True)],
+                                                       '5': [('readonly', True)], '6': [('readonly', True)]},
+                                  track_visibility="onchange")
     threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True,
                                      track_visibility="onchange")
     latest_level_value = fields.Integer(compute='_compute_latest_eval', string='Risk Level', store=True,
@@ -213,7 +211,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                               compute='_compute_status', string='Status', search='_search_status',
                               track_visibility="onchange")
     state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage')
-    stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, compute_sudo=True, copy=False,
+    stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, copy=False,
                         track_visibility="onchange", translate=True)
     priority = fields.Integer('Priority', compute='_compute_priority')
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
@@ -449,6 +447,15 @@ class RiskIdentificationMixin(models.AbstractModel):
 
         return groups
 
+    @api.multi
+    def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
+        """ Subscribe to all existing active tasks when subscribing to a project """
+        if channel_ids is None:
+            channel_ids = [self.env.ref('risk_management.mail_channel_risk_management_risk').id]
+        res = super(RiskIdentificationMixin, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids,
+                                                                     subtype_ids=subtype_ids, force=force)
+        return res
+
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
         user_field_lst = super(RiskIdentificationMixin, self)._message_get_auto_subscribe_fields(updated_fields,
@@ -655,7 +662,7 @@ class RiskEvaluationMixin(models.AbstractModel):
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')
     eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on',
                             readonly=True)
-    is_valid = fields.Boolean('Valid', groups='risk_management.group_manager')
+    is_valid = fields.Boolean('Valid')
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):

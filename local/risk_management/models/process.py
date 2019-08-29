@@ -17,7 +17,7 @@ class BaseProcess(models.AbstractModel):
                                     required=True, string='Process type', track_visibility='onchange')
     description = fields.Html(translate=True, string="Description", track_visibility='onchange', index=True)
     method_count = fields.Integer(compute='_compute_method_count', string="Methods")
-    sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True, compute_sudo=True)
+    sequence = fields.Integer(compute="_compute_sequence", default=10, string='Rank', store=True)
     color = fields.Integer(string='Color Index', compute='_compute_color', inverse='_inverse_color', store=True)
 
 
@@ -60,8 +60,8 @@ class BusinessProcess(models.Model):
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange',
                                      domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
     user_ids = fields.Many2many('res.users', 'risk_management_users_process_rel', 'business_process_id', 'user_id',
-                                string='Staff', domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)],
-                                track_visilibity='always')
+                                string='Staff', _compute='_compute_staff', track_visilibity='always',
+                                store=True)
 
     @api.multi
     def add_partner_input(self):
@@ -84,12 +84,17 @@ class BusinessProcess(models.Model):
             'context': ctx
         }
 
-    @api.constrains('input_data_ids', 'id')
+    @api.depends('task_ids.owner_id')
+    def _compute_staff(self):
+        for rec in self:
+            rec.user_ids = rec.task_ids.mapped('owner_id')
+
+    @api.constrains('input_data_ids')
     def _check_output_not_in_input(self):
         """This is further enforced by the `input_data_ids` field domain"""
         for process in self:
-            for data in process.output_data_ids:
-                if data in process.input_data_ids:
+            for data in process.input_data_ids:
+                if data in process.output_data_ids:
                     raise exceptions.ValidationError(_("A process cannot consume its own output"))
 
     @api.returns('self')
@@ -151,7 +156,7 @@ class BusinessProcess(models.Model):
                 # only take into account risk that have been evaluated
                 rec.risk_count = len(rec.risk_ids.filtered('latest_level_value'))
 
-    @api.depends('output_data_ids', 'input_data_ids')
+    @api.depends('output_data_ids.is_customer_voice', 'input_data_ids.dest_partner_ids')
     def _compute_is_core(self):
         """
         A core process is one that outputs or relays data that are 'customer voice' to other processes or if self has an
@@ -167,7 +172,7 @@ class BusinessProcess(models.Model):
             else:
                 rec.is_core = False
 
-    @api.depends("process_type", 'input_data_ids', 'output_data_ids')
+    @api.depends("process_type", 'is_core', 'output_data_ids')
     def _compute_sequence(self):
         """
         The sequence of a process depends on its type: operations come first and are ordered according to their proximity
@@ -349,7 +354,7 @@ class BusinessProcessIO(models.Model):
             else:
                 rec.origin_id = False
 
-    @api.depends('source_part_cat_id', 'ref_input_ids')
+    @api.depends('source_part_cat_id', 'ref_input_ids.is_customer_voice')
     def _compute_is_customer_voice(self):
         """a data is customer voice if it was input by an Customer or if it relays one."""
         customers = self.env[
@@ -500,19 +505,18 @@ class BusinessProcessTask(models.Model):
 
     name = fields.Char(required=True, translate=True, index=True)
     description = fields.Text(translate=True, index=True)
-    owner_id = fields.Many2one('res.users', ondelete="set null",
-                               domain=lambda self: [('id', 'in', self.business_process_id.user_ids.ids)],
-                               string='Assigned To')
+    owner_id = fields.Many2one('res.users', ondelete="set null", string='Assigned To')
     sequence = fields.Integer(default=10, index=True, string='Sequence')
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', ondelete='cascade',
                                           string="Process",
-                                          index=True,
+                                          index=True, required=True,
                                           default=lambda self: self.env.context.get('default_business_process_id'))
     company_id = fields.Many2one('res.company', related='business_process_id.company_id', string='Company')
     manager_id = fields.Many2one('res.users', related='business_process_id.responsible_id', readonly=True,
                                  related_sudo=False, string='Process Manager')
     frequency = fields.Selection(selection=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'),
-                                            ('quarterly', 'Quarterly'), ('annualy', 'Annualy')], string='Frequency')
+                                            ('quarterly', 'Quarterly'), ('annually', 'Annually')], string='Frequency',
+                                 default='daily')
 
     def action_assign_to_me(self):
         self.write({'owner_id': self.env.user.id})

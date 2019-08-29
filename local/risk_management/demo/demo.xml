@@ -186,7 +186,8 @@
             <field name="subcategory">Country Risk</field>
             <field name="name">Political instability (risk of war, terrorism, local conflict, attacks ...)</field>
             <field name="description" type="html">
-                <p>Risk of loss of business or profitability outside the company's natural boundary, due to geopolitical instability in the area of presence.</p>
+                <p>Risk of loss of business or profitability outside the company's natural boundary, due to geopolitical
+                    instability in the area of presence.</p>
             </field>
             <field name="cause" type="html">
                 <p>War, terrorism, local conflict, bombing.</p>
@@ -256,9 +257,8 @@
             <field name="subcategory">Strategic model</field>
             <field name="name">Poor identification or poor definition of the strategic segments of the strategic business model</field>
             <field name="description" type="html">
-                <p>
-                    Incorrect determination of the strategic business model segments to which the commercial offer is deployed.
-                </p>
+                <p>Incorrect determination of the strategic business model segments to which the commercial
+                    offer is deployed.</p>
             </field>
             <field name="cause" type="html">
                 <ul>
@@ -293,9 +293,7 @@
             <field name="subcategory">Cash flow</field>
             <field name="name">Company cashflow shortage</field>
             <field name="description" type="html">
-                <p>
-                    Inability of the company to meet its financial commitments, for lack of liquid cash.
-                </p>
+                <p>Inability of the company to meet its financial commitments, for lack of liquid cash.</p>
             </field>
             <field name="cause" type="html">
                 <ul>
