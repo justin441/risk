@@ -492,6 +492,7 @@
                 <field name="risk_info_id"/>
                 <field name="business_process_ids" widget="many2many_tags"/>
                 <field name="report_date"/>
+                <field name=" stage"/>
                 <field name="status" invisible="1"/>
                 <field name="active" invisible="1"/>
                 <field name="is_confirmed" invisible="1"/>
@@ -628,7 +629,7 @@
             <form>
                 <header>
                     <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight oe_read_only"
-                            attrs="{'invisible' : [('active', '=', 1),('owner', '!=', False)]}"
+                            attrs="{'invisible' : ['|', ('status', '!=', 'N'), ('owner', '!=', uid)]}"
                             groups="risk_management.group_risk_manager"/>
                     <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
                             type="action"

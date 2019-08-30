@@ -221,6 +221,11 @@ class RiskIdentificationMixin(models.AbstractModel):
                                         inverse='_inverse_treatment', store=True)
     treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks')
 
+    @api.onchange('owner')
+    def _onchange_owner(self):
+        if self.treatment_task_id:
+            self.treatment_task_id.user_id = self.owner
+
     @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
         risks = self.env[self._name].with_context(active_test=False).search([]).sorted('create_date')
@@ -409,7 +414,10 @@ class RiskIdentificationMixin(models.AbstractModel):
         }
 
     def assign_to_me(self):
-        self.sudo().write({'owner': self.env.user.id})
+        if self.status != 'N':
+            pass
+        else:
+            self.sudo().write({'owner': self.env.user.id})
 
     @api.depends('evaluation_ids')
     def _compute_latest_eval(self):
@@ -782,6 +790,7 @@ class BusinessRiskEvaluation(models.Model):
                             """ % rec.business_risk_id.name,
                             'priority': '1',
                             'project_id': self.env.ref('risk_management.risk_treatment_project').id,
-                            'business_risk_id': rec.business_risk_id.id
+                            'business_risk_id': rec.business_risk_id.id,
+                            'user_id': rec.business_risk_id.owner.id if rec.business_risk_id.owner else False
                         })
         return res

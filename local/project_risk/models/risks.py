@@ -204,6 +204,7 @@ class ProjectRiskEvaluation(models.Model):
                             """ % rec.project_risk_id.name,
                             'priority': '1',
                             'project_id': self.env.ref('risk_management.risk_treatment_project').id,
-                            'project_risk_id': rec.project_risk_id.id
+                            'project_risk_id': rec.project_risk_id.id,
+                            'user_id': rec.project_risk_id.owner.id if rec.project_risk_id.owner else False
                         })
         return res
