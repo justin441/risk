@@ -182,6 +182,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                                            '6': [('readonly', True)]
                                            },
                                    )
+    risk_info_name = fields.Char('Risk Title', related='risk_info_id.name', readonly=True, store=True)
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
                                      store=True)
     risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)

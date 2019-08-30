@@ -673,7 +673,7 @@
                         </h1>
                     </div>
                     <group>
-                        <field name="risk_info_id"/>
+                         <field name="risk_info_id"/>
                     </group>
                     <group>
                         <group>
@@ -707,6 +707,7 @@
                     <notebook>
                         <page name="info_page" string="Risk details">
                             <group>
+                                <field name="risk_info_name"/>
                                 <field name="risk_info_category"/>
                                 <field name="risk_info_subcategory"
                                        attrs="{'invisible': [('risk_info_id', '=', False)]}"/>
@@ -722,9 +723,8 @@
                             <field name="evaluation_ids" context="{'default_business_risk_id': active_id}"/>
                         </page>
                         <page name="comment_page" string="Comments">
-                            <group>
-                                <field name="comment"/>
-                            </group>
+                            <field name="comment"/>
+                            <div class="oe_clear"/>
                         </page>
                         <page name="help_page" string="Treatment guides" class="oe_read_only">
                             <group>
