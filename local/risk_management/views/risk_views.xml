@@ -629,7 +629,7 @@
             <form>
                 <header>
                     <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight oe_read_only"
-                            attrs="{'invisible' : ['|', ('status', '!=', 'N'), ('owner', '!=', uid)]}"
+                            attrs="{'invisible' : ['|', ('status', '!=', 'N'), ('owner', '!=', False)]}"
                             groups="risk_management.group_risk_manager"/>
                     <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
                             type="action"
