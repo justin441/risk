@@ -492,7 +492,7 @@
                 <field name="risk_info_id"/>
                 <field name="business_process_ids" widget="many2many_tags"/>
                 <field name="report_date"/>
-                <field name=" stage"/>
+                <field name="stage"/>
                 <field name="status" invisible="1"/>
                 <field name="active" invisible="1"/>
                 <field name="is_confirmed" invisible="1"/>
