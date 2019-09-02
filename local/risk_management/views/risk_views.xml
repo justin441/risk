@@ -170,11 +170,12 @@
     </record>
 
     <menuitem id="menu_business_process_io_channels" name="Process I/O Channels" parent="config_menu"
-              action="act_business_process_io_channel" sequence="40"/>
+              action="act_business_process_io_channel" sequence="50"/>
 
     <!-- BUSINESS PROCESS TASK -->
 
     <!-- views-->
+
     <record model="ir.ui.view" id="process_task_all">
         <field name="name">process_task.tree</field>
         <field name="model">risk_management.business_process.task</field>
@@ -182,6 +183,7 @@
             <tree>
                 <field name="name"/>
                 <field name="business_process_id"/>
+                <field name="frequency"/>
                 <field name="owner_id"/>
             </tree>
         </field>
@@ -199,6 +201,10 @@
                 <filter name="my_tasks" string="My tasks"
                         domain="['|', ('owner_id', '=', uid), ('business_process_id.responsible_id', '=', uid)]"/>
                 <filter string="Unassigned" name="unassigned" domain="[('owner_id', '=', False)]"/>
+                <filter string="Daily Task" name="daily" domain="[('frequency, '=', 'daily')]"/>
+                <filter string="Weekly Task" name="weekly" domain="[('frequency, '=', 'weekly')]"/>
+                <filter string="Monthly Task" name="monthly" domain="[('frequency, '=', 'monthly')]"/>
+                <filter string="Annual Task" name="annual" domain="[('frequency, '=', 'annually')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Process" name="process" context="{'group_by': 'business_process_id'}"/>
                     <filter string="Owner" name="owner" context="{'group_by': 'owner_id'}"/>
@@ -245,6 +251,25 @@
             </form>
         </field>
     </record>
+
+    <record model="ir.actions.act_window" id="process_task_all">
+        <field name="name">Tasks</field>
+        <field name="res_model">risk_management.business_process.task</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'search_default_my_tasks': 1,
+            }
+        </field>
+        <field name="search_view_id" ref="process_task_search"/>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Here, you can create new tasks
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_business_process_task" name="Process Tasks" parent="config_menu"
+              action="process_task_all" sequence="40"/>
 
 
     <!-- actions-->

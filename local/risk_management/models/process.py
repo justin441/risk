@@ -515,7 +515,7 @@ class BusinessProcessTask(models.Model):
     manager_id = fields.Many2one('res.users', related='business_process_id.responsible_id', readonly=True,
                                  related_sudo=False, string='Process Manager')
     frequency = fields.Selection(selection=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'),
-                                            ('quarterly', 'Quarterly'), ('annually', 'Annually')], string='Frequency',
+                                            ('quarterly', 'Quarterly'), ('annually', 'Annual')], string='Frequency',
                                  default='daily')
 
     def action_assign_to_me(self):
