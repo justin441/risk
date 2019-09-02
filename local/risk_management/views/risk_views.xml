@@ -201,10 +201,10 @@
                 <filter name="my_tasks" string="My tasks"
                         domain="['|', ('owner_id', '=', uid), ('business_process_id.responsible_id', '=', uid)]"/>
                 <filter string="Unassigned" name="unassigned" domain="[('owner_id', '=', False)]"/>
-                <filter string="Daily Task" name="daily" domain="[('frequency, '=', 'daily')]"/>
-                <filter string="Weekly Task" name="weekly" domain="[('frequency, '=', 'weekly')]"/>
-                <filter string="Monthly Task" name="monthly" domain="[('frequency, '=', 'monthly')]"/>
-                <filter string="Annual Task" name="annual" domain="[('frequency, '=', 'annually')]"/>
+                <filter string="Daily Task" name="daily" domain="[('frequency', '=', 'daily')]"/>
+                <filter string="Weekly Task" name="weekly" domain="[('frequency', '=', 'weekly')]"/>
+                <filter string="Monthly Task" name="monthly" domain="[('frequency', '=', 'monthly')]"/>
+                <filter string="Annual Task" name="annual" domain="[('frequency', '=', 'annually')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Process" name="process" context="{'group_by': 'business_process_id'}"/>
                     <filter string="Owner" name="owner" context="{'group_by': 'owner_id'}"/>
@@ -240,13 +240,10 @@
                         <label for="manager_id" class="oe_read_only"/>
                         <field name="manager_id" class="oe_read_only" nolabel="1"/>
                     </group>
-                    <notebook>
-                        <page name="description_page" string="Description">
-                            <group>
-                                <field name="description" type="html"/>
-                            </group>
-                        </page>
-                    </notebook>
+                    <group>
+                        <field name="description"/>
+                    </group>
+        
                 </sheet>
             </form>
         </field>
