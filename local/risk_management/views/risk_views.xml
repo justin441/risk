@@ -990,6 +990,8 @@
                 <filter name="Management" string="Management" domain="[('process_type', '=', 'M')]"/>
                 <filter name="Operation" string="Operations" domain="[('process_type', '=', 'O')]"/>
                 <filter name="Support" string="Support" domain="[('process_type', '=', 'S')]"/>
+                <separator/>
+                <filter name="Inactive" string="Inactive" domain="[('active', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Type" name="Type" context="{'group_by':'process_type'}"/>
                     <filter string="Company" name="Company" context="{'group_by': 'company_id'}"
