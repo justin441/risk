@@ -1769,13 +1769,13 @@ msgstr "Responsable"
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_evaluation_mixin_review_date
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_identification_mixin_review_date
 msgid "Review Date"
-msgstr "Date de réévaluation"
+msgstr "Date de revue"
 
 #. module: risk_management
 #: code:addons/risk_management/models/risks.py:470
 #, python-format
 msgid "Review date must be after report date"
-msgstr "La date de réévaluation doit être postérieure à la date de signalement du risque"
+msgstr "La date de revue doit être postérieure à la date de signalement du risque"
 
 #. modules: project_risk, risk_management
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_project_risk_id
