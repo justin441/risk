@@ -2104,7 +2104,7 @@ msgstr "Success rate of the marketing of the offer by strategic segment.\n"
 #: selection:risk_management.base_process,process_type:0
 #: selection:risk_management.business_process,process_type:0
 msgid "Support"
-msgstr "Assistance"
+msgstr "Support"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_tag_ids
