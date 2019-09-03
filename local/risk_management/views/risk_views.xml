@@ -894,6 +894,7 @@
                             type="object"
                             string="Add partner input"
                             class="btn-danger oe_read_only"
+                            groups="risk_management.group_manager"
                     />
                 </header>
                 <sheet string="Process">
@@ -934,7 +935,7 @@
                         <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                         <field name="process_type"/>
                         <field name="responsible_id"/>
-                        <field name="user_ids" widget="many2many_tags"/>
+                        <field name="module" options="{'no_open': True}"/>
                     </group>
                     <notebook>
                         <page name="description_page" string="Description">
@@ -951,7 +952,8 @@
                         </page>
                         <page name="extra" string="Extra info">
                             <group>
-                                <field name="module" options="{'no_open': True}"/>
+                                <field name="visibility"/>
+                                <field name="user_ids" widget="many2many_tags"/>
                             </group>
                         </page>
                     </notebook>

@@ -55,13 +55,12 @@ class BusinessProcess(models.Model):
                                   'process.')
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
                              help='Is this a core business process? It is if it processes customer data.')
-
+    visibility = fields.Selection([('private', 'Private'), ('public', 'Public')], string='Visibility', default='public')
     responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange',
                                      domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
-    user_ids = fields.Many2many('res.users', 'risk_management_users_process_rel', 'business_process_id', 'user_id',
-                                string='Staff', _compute='_compute_staff', track_visilibity='always',
-                                store=True)
+    user_ids = fields.Many2many('res.users', string='Staff', compute='_compute_staff', track_visilibity='always',
+                                readonly=True, store=True)
 
     @api.multi
     def add_partner_input(self):
@@ -84,7 +83,7 @@ class BusinessProcess(models.Model):
             'context': ctx
         }
 
-    @api.depends('task_ids.owner_id')
+    @api.depends('task_ids', 'task_ids.owner_id')
     def _compute_staff(self):
         for rec in self:
             rec.user_ids = rec.task_ids.mapped('owner_id')

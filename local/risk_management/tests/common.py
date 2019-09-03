@@ -46,6 +46,19 @@ class TestProcessCases(common.TransactionCase):
         self.accounting = proc.browse(self.ref('risk_management.accounting_process'))
         self.fin = proc.browse(self.ref('risk_management.finance_management_process'))
 
+        # create tasks
+        self.task1 = self.env['risk_management.business_process.task'].create({
+            'name': 'sales task ',
+            'owner_id': self.risk_user_1.id,
+            'business_process_id': self.fin.id
+        })
+
+        self.task2 = self.env['risk_management.business_process.task'].create({
+            'name': 'quality task ',
+            'owner_id': self.risk_user_2.id,
+            'business_process_id': self.ref('risk_management.quality_process')
+        })
+
 
 class TestProcessIOCases(TestProcessCases):
     def setUp(self):

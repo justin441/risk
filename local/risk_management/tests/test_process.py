@@ -102,6 +102,16 @@ class TestBusinessProcess(TestProcessCases):
         self.assertEqual(procurement_mgt_proc.color, 6)
         self.assertEqual(procurement_proc.color, 3)
 
+    def test_process_visibility(self):
+        """Test that only the managers and the staff of a private process can access it and its assets"""
+        proc = self.env.ref('risk_management.quality_process')
+
+        with self.assertRaises(exceptions.AccessError):
+            tasks = proc.sudo(self.risk_user_1).process_type
+        
+        with self.assertRaises(exceptions.AccessError):
+            name = self.task2.sudo(self.risk_user_1).name
+
 
 class TestBusinessProcessIO(TestProcessIOCases):
     def setUp(self):

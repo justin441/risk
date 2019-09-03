@@ -41,6 +41,7 @@
                     It is typically created during the planning stage of a Change Management Process
                 </p>
             </field>
+            <field name="visibility">private</field>
             <field name="process_type" eval="'M'"/>
         </record>
 
@@ -98,6 +99,12 @@
                 </p>
             </field>
             <field name="process_type" eval="'PM'"/>
+        </record>
+
+        <!-- tasks -->
+        <record id="task1" model="risk_management.business_process.task">
+            <field name="name">A task</field>
+            <field name="business_process_id" ref="quality_process"/>
         </record>
 
         <!-- Process IO -->

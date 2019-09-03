@@ -31,19 +31,75 @@
             <field name="global" eval="True"/>
         </record>
 
+         <record id="private_process_access_rule" model="ir.rule">
+            <field name="name">Business Process: Private</field>
+            <field name="model_id" ref="model_risk_management_business_process"/>
+            <field name="domain_force">
+                ['|', ('visibility', '!=', 'private'), ('user_ids', 'in', [user.id])]
+            </field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
         <record id="business_process_data_comp_rule" model="ir.rule">
             <field name="name">Business Process Data: Multi-company</field>
             <field name="model_id" ref="model_risk_management_business_process_input_output"/>
             <field name="domain_force">
                 [
-                    '|',
-                        '&amp;',
-                            ('business_process_id', '=', False),
-                            ('create_uid', '=', user.id),
-                        ('company_id', 'child_of', [user.company_id.id])]
+                '|',
+                '&amp;',
+                ('business_process_id', '=', False),
+                ('create_uid', '=', user.id),
+                ('company_id', 'child_of', [user.company_id.id])]
             </field>
             <field name="global" eval="True"/>
         </record>
+
+        <record id="private_io_access_rule" model="ir.rule">
+            <field name="name">Business Process IO: Private</field>
+            <field name="model_id" ref="model_risk_management_business_process_input_output"/>
+            <field name="domain_force">
+                ['|', ('business_process_id.visibility', '!=', 'private'), ('business_process_id.user_ids', 'in', [user.id])]
+            </field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="private_io_manager_rule" model="ir.rule">
+            <field name="name">Business Process IO: Private Manager</field>
+            <field name="model_id" ref="model_risk_management_business_process_input_output"/>
+            <field name="domain_force">
+                [(1, '=', 1)]
+            </field>
+            <field name="groups" eval="[(4,ref('risk_management.group_risk_manager'))]"/>
+        </record>
+
+
+        <record id="business_process_task_comp_rule" model="ir.rule">
+            <field name="name">Business Process task: Multi-company</field>
+            <field name="model_id" ref="model_risk_management_business_process_task"/>
+            <field name="domain_force">
+                [ ('company_id', 'child_of', [user.company_id.id])]
+            </field>
+            <field name="global" eval="True"/>
+        </record>
+
+        <record id="private_task_access_rule" model="ir.rule">
+            <field name="name">Business Process Task: Private</field>
+            <field name="model_id" ref="model_risk_management_business_process_task"/>
+            <field name="domain_force">
+                ['|', ('business_process_id.visibility', '!=', 'private'), ('business_process_id.user_ids', 'in', [user.id])]
+            </field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="private_task_manager_rule" model="ir.rule">
+            <field name="name">Business Process Task: Private Manager</field>
+            <field name="model_id" ref="model_risk_management_business_process_task"/>
+            <field name="domain_force">
+                [(1, '=', 1)]
+            </field>
+            <field name="groups" eval="[(4,ref('risk_management.group_risk_manager'))]"/>
+        </record>
+
 
         <record id="business_process_method_comp_rule" model="ir.rule">
             <field name="name">Business Process Method: Multi-company</field>
@@ -51,6 +107,25 @@
             <field name="domain_force">[('company_id', 'child_of', [user.company_id.id])]</field>
             <field name="global" eval="True"/>
         </record>
+
+        <record id="private_method_access_rule" model="ir.rule">
+            <field name="name">Business Process Method: Private</field>
+            <field name="model_id" ref="model_risk_management_business_process_method"/>
+            <field name="domain_force">
+                ['|', ('business_process_id.visibility', '!=', 'private'), ('business_process_id.user_ids', 'in', [user.id])]
+            </field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="private_method_manager_rule" model="ir.rule">
+            <field name="name">Business Process Method: Private Manager</field>
+            <field name="model_id" ref="model_risk_management_business_process_method"/>
+            <field name="domain_force">
+                [(1, '=', 1)]
+            </field>
+            <field name="groups" eval="[(4,ref('risk_management.group_risk_manager'))]"/>
+        </record>
+
         <record id="business_risk_comp_rule" model="ir.rule">
             <field name="name">Business risk: Multi-company</field>
             <field name="model_id" ref="model_risk_management_business_risk"/>
