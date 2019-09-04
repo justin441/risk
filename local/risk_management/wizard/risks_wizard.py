@@ -1,5 +1,5 @@
 import datetime
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from ..models.risks import RISK_EVALUATION_DEFAULT_MAX_AGE
 
 
@@ -8,17 +8,17 @@ class BaseEvaluationWizard(models.AbstractModel):
 
     @api.model
     def _get_detectability(self):
-        levels = ['Continuous', 'High', 'Average', 'Low', 'Minimal']
+        levels = [_('Continuous'), _('High'), _('Average'), _('Low'), _('Minimal')]
         return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     @api.model
     def _get_occurrence(self):
-        levels = ['Almost impossible', 'Unlikely', 'Probable', 'Very probable', 'Almost certain']
+        levels = [_('Almost impossible'), _('Unlikely'), _('Probable'), _('Very probable'), _('Almost certain')]
         return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     @api.model
     def _get_severity(self):
-        levels = ['Low', 'Average', 'High', 'Very High', 'Maximal']
+        levels = [_('Low'), _('Average'), _('High'), _('Very High'), _('Maximal')]
         return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     def default_criteria(self):

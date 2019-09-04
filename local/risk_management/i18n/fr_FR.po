@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 11.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-03 15:33+0000\n"
-"PO-Revision-Date: 2019-09-03 15:33+0000\n"
+"POT-Creation-Date: 2019-09-04 14:28+0000\n"
+"PO-Revision-Date: 2019-09-04 14:28+0000\n"
 "Last-Translator: <Justin Fotue K. fotuejustin441@gmail.com>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
 #. module: risk_management
 #: code:addons/risk_management/models/process.py:436
 #, python-format
@@ -103,6 +104,20 @@ msgid "Affected Processes"
 msgstr "Processus affectés"
 
 #. module: risk_management
+#: code:addons/risk_management/models/risks.py:101
+#: code:addons/risk_management/wizard/risks_wizard.py:16
+#, python-format
+msgid "Almost certain"
+msgstr "Quasi certain"
+
+#. module: risk_management
+#: code:addons/risk_management/models/risks.py:101
+#: code:addons/risk_management/wizard/risks_wizard.py:16
+#, python-format
+msgid "Almost impossible"
+msgstr "Presque impossible"
+
+#. module: risk_management
 #: model:ir.model,name:risk_management.model_risk_management_business_process_task
 msgid "An activity in a process"
 msgstr "Une activité dans un processus"
@@ -176,6 +191,15 @@ msgstr "Pièces jointes"
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_input_output_channel_ids
 msgid "Authorized Channels"
 msgstr "Canaux autorisés"
+
+#. module: risk_management
+#: code:addons/risk_management/models/risks.py:96
+#: code:addons/risk_management/models/risks.py:106
+#: code:addons/risk_management/wizard/risks_wizard.py:11
+#: code:addons/risk_management/wizard/risks_wizard.py:21
+#, python-format
+msgid "Average"
+msgstr "Moyenne"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_balance
@@ -388,6 +412,13 @@ msgstr "Conséquence"
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_method_content
 msgid "Content"
 msgstr "Contenu"
+
+#. module: risk_management
+#: code:addons/risk_management/models/risks.py:96
+#: code:addons/risk_management/wizard/risks_wizard.py:11
+#, python-format
+msgid "Continuous"
+msgstr "Continue"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_is_core
@@ -833,6 +864,15 @@ msgid "Here, you can create new tasks"
 msgstr "Ici, vous pouvez créer de nouvelles tâches"
 
 #. module: risk_management
+#: code:addons/risk_management/models/risks.py:96
+#: code:addons/risk_management/models/risks.py:106
+#: code:addons/risk_management/wizard/risks_wizard.py:11
+#: code:addons/risk_management/wizard/risks_wizard.py:21
+#, python-format
+msgid "High"
+msgstr "Élevée"
+
+#. module: risk_management
 #: model:ir.model.fields,help:risk_management.field_project_risk_eval_wizard_occurrence
 #: model:ir.model.fields,help:risk_management.field_project_risk_evaluation_occurrence
 #: model:ir.model.fields,help:risk_management.field_project_risk_project_risk_occurrence
@@ -993,6 +1033,11 @@ msgstr "Inability of the company to meet its financial commitments, for lack of 
 #: model:risk_management.risk.info,consequence:risk_management.risk_info_3
 msgid "Inability to market the produced offers on the desired customer segments;"
 msgstr "Inability to market the produced offers on the desired customer segments;"
+
+#. module: risk_management
+#: model:ir.ui.view,arch_db:risk_management.business_process_search_view
+msgid "Inactive"
+msgstr "Inactif"
 
 #. module: risk_management
 #: model:risk_management.risk.info,description:risk_management.risk_info_3
@@ -1219,6 +1264,15 @@ msgid "Loss of turnover, loss of business opportunities, loss of relative or abs
 msgstr "Loss of turnover, loss of business opportunities, loss of relative or absolute market shares."
 
 #. module: risk_management
+#: code:addons/risk_management/models/risks.py:96
+#: code:addons/risk_management/models/risks.py:106
+#: code:addons/risk_management/wizard/risks_wizard.py:11
+#: code:addons/risk_management/wizard/risks_wizard.py:21
+#, python-format
+msgid "Low"
+msgstr "Faible"
+
+#. module: risk_management
 #: model:risk_management.business_process,description:risk_management.hiring_process
 msgid "Mainly the completely HR Process look into complete controlling and smooth performance of employees\n"
 "                    and management and their relationship with the clients."
@@ -1246,6 +1300,13 @@ msgid "Max. Level"
 msgstr "Niveau Max."
 
 #. module: risk_management
+#: code:addons/risk_management/models/risks.py:106
+#: code:addons/risk_management/wizard/risks_wizard.py:21
+#, python-format
+msgid "Maximal"
+msgstr "Maximale"
+
+#. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.process_method_form
 msgid "Method / Business rule"
 msgstr "Procédure / Règlements "
@@ -1263,6 +1324,13 @@ msgstr "Nom de la procédure"
 #: model:ir.ui.view,arch_db:risk_management.process_method_search
 msgid "Methods"
 msgstr "Procédure"
+
+#. module: risk_management
+#: code:addons/risk_management/models/risks.py:96
+#: code:addons/risk_management/wizard/risks_wizard.py:11
+#, python-format
+msgid "Minimal"
+msgstr "Minimale"
 
 #. module: risk_management
 #: model:risk_management.business_risk,risk_info_control:risk_management.business_risk_1
@@ -1560,6 +1628,13 @@ msgid "Private"
 msgstr "Privé"
 
 #. module: risk_management
+#: code:addons/risk_management/models/risks.py:101
+#: code:addons/risk_management/wizard/risks_wizard.py:16
+#, python-format
+msgid "Probable"
+msgstr "Probable"
+
+#. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.business_process_form_view
 msgid "Procedures"
 msgstr "Procédures"
@@ -1769,13 +1844,13 @@ msgstr "Responsable"
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_evaluation_mixin_review_date
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_identification_mixin_review_date
 msgid "Review Date"
-msgstr "Date de revue"
+msgstr "Date de réévaluation"
 
 #. module: risk_management
 #: code:addons/risk_management/models/risks.py:470
 #, python-format
 msgid "Review date must be after report date"
-msgstr "La date de revue doit être postérieure à la date de signalement du risque"
+msgstr "La date de réévaluation doit être postérieure à la date de signalement du risque"
 
 #. modules: project_risk, risk_management
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_evaluation_project_risk_id
@@ -2104,7 +2179,7 @@ msgstr "Success rate of the marketing of the offer by strategic segment.\n"
 #: selection:risk_management.base_process,process_type:0
 #: selection:risk_management.business_process,process_type:0
 msgid "Support"
-msgstr "Support"
+msgstr "Assistance"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_tag_ids
@@ -2402,6 +2477,13 @@ msgid "Unknown status"
 msgstr "Status inconnu"
 
 #. module: risk_management
+#: code:addons/risk_management/models/risks.py:101
+#: code:addons/risk_management/wizard/risks_wizard.py:16
+#, python-format
+msgid "Unlikely"
+msgstr "Improbable"
+
+#. module: risk_management
 #: model:risk_management.risk.info,consequence:risk_management.risk_info_4
 msgid "Unpaid bills, cash-flow difficulties, which may lead to a situation of cessation of payments leading to the opening\n"
 "                    of a bankruptcy or liquidation procedure."
@@ -2468,6 +2550,20 @@ msgstr "Value Threat"
 #: model:res.partner.category,name:risk_management.process_partner_cat_vendor
 msgid "Vendor"
 msgstr "Fournisseur"
+
+#. module: risk_management
+#: code:addons/risk_management/models/risks.py:106
+#: code:addons/risk_management/wizard/risks_wizard.py:21
+#, python-format
+msgid "Very High"
+msgstr "Très élevée"
+
+#. module: risk_management
+#: code:addons/risk_management/models/risks.py:101
+#: code:addons/risk_management/wizard/risks_wizard.py:16
+#, python-format
+msgid "Very probable"
+msgstr "Très probable"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_visibility
