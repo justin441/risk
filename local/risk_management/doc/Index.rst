@@ -14,7 +14,7 @@ Installation & upgrade
     project_risk  risk_management
     $ cp -R risk_management project_risk /my_odoo/addons
 
-* `Install <https://odoo-development.readthedocs.io/en/latest/odoo/usage/install-module.html#install>`__ this module in a usual way
+* `Install <https://odoo-development.readthedocs.io/en/latest/odoo/usage/install-module.html#install>`__ the Risk Management module in the usual way
 
 Configuration
 =============
