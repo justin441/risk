@@ -25,7 +25,7 @@ Maintainers
 Further information
 ===================
 
-- HTML Description:
+- HTML Description: `<doc/doc_risk_management_fr_FR.html>`__
 - Usage instructions: `<doc/Index.rst>`__
 - Changelog: `<doc/changelog.rst>`__
 Tested on Odoo 11.0
