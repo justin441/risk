@@ -1,0 +1,464 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>Documentation du module Risk Management</title>
+	<meta name="generator" content="LibreOffice 6.1.6.3 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="2019-09-06T11:24:47.464094031"/>
+	<style type="text/css">
+		@page { size: 21.59cm 27.94cm; margin: 2cm }
+		p { margin-bottom: 0.25cm; line-height: 115%; background: transparent }
+		p.liste-cjk { font-size: 12pt }
+		p.liste-ctl { font-family: "Lohit Devanagari" }
+		pre { font-family: "Liberation Mono", monospace; font-size: 10pt; background: transparent }
+		p.puce-2-western { margin-left: 1.27cm; text-indent: -0.64cm; margin-bottom: 0.21cm }
+		p.puce-2-cjk { margin-left: 1.27cm; text-indent: -0.64cm; margin-bottom: 0.21cm; font-size: 12pt }
+		p.puce-2-ctl { margin-left: 1.27cm; text-indent: -0.64cm; margin-bottom: 0.21cm; font-family: "Lohit Devanagari" }
+		p.puce-1-western { margin-left: 0.64cm; text-indent: -0.64cm; margin-bottom: 0.21cm }
+		p.puce-1-cjk { margin-left: 0.64cm; text-indent: -0.64cm; margin-bottom: 0.21cm; font-size: 12pt }
+		p.puce-1-ctl { margin-left: 0.64cm; text-indent: -0.64cm; margin-bottom: 0.21cm; font-family: "Lohit Devanagari" }
+		p.numérotation-1-western { margin-left: 0.64cm; text-indent: -0.64cm; margin-bottom: 0.21cm }
+		p.numérotation-1-cjk { margin-left: 0.64cm; text-indent: -0.64cm; margin-bottom: 0.21cm; font-size: 12pt }
+		p.numérotation-1-ctl { margin-left: 0.64cm; text-indent: -0.64cm; margin-bottom: 0.21cm; font-family: "Lohit Devanagari" }
+		h1 { margin-bottom: 0.21cm; background: transparent; page-break-after: avoid }
+		h1.western { font-family: "Liberation Sans", sans-serif; font-size: 18pt; font-weight: bold }
+		h1.cjk { font-family: "Noto Sans CJK SC Regular"; font-size: 18pt; font-weight: bold }
+		h1.ctl { font-family: "Lohit Devanagari"; font-size: 18pt; font-weight: bold }
+		h2 { margin-top: 0.35cm; margin-bottom: 0.21cm; background: transparent; page-break-after: avoid }
+		h2.western { font-family: "Liberation Sans", sans-serif; font-size: 16pt; font-weight: bold }
+		h2.cjk { font-family: "Noto Sans CJK SC Regular"; font-size: 16pt; font-weight: bold }
+		h2.ctl { font-family: "Lohit Devanagari"; font-size: 16pt; font-weight: bold }
+		h3 { margin-top: 0.25cm; margin-bottom: 0.21cm; background: transparent; page-break-after: avoid }
+		h3.western { font-family: "Liberation Sans", sans-serif; font-size: 14pt; font-weight: bold }
+		h3.cjk { font-family: "Noto Sans CJK SC Regular"; font-size: 14pt; font-weight: bold }
+		h3.ctl { font-family: "Lohit Devanagari"; font-size: 14pt; font-weight: bold }
+	</style>
+</head>
+<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><h1 class="western">
+Documentation du module <span lang="en-US">Risk</span> Management</h1>
+<p lang="fr-FR" style="margin-bottom: 0cm; line-height: 100%"><br/>
+
+</p>
+<h2 class="western">Introduction</h2>
+<p lang="fr-FR" style="margin-bottom: 0cm; line-height: 100%"><span lang="en-US"><b>Risk</b></span><b>
+Management</b> est un module pour odoo 11.0 <span lang="en-US">Commuty</span>
+dont le but est de faciliter le processus global de la gestion des
+risque, de l’identification du risque au traitement et à la revue
+du risque. Il a pour objectif notamment: 
+</p>
+<ul>
+	<li><p class="puce-1-western">de diffuser la culture du risque au
+	sein de l’entreprise en faisant participer tous les employés au
+	processus de gestion des risques;</p>
+	<li><p class="puce-1-western">d’ axer la gestion des risques sur
+	l’amélioration continu des processus</p>
+</ul>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Pour ce faire la démarche de la gestion des risques privilégiée
+dans ce module s’appuie sur l’<i>approche processus.</i></p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Le module comporte donc 2 fonctionnalités principales:</p>
+<ul>
+	<li><p class="numérotation-1-western">une fonctionnalité
+	rudimentaire de modélisation des processus de l’entreprise et</p>
+	<li><p class="numérotation-1-western">une fonctionnalité
+	d’identification et du suivi des risques touchant les activités
+	de l’entreprise</p>
+</ul>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<h2 class="western">La modélisation des processus</h2>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+La fonctionnalité de modélisation des processus permet de décrire
+l’entreprise comme une chaîne de processus. Elle offre une vision
+transversale de l’organisation en décloisonnant les services et en
+regroupant les activités de ceux-ci au sein de processus.</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Pour modéliser les processus et les relations entre ceux-ci, le
+système définit les entités suivantes&nbsp;:</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<h3 class="western">Les processus</h3>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Un <b>processus</b> est un ensemble d’activités et de ressources
+qui prennent des données d’entrée et les transforment en données
+de sortie. La finesse du découpage de l’entreprise en processus
+varie en fonction du contexte de chaque entreprise. Par exemple dans
+une petite entreprise commercial les activités de vente peuvent
+constitué un seul processus tandis que dans une entreprise
+industrielle plus grande ces activités peuvent être partagées
+entre plusieurs processus (enregistrement de la commande, traitement
+de la commande, facturation, livraison, etc)&nbsp;.</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Un processus peut être classé dans l’un des 3 types suivants&nbsp;:</p>
+<ul>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Les <b>processus opérationnels</b>&nbsp;, qui contiennent les
+	activités que l’entreprise doit mettre en œuvre pour 
+	transformer les besoins des clients en produits ou services.</p>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Les <b>processus </b><b>de management </b><b>ou de pilotage</b>&nbsp;:
+	ce sont toutes les activités permettant d’établir et de déployer
+	les lignes directrices de l’entreprise.</p>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Les <b>processus de soutien </b><b>ou de support</b>&nbsp;: ce sont
+	les activités qui contribuent au bon déroulement des autres
+	processus.</p>
+</ul>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Le système définit automatiquement une hiérarchie entre les
+processus en fonction des données d’entrée et/ou des données de
+sortie de ceux-ci&nbsp;: certains processus se voient qualifiés de
+processus clés, les différenciant ainsi des autres processus.</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Chaque processus est placé sous la responsabilité d’un
+gestionnaire qui est responsable de la satisfaction des clients du
+processus.</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">Les activités de chaque
+processus sont régis par des procédures et des règles émanant des
+processus de management.</font></p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">Un processus peut être
+«&nbsp;privé&nbsp;» ou «&nbsp;public&nbsp;». Dans le premier cas
+le contenu du processus(ressources, procédure, données d’entrée
+et de sortie) ne sont visible par défaut que des utilisateurs du
+groupe «&nbsp;manager&nbsp;» et les membres du processus, et dans
+le second il est visible pour tous les employés de l’entreprise</font></p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<h3 class="western">Les données d’entrée et de sortie</h3>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Les <b>données d’entrée et de sortie</b> prennent la forme de
+message entre  les processus de l’entreprise ou entre ceux-ci et
+des partenaires externes de l’entreprise.</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+Chaque donnée possède donc les attributs suivants&nbsp;:</p>
+<ul>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Une origine&nbsp;: cet origine peut être soit interne (un
+	processus) soit externe (une catégorie de partenaire). La donnée
+	constitue une donné de sortie pour le processus qui est son
+	origine. Une donnée d’entrée provenant des clients est marqué
+	par le système comme étant la ‘<i>voix du client</i>’.</p>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Un ou plusieurs destinataires&nbsp;: ces destinataires peuvent être
+	d’autres processus (auquel cas la donnée constitue pour ces
+	processus une donnée d’entrée) ou des partenaires externes, ou
+	les deux.</p>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Une référence à une autre donnée&nbsp;: Une donnée de sortie
+	d’un processus peut référencer une donnée d’entrée du même
+	processus. Ceci permet de tracer la voix du client à travers les
+	processus. Une donnée de sortie qui référence la ‘<i>voix du
+	client</i>’ est elle même la ‘<i>voix du client</i>’.</p>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Un canal&nbsp;: la donnée de sortie d’un processus est transmis
+	aux  destinataires de celle-ci à travers un canal&nbsp;: ce peut
+	être par exemple le téléphone, le courrier électronique, le
+	courrier postal, la «remise en main propre», etc.</p>
+	<li><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	Enfin des documents peuvent être joints au données de sorties. Ces
+	pièces jointes fournissent des informations supplémentaires aux
+	destinataires des données de sorties</p>
+</ul>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<h3 class="western">Les tâches ou activités</h3>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+L’enchaînement des<b> activités</b> d’un processus permettent
+de réaliser la finalité de ce dernier. Les activités suivent une
+séquence déterminé et chaque activité est confié à un employé.</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">Un attribut important des
+tâches est leur fréquence d’exécution&nbsp;: celle-ci peut être
+journalière, hebdomadaire, mensuelle ou annuelle. Cela permet au
+système de rappeler à temps aux employés ce qu’ils ont à faire,
+mais aussi au recruteurs de comprendre les exigences des postes.</font></p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<h3 class="western">Les procédures ou méthodes</h3>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">Les <b>procédures</b> sont
+produites par les processus de management pour guider l’exécution
+des tâches dans les différents processus de l’entreprise. Chaque
+procédure est lié à un processus donné, celui qui doit
+l’utiliser, et doit obligatoirement référencer la donnée de
+sortie d’un processus de management.</font></p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<h3 class="western">Les canaux d’entrée/sortie</h3>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">Les </font><font size="3" style="font-size: 12pt"><b>canaux</b></font><font size="3" style="font-size: 12pt">
+sont les voies autorisées pour transmettre les données entre les
+processus de l’entreprise ou </font><font size="3" style="font-size: 12pt">aux
+</font><font size="3" style="font-size: 12pt">partenaires externe de
+l’entreprise.</font></p>
+<p lang="fr-FR" style="margin-bottom: 0cm; line-height: 100%"><br/>
+
+</p>
+<pre>
+<font size="2" style="font-size: 11pt"><i>À faire&nbsp;: Diagramme UML des classes</i></font>
+<font size="2" style="font-size: 11pt"><i>À faire&nbsp;: Définir des indicateurs de performance de processus.</i></font></pre><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<h2 class="western">La gestion des risques</h2>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">La fonctionnalité de gestion
+des risques permet d’enregistrer les risques signaler par les
+utilisateurs, l’évaluation desdits risques et, éventuellement
+leurs traitement. Pour ce faire le système définit les entités
+suivantes&nbsp;:</font></p>
+<ol type="a">
+	<li><p class="numérotation-1-western">Informations sur le risque&nbsp;:
+	cette entité représente les informations sur les risques que
+	sont&nbsp;:</p>
+	<ul>
+		<li><p class="puce-1-western">le nom du risque,</p>
+		<li><p class="puce-1-western">sa description,</p>
+		<li><p class="puce-1-western">sa cause,</p>
+		<li><p class="puce-1-western">la conséquence du risque,</p>
+		<li><p class="puce-1-western">et enfin des lignes directrices pour
+		la surveillance et letraitement du risque.</p>
+	</ul>
+</ol>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">	Les informations sur le
+risque sont séparées du signalement du risque dans l’optique de
+réutiliser ces informations dans d’autres signalements</font></p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<br/>
+
+</p>
+<ol type="a" start="2">
+	<li><p class="numérotation-1-western">Le risque d’entreprise&nbsp;:
+	celle-ci représente le signalement du risque proprement dit et
+	permet de rattacher le risque à une entreprise donnée et à des
+	processus de cette entreprise. En dehors des informations sur le
+	risque et l’entreprise affectée, cette entité comporte les
+	attributs suivants&nbsp;:</p>
+</ol>
+<ol type="a">
+	<ul>
+		<li><p class="puce-1-western">le type du risque&nbsp;: suivant la
+		définition du risque retenue par la norme ISO32000, il peut s’agir
+		soit d’une menace (risque positif), soit d’une opportunité
+		(risque négatif)&nbsp;;</p>
+		<li><p class="puce-1-western">le propriétaire du risque, c’est à
+		dire la personne qui est chargé de traiter le risque le cas
+		échéant&nbsp;;</p>
+		<li><p class="puce-1-western">les critères de détectabilité, de
+		probabilité d’occurrence et d’impact dont les mesures
+		permettent de fixer le seuil du risque&nbsp;;</p>
+		<li><p class="puce-1-western"><font size="3" style="font-size: 12pt"><span style="font-weight: normal">le
+		</span></font><font size="3" style="font-size: 12pt"><span style="font-weight: normal">facteur</span></font><font size="3" style="font-size: 12pt"><span style="font-weight: normal">
+		risque, dont le calcul se base sur la dernière évaluation du
+		risque, et dont la comparaison avec le seuil de risque permet de
+		déterminer si le risque est tolérable ou non.</span></font></p>
+	</ul>
+</ol>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<br/>
+
+</p>
+<ol type="a" start="3">
+	<li><p class="numérotation-1-western">L’évaluation du risque&nbsp;:
+	celle-ci représente l’évaluation d’un risque donné. Chaque
+	risque est évalué suivant les critères suivants&nbsp;:</p>
+	<ul>
+		<li><p class="puce-1-western"><font size="3" style="font-size: 12pt"><span style="font-weight: normal">la
+		détectabilité, qui est la capacité de l’entreprise affectée à
+		déceler </span></font><font size="3" style="font-size: 12pt"><span style="font-weight: normal">la
+		réalisation du risque&nbsp;;</span></font></p>
+		<li><p class="puce-1-western"><font size="3" style="font-size: 12pt"><span style="font-weight: normal">la</span></font><font size="3" style="font-size: 12pt"><span style="font-weight: normal">
+		sévérité, qui est l’impact que le risque aurait sur les actifs
+		de l’entreprise s’il venait à se produire&nbsp;;</span></font></p>
+		<li><p class="puce-1-western">l’occurrence, qui représente
+		l’estimation de la probabilité que le risque se réalise.</p>
+	</ul>
+</ol>
+<p class="puce-1-western">	La multiplication des scores de ces
+critères permet d’obtenir le  facteur risque du risque considéré</p>
+<pre><font size="2" style="font-size: 11pt"><i>À faire&nbsp;: Diagramme UML des classes</i></font></pre><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<br/>
+
+</p>
+<h3 class="western">Le processus de gestion des risques</h3>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">Le processus de gestion du
+risque est divisé en 3 étapes principales, avec des étapes
+intermédiaires marquant la fin de chacune des étapes principales. </font>
+</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<font size="3" style="font-size: 12pt">Les principales étapes du
+processus sont&nbsp;:</font></p>
+<ol>
+	<li><p class="numérotation-1-western"><span style="font-weight: normal">L’identification
+	du risque&nbsp;: Cette étape consiste à enregistrer les
+	informations du risque si celles-ci n’existent pas déjà dans la
+	base de données </span><span style="font-weight: normal">des
+	risques</span><span style="font-weight: normal">, à signaler le
+	risque proprement dit en liant ces informations à une entreprise et
+	à un type de risque, puis à vérifier et à confirmer le risque.
+	Quand le risque est marqué comme vérifié l’étape de
+	l’identification est achevé.</span></p>
+	<p class="numérotation-1-western"></p>
+	<li><p class="numérotation-1-western"><span style="font-weight: normal">L’évaluation
+	du risque&nbsp;: </span><span style="font-weight: normal">cette
+	étape consiste à attribuer des scores quantitatifs aux critères
+	du risque, à savoir&nbsp;: </span>
+	</p>
+</ol>
+<ul>
+	<ul>
+		<li><p class="puce-1-western">la détectabilité: 
+		</p>
+		<ul>
+			<li><p class="puce-2-western"><span style="font-weight: normal">s</span><span style="font-weight: normal">’il
+			s’agit d’une menace </span><span style="font-weight: normal">l</span><span style="font-weight: normal">es
+			couples scores/valeur</span><span style="font-weight: normal">s</span><span style="font-weight: normal">
+			possibles sont&nbsp;: </span><i><span style="font-weight: normal">continue/</span></i><i><span style="font-weight: normal">1</span></i><i><span style="font-weight: normal">,
+			élevé/</span></i><i><span style="font-weight: normal">2</span></i><i><span style="font-weight: normal">,
+			moyen/</span></i><i><span style="font-weight: normal">3</span></i><i><span style="font-weight: normal">,
+			bas</span></i><i><span style="font-weight: normal">se/4,
+			minimale/5&nbsp;;</span></i></p>
+			<li><p class="puce-2-western"><span style="font-weight: normal">s’il
+			s’agit d’une opportunité les couples scores/valeurs possibles
+			sont</span><i><span style="font-weight: normal">&nbsp;:
+			continue/5, élevé/4, moyen/3, basse/2, minimale/1&nbsp;;</span></i></p>
+		</ul>
+		<li><p class="numérotation-1-western"><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-style: normal"><span style="font-weight: normal">l’occurrence,
+		dont les couples scores/valeurs possible sont&nbsp;: </span></span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><i><span style="font-weight: normal">presque
+		impossible/1, improbable/2, probable/3, très probable/4, presque
+		certain/5&nbsp;;</span></i></span></font></p>
+		<li><p class="numérotation-1-western"><span style="font-weight: normal">la
+		sévérité, dont les couples scores/valeurs possibles sont&nbsp;:
+		</span><i><span style="font-weight: normal">basse/1, moyenne/2,
+		élevée/3, très élevée/4, maximale/5.</span></i></p>
+		<p class="numérotation-1-western"><span style="font-weight: normal">A</span><span style="font-weight: normal">près
+		l’attribution des scores aux critères du risque, l’évaluation
+		doit être validé avant de pouvoir passer à la prochaine étape.</span></p>
+		<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+		</p>
+	</ul>
+</ul>
+<ol start="3">
+	<li><p class="numérotation-1-western"><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">L</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">e
+	traitement du risque&nbsp;:</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><i><span style="font-weight: normal">
+	</span></i></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">à
+	l’installation du module de gestion des risques un projet est créé
+	dans le module </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">odoo</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	dédié </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">à
+	cet effet</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	(</span></span></font><font size="3" style="font-size: 12pt"><span lang="en-US"><i><span style="font-weight: normal">Project</span></i></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">),
+	pour servir de conteneur aux </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">activités
+	de traitement du risque. </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">Également
+	à l’installation du module,</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	la fonctionnalité de création de sous-tâches </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">du
+	module </span></span></font><font size="3" style="font-size: 12pt"><span lang="en-US"><i><span style="font-weight: normal">Project</span></i></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	est activé</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">e</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">.
+	Pour chaque risque dont le facteur risque est supérieur au seuil de
+	risque (c’est à dire qu’il n’est pas acceptable), une tâche
+	est créé s’il n’en existe pas déjà une</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	(comme par exemple dans le cas </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">où</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">le</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	risque </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">est
+	</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	réactivé)</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">,
+	pour traiter ledit risque. Des sous-tâches pourront être ajoutées
+	à cette tâche </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">pour
+	</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">détailler
+	le travail à faire pour traiter le risque considéré.</span></span></font></p>
+</ol>
+<pre><font size="2" style="font-size: 11pt"><i>À faire? Diagramme UML de séquence</i></font></pre><p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<br/>
+
+</p>
+<h3 class="western"><b><span lang="fr-FR">Les acteurs </span><span lang="fr-FR">du
+système</span></b></h3>
+<p style="margin-bottom: 0cm; font-style: normal; line-height: 100%"><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">L</span></span><span lang="fr-FR"><span style="font-weight: normal">es
+utilisateurs accèdent au système principalement pour signaler des
+risques pouvant affecter l’entreprise. Pour les y encourager les
+processus servent d’ancrage en étant le lieu des informations sur
+le déroulement des activités de l’entreprise et sur les
+procédures régissant ces activités. </span></span></font>
+</p>
+<p style="margin-bottom: 0cm; font-style: normal; line-height: 100%"><font size="4" style="font-size: 14pt"><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">Le
+système définit par défaut 3 groupe</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">s</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+d’utilisateur&nbsp;:</span></span></font></font></p>
+<ul>
+	<li><p style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	<font size="4" style="font-size: 14pt"><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">le
+	groupe «user»&nbsp;: ce sont les utilisateur sans privilège
+	spécial. Il peuvent crée de nouveau</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">x</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	risque</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">s</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	(mais pas de nouvelle catégorie de risque), </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">modifier
+	les risques qu’ils ont crées et qui n’a pas été modifi</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">és</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	par un </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">autre</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	utilisateur ayant des privilèges plus élevés,</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	et voir le contenu des processus </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">publics
+	</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">de
+	l’entreprise dont ils sont employés. Les utilisateur sont
+	encouragés à signaler les risques touchant les processus dont ils
+	sont membres ou ceux connexes. </span></span></font></font>
+	</p>
+	<li><p style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	<font size="4" style="font-size: 14pt"><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">le
+	groupe «&nbsp;</span></span></font><font size="3" style="font-size: 12pt"><span lang="en-US"><span style="font-weight: normal">risk</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	manager&nbsp;»&nbsp;: ce sont des utilisateurs qui sont en charge
+	de la vérification et de l’évaluation des risques</span></span></font></font></p>
+	<li><p style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+	<font size="4" style="font-size: 14pt"><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">le
+	groupe «&nbsp;manager&nbsp;»&nbsp;:  </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">en
+	plus des privilèges du groupe «&nbsp;</span></span></font><font size="3" style="font-size: 12pt"><span lang="en-US"><span style="font-weight: normal">risk</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	manager&nbsp;», </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">les
+	utilisateurs de ce groupe peuvent créer et modifier les processus
+	et leur contenu. Ils ont en outre la charge de définir le seuil des
+	risque, valider les évaluations des risques </span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">et
+	assigner les</span></span></font><font size="3" style="font-size: 12pt"><span lang="fr-FR"><span style="font-weight: normal">
+	risques.</span></span></font></font></p>
+</ul>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-weight: normal; line-height: 100%">
+<br/>
+
+</p>
+<pre><font size="2" style="font-size: 11pt"><i>À faire&nbsp;: diagramme UML de cas d’utilisation </i></font></pre><p lang="fr-FR" style="margin-bottom: 0cm; font-weight: normal; line-height: 100%">
+<br/>
+
+</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+<br/>
+
+</p>
+<ol type="I">
+	<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; font-weight: normal; line-height: 100%">
+	</p>
+</ol>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+<p lang="fr-FR" style="margin-bottom: 0cm; font-style: normal; line-height: 100%">
+<br/>
+
+</p>
+</body>
+</html>
