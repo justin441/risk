@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "project_risk",
+    'name': "Project Risk",
 
     'summary': """
        Project Risk Management""",
 
     'description': """
-        This module adds risk management to project
+        This module adds risk management to the `Project` addon
     """,
 
     'author': "Noubru Holding",
