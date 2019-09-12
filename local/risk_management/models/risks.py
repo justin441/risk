@@ -60,6 +60,7 @@ class RiskInfo(models.Model):
     consequence = fields.Html(translate=True, string='Consequence', index=True)
     control = fields.Html(translate=True, string='Steering / Monitoring')
     action = fields.Html(translate=True, string='Action / Hedging policy')
+    dso_help = fields.Html(translate=True, string='Help with eval.')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
     business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
@@ -191,6 +192,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
     risk_info_control = fields.Html('Monitoring', related='risk_info_id.control', readonly=True)
     risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True)
+    risk_info_dso = fields.Html('DSO', related='risk_info_id.dso_help', readonly=True)
     report_date = fields.Date(string='Reported On', default=fields.Date.context_today, required=True)
     reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
     is_confirmed = fields.Boolean('Confirmed', states={'3': [('readonly', True)], '4': [('readonly', True)],

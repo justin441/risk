@@ -766,6 +766,9 @@
                             <group>
                                 <field name="risk_info_action"/>
                             </group>
+                            <group>
+                                <field name="risk_info_dso"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -1128,6 +1131,7 @@
                             <group>
                                 <field name="control"/>
                                 <field name="action"/>
+                                <field name="dso_help"/>
                             </group>
                         </page>
                     </notebook>
