@@ -508,11 +508,13 @@
                   decoration-info="is_confirmed==True and status=='U'"
                   decoration-danger="status=='N'"
                   decoration-bf="status=='N'" decoration-success="status=='A'"
+                  default_order="priority"
             >
                 <field name="priority"/>
                 <field name="name"/>
                 <field name="risk_info_id"/>
                 <field name="ref_asset_id"/>
+                 <field name="asset_desc"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="report_date"/>
                 <field name="stage"/>
@@ -1145,7 +1147,6 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
-                <field name="risk_count"/>
             </tree>
         </field>
     </record>

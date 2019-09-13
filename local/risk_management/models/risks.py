@@ -570,6 +570,7 @@ class BusinessRisk(models.Model):
                                  help="Company affected by the risk")
     ref_asset_id = fields.Reference(selection='_ref_models', string='Affected Asset')
     asset = fields.Char(compute='_compute_asset', store=True)
+    asset_desc = fields.Char(compute='_compute_asset', string='Asset Type')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
     treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id')
@@ -579,6 +580,7 @@ class BusinessRisk(models.Model):
         """This field is used to search risk on `ref_asset_id`"""
         for rec in self:
             if rec.ref_asset_id:
+                rec.asset_desc = rec.ref_asset_id._description
                 rec.asset = rec.ref_asset_id._name + ',' + str(rec.ref_asset_id.id)
 
     @api.multi
