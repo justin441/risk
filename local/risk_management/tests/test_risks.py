@@ -140,12 +140,8 @@ class TestBusinessRisk(TestRiskReportCases):
         with self.assertRaises(exceptions.UserError) as cm:
             self.env['risk_management.business_risk'].create({
                 'risk_info_id': self.business_risk1.risk_info_id.id,
-                'business_process_ids': [(4, self.sales.id)]
             })
         self.assertIsInstance(cm.exception, exceptions.UserError)
-
-        # existing active risk's field 'business_process_ids' should be updated nevertheless
-        self.assertIn(self.sales, self.business_risk1.business_process_ids)
 
         self.business_risk1.active = False
         self.assertFalse(self.business_risk1.active)

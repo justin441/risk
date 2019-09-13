@@ -446,8 +446,13 @@ class RiskIdentificationMixin(models.AbstractModel):
             if rec.treatment_task_ids:
                 rec.treatment_task_id = rec.treatment_task_ids[0]
 
-    # implement _inverse_treatment on BusinessRisk and ProjectRisk models
-    # FIXME: _inverse_treatment here
+    def _inverse_treatment(self):
+        for rec in self:
+            if rec.treatment_task_ids:
+                task = self.env['project.task'].browse(rec.treatment_task_ids[0].id)
+                task.business_risk_id = False
+            if rec.treatment_task_id:
+                rec.treatment_task_id.business_risk_id = rec
 
     @api.multi
     def _notification_recipients(self, message, groups):
@@ -564,17 +569,17 @@ class BusinessRisk(models.Model):
                                  default=lambda self: self.env.user.company_id,
                                  help="Company affected by the risk")
     ref_asset_id = fields.Reference(selection='_ref_models', string='Affected Asset')
+    asset = fields.Char(compute='_compute_asset', store=True)
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
     treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id')
 
-    def _inverse_treatment(self):
+    @api.depends('ref_asset_id')
+    def _compute_asset(self):
+        """This field is used to search risk on `ref_asset_id`"""
         for rec in self:
-            if rec.treatment_task_ids:
-                task = self.env['project.task'].browse(rec.treatment_task_ids[0].id)
-                task.business_risk_id = False
-            if rec.treatment_task_id:
-                rec.treatment_task_id.business_risk_id = rec
+            if rec.ref_asset_id:
+                rec.asset = rec.ref_asset_id._name + ',' + str(rec.ref_asset_id.id)
 
     @api.multi
     def _track_subtype(self, init_values):
@@ -593,7 +598,7 @@ class BusinessRisk(models.Model):
 
     @api.model
     def _ref_models(self):
-        m = self.env['res.request.link'].search(['object', '!=', 'risk_management.business_risk'])
+        m = self.env['res.request.link'].search([('object', '!=', 'risk_management.business_risk')])
         return [(x.object, x.name) for x in m]
 
     @api.model

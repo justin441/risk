@@ -46,11 +46,10 @@ class BusinessProcess(models.Model):
     method_ids = fields.One2many('risk_management.business_process.method',
                                  inverse_name='business_process_id', string='Methods')
     task_count = fields.Integer(compute="_compute_task_count", string='Tasks')
-    risk_ids = fields.Many2many('risk_management.business_risk', relation='risk_management_process_risk_rel',
-                                column1='process_id', column2='risk_id', )
+    risk_ids = fields.One2many('risk_management.business_risk', compute='_compute_risks')
     risk_count = fields.Integer(compute='_compute_risk_count', string='Risks')
     module = fields.Many2one('ir.module.module', ondelete='set null', string='Odoo Module', copy=False,
-                              track_visibility='always',
+                             track_visibility='always',
                              help='This provides a hook for developing a solution to measure the performance of the '
                                   'process.')
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
@@ -148,12 +147,17 @@ class BusinessProcess(models.Model):
         for rec in self:
             rec.method_count = len(rec.method_ids)
 
+    @api.multi
+    def _compute_risks(self):
+        for rec in self:
+            rec.risk_ids = self.env['risk_management.business_risk'].search([
+                ('asset', '=', self._name + ',' + str(rec.id))
+            ])
+
     @api.depends('risk_ids')
     def _compute_risk_count(self):
         for rec in self:
-            if rec.risk_ids:
-                # only take into account risk that have been evaluated
-                rec.risk_count = len(rec.risk_ids.filtered('latest_level_value'))
+            rec.risk_count = len(rec.risk_ids)
 
     @api.depends('output_data_ids.is_customer_voice', 'input_data_ids.dest_partner_ids')
     def _compute_is_core(self):
@@ -412,8 +416,8 @@ class BusinessProcessIO(models.Model):
         attachment = self.env['ir.attachment']
         for io in self:
             self.attachment_ids = attachment.search([
-                    ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', io.id)
-                ])
+                ('res_model', '=', 'risk_management.business_process.input_output'), ('res_id', '=', io.id)
+            ])
 
     def _compute_attached_docs_count(self):
         for io in self:
@@ -556,4 +560,3 @@ class BusinessProcessMethod(models.Model):
     def attachment_tree_view(self):
         self.ensure_one()
         return self.output_ref_id.attachment_tree_view()
-

@@ -2,6 +2,14 @@
 <odoo>
 
     <data noupdate="1">
+
+        <!--    Risk Management activity type-->
+        <record id="risk_activity_todo" model="mail.activity.type">
+            <field name="name">Risk Management To Do</field>
+            <field name="summary">Next step in Risk Management</field>
+            <field name="icon">fa-clipboard-list-check</field>
+        </record>
+
         <record id="risk_treatment_project" model="project.project">
             <field name="name">Risk Treatment</field>
             <field name="label_tasks" eval="'Treatment'"/>
@@ -12,6 +20,7 @@
         <record id="risk_treatment_project" model="project.project">
             <field name="subtask_project_id" ref="risk_management.risk_treatment_project"/>
         </record>
+
 
         <record id="risk_treatment_stage_0" model="project.task.type">
             <field name="sequence">1</field>
@@ -45,7 +54,7 @@
             <field name="project_ids" eval="[(4, ref('risk_treatment_project'))]"/>
         </record>
 
-    <!-- Mail Channel -->
+        <!-- Mail Channel -->
         <record id="mail_channel_risk_management_risk" model="mail.channel">
             <field name="name">Busines risks</field>
             <field name="group_public_id" ref="group_risk_user"/>
@@ -53,13 +62,6 @@
         </record>
 
     </data>
-
-    <!--    Risk Management activity type-->
-    <record id="risk_activity_todo" model="mail.activity.type">
-        <field name="name">Risk Management To Do</field>
-        <field name="summary">Next step in Risk Management</field>
-        <field name="icon">fa-clipboard-list-check</field>
-    </record>
 
     <!-- Business risk subtypes for messaging / Chatter -->
     <record id="mt_business_risk_new" model="mail.message.subtype">

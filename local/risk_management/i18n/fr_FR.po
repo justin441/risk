@@ -98,9 +98,9 @@ msgid "Add partner input"
 msgstr "Ajouter une entrée d'un partenaire"
 
 #. module: risk_management
-#: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_business_process_ids
-msgid "Affected Processes"
-msgstr "Processus affectés"
+#: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_ref_asset_id
+msgid "Affected Asset"
+msgstr "Actif Affecté"
 
 #. module: risk_management
 #: code:addons/risk_management/models/risks.py:102
@@ -1497,7 +1497,7 @@ msgid "Occurrence(Business)"
 msgstr "Occurrence(Entreprise)"
 
 #. module: risk_management
-#: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_info_business_occurrences
+#: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_info_occurrences
 #: model:ir.ui.view,arch_db:risk_management.view_risk_form
 msgid "Occurrences"
 msgstr "Occurrences"
@@ -1707,7 +1707,6 @@ msgstr "Couleur du processus"
 
 #. module: risk_management
 #: model:ir.actions.act_window,name:risk_management.business_process_list_action
-#: model:ir.model.fields,field_description:risk_management.field_res_users_business_process_ids
 #: model:ir.ui.menu,name:risk_management.menu_business_process_list
 msgid "Processes"
 msgstr "Processus"

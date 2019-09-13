@@ -88,8 +88,8 @@ msgid "Add partner input"
 msgstr ""
 
 #. module: risk_management
-#: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_business_process_ids
-msgid "Affected Processes"
+#: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_ref_asset_id
+msgid "Affected Asset"
 msgstr ""
 
 #. module: risk_management
@@ -1367,7 +1367,7 @@ msgid "Occurrence(Business)"
 msgstr ""
 
 #. module: risk_management
-#: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_info_business_occurrences
+#: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_info_occurrences
 #: model:ir.ui.view,arch_db:risk_management.view_risk_form
 msgid "Occurrences"
 msgstr ""
@@ -1553,7 +1553,6 @@ msgstr ""
 
 #. module: risk_management
 #: model:ir.actions.act_window,name:risk_management.business_process_list_action
-#: model:ir.model.fields,field_description:risk_management.field_res_users_business_process_ids
 #: model:ir.ui.menu,name:risk_management.menu_business_process_list
 msgid "Processes"
 msgstr ""

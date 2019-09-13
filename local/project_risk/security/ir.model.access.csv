@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_project_risk_project_risk,project_risk.project_risk,model_project_risk_project_risk,project.group_project_user,1,1,1,1
-access_project_risk_evaluation_risk_manager,project_risk.evaluation.risk_manager,model_project_risk_evaluation,risk_management.group_risk_manager,1,1,1,1
-access_project_risk_evaluation_user,project_risk.evaluation.user,model_project_risk_evaluation,project.group_project_user,1,0,0,0
