@@ -63,7 +63,7 @@ class RiskInfo(models.Model):
     dso_help = fields.Html(translate=True, string='Help with eval.')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
-    business_occurrences = fields.Integer(string='Occurrences', compute="_compute_business_occurrences")
+    occurrences = fields.Integer(string='Occurrences', compute="_compute_occurrences")
 
     @api.depends('name')
     def _compute_short_name(self):
@@ -83,10 +83,10 @@ class RiskInfo(models.Model):
                                                   name_get_uid=name_get_uid)
 
     @api.multi
-    def _compute_business_occurrences(self):
+    def _compute_occurrences(self):
         for risk in self:
             br = self.env['risk_management.business_risk'].search([('risk_info_id', '=', risk.id)])
-            risk.business_occurrences = len(br)
+            risk.occurrences = len(br)
 
 
 class RiskCriteriaMixin(models.AbstractModel):
@@ -563,11 +563,7 @@ class BusinessRisk(models.Model):
     company_id = fields.Many2one('res.company', string='Company', required=True, index=True,
                                  default=lambda self: self.env.user.company_id,
                                  help="Company affected by the risk")
-    business_process_ids = fields.Many2many(comodel_name='risk_management.business_process',
-                                            string='Affected Processes',
-                                            relation='risk_management_process_risk_rel', column1='risk_id',
-                                            column2='process_id',
-                                            domain=lambda self: [('company_id', 'child_of', self.company_id.id)])
+    ref_asset_id = fields.Reference(selection='_ref_models', string='Affected Asset')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
     treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id')
@@ -596,13 +592,19 @@ class BusinessRisk(models.Model):
         return super(BusinessRisk, self)._track_subtype(init_values)
 
     @api.model
+    def _ref_models(self):
+        m = self.env['res.request.link'].search(['object', '!=', 'risk_management.business_risk'])
+        return [(x.object, x.name) for x in m]
+
+    @api.model
     def create(self, vals):
         # context: no_log, because subtype already handle this
         context = dict(self.env.context, mail_create_nolog=True)
         existing = self.env[self._name].with_context(active_test=False).search(
             [('risk_info_id', '=', vals.get('risk_info_id')),
-             ('risk_type', '=', vals.get('risk_type', False) or 'T'),
-             ('company_id', '=', vals.get('company_id', False) or self.env.user.company_id.id)])
+             ('risk_type', '=', vals.get('risk_type', 'T')),
+             ('ref_asset_id', '=', vals.get('ref_asset_id', False)),
+             ('company_id', '=', vals.get('company_id', self.env.user.company_id.id))])
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
         ir_model = self.env['ir.model']
@@ -625,8 +627,6 @@ class BusinessRisk(models.Model):
                 })
                 return existing
             else:
-                if 'business_process_ids' in vals:
-                    existing.write({'business_process_ids': vals['business_process_ids']})
                 raise exceptions.UserError(_("This risk has already been reported."))
 
         if vals.get('company_id') and not context.get('default_company_id'):
