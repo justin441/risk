@@ -262,7 +262,8 @@ class RiskIdentificationMixin(models.AbstractModel):
 
     @api.multi
     def _search_active(self, operator, value):
-        # active_test=False in context prevent infinite loop in the search function
+        # active_test=False in context serves to prevent an infinite loop in the search function
+
         recs = self.with_context(active_test=False)
         today = fields.Date.context_today(self)
         if operator not in ('=', '!=') or value not in (1, 0):

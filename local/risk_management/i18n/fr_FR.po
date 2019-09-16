@@ -428,7 +428,7 @@ msgstr "Processus clé?"
 #: model:risk_management.business_risk,risk_info_subcategory:risk_management.business_risk_1
 #: model:risk_management.risk.info,subcategory:risk_management.risk_info_1
 msgid "Country Risk"
-msgstr "Country Risk"
+msgstr "Risque Pays"
 
 #. module: risk_management
 #: model:ir.actions.act_window,help:risk_management.business_process_list_action
@@ -526,12 +526,12 @@ msgstr "Client"
 #. module: risk_management
 #: model:risk_management.business_process.input_output,name:risk_management.customer_invoice_io
 msgid "Customer Invoice"
-msgstr "Customer Invoice"
+msgstr "Facture Client"
 
 #. module: risk_management
 #: model:risk_management.business_process.input_output,name:risk_management.purchase_order_io
 msgid "Customer Purchase Order"
-msgstr "Customer Purchase Order"
+msgstr "Bon de Commande Client"
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.process_data_search
@@ -547,7 +547,7 @@ msgstr "Voix du Client?"
 #: model:risk_management.business_risk,risk_info_subcategory:risk_management.business_risk_2
 #: model:risk_management.risk.info,subcategory:risk_management.risk_info_2
 msgid "Cyclical risk"
-msgstr "Cyclical risk"
+msgstr "Risque conjoncturel"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_risk_info_dso
@@ -570,8 +570,8 @@ msgstr "Tâche quotidienne"
 #: model:risk_management.risk.info,control:risk_management.risk_info_4
 msgid "Daily situation of the current cash position; cash flow forecasts; number of days and amounts of\n"
 "                    anticipated overruns; rate and degree of use of short-term financing schemes"
-msgstr "Daily situation of the current cash position; cash flow forecasts; number of days and amounts of\n"
-"                    anticipated overruns; rate and degree of use of short-term financing schemes"
+msgstr "Situation quotidienne de la situation de trésorerie courante; nombre de jours et montants des dépassements"
+"anticipés éventuels; taux dégré d'usage des dispositifs de financement court terme"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_debit
@@ -592,7 +592,7 @@ msgstr "Supprimer"
 #. module: risk_management
 #: model:risk_management.business_process.input_output,name:risk_management.delivery_form_io
 msgid "Delivery note"
-msgstr "Delivery note"
+msgstr "Bon de livraison"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_risk_info_description
@@ -637,16 +637,16 @@ msgstr "Détectabilité"
 #: model:risk_management.business_risk,risk_info_description:risk_management.business_risk_2
 #: model:risk_management.risk.info,description:risk_management.risk_info_2
 msgid "Deteriorating economic conditions for carrying out business activities"
-msgstr "Deteriorating economic conditions for carrying out business activities"
+msgstr "Dégradation des conditions économiques de réalisation des activités économiques de l'entreprise"
 
 #. module: risk_management
 #: model:risk_management.risk.info,action:risk_management.risk_info_4
 msgid "Development of a precise forecast of cash flow; absolute control of the need in working capital;\n"
 "                    implementation of short term financing solutions (overdraft, factoring, discount); reinforcement of\n"
 "                    equity; setting up an appropriate debt for long-term financing; current account contributions."
-msgstr "Development of a precise forecast of cash flow; absolute control of the need in working capital;\n"
-"                    implementation of short term financing solutions (overdraft, factoring, discount); reinforcement of\n"
-"                    equity; setting up an appropriate debt for long-term financing; current account contributions."
+msgstr "Élaboration d'un prévisionnel précis de trésorerie; maîtrise absolue du besoin en fond de roulement;\n"
+"                    mise en place des solutions de financement CT(découvert, affacturage, escompte); renforcement des\n"
+"                    fonds propres; mise en place d'un endettement approprié de financement long terme; apports en comptes courants."
 
 #. modules: risk_management, project_risk
 #: model:ir.model.fields,field_description:project_risk.field_project_risk_eval_wizard_display_name
@@ -695,7 +695,7 @@ msgstr "Fait"
 #: model:risk_management.business_risk,risk_info_consequence:risk_management.business_risk_1
 #: model:risk_management.risk.info,consequence:risk_management.risk_info_1
 msgid "Economic and financial losses."
-msgstr "Economic and financial losses."
+msgstr "Pertes économiques et financières."
 
 #. module: risk_management
 #: model:risk_management.business_risk,risk_info_category:risk_management.business_risk_2
@@ -782,7 +782,7 @@ msgstr "Info supplémentaires"
 #. module: risk_management
 #: model:risk_management.risk.category,name:risk_management.risk_cat_4
 msgid "Financial risks"
-msgstr "Financial risks"
+msgstr "Risques financières"
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_search
@@ -823,8 +823,8 @@ msgstr "Regrouper par"
 #: model:risk_management.risk.info,control:risk_management.risk_info_2
 msgid "Growth rate of the turnover. Turnover rate of the offer. Failure rate on launching new offers. Fine management\n"
 "                of the company's activity levels (production, storage and consumption cycles)"
-msgstr "Growth rate of the turnover. Turnover rate of the offer. Failure rate on launching new offers. Fine management\n"
-"                of the company's activity levels (production, storage and consumption cycles)"
+msgstr "Taux de croissance du C.A. Taux de rotation de l'offre. Taux d'échec du lancement de nouvelles offres. Pilotage fin\n"
+"                des niveaux d'activité de l'entreprise(cycle de production, de stockage, de consommation)"
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_risk_info_action

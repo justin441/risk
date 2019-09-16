@@ -359,7 +359,7 @@ class BusinessProcessIO(models.Model):
 
     @api.depends('source_part_cat_id', 'ref_input_ids.is_customer_voice')
     def _compute_is_customer_voice(self):
-        """a data is customer voice if it was input by an Customer or if it relays one."""
+        """a data is `customer voice` if it was input by an Customer or if it relays another `customer voice`."""
         customers = self.env[
             'res.partner.category'
         ].search([('id', 'child_of', self.env.ref('risk_management.process_partner_cat_customer').id)])

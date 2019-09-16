@@ -21,6 +21,7 @@ class Project(models.Model):
     def _compute_risk_count(self):
         for project in self:
             project.risk_count = len(project.risk_ids)
+
     @api.multi
     def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
         """ Subscribe to all existing risks when subscribing to a project"""
