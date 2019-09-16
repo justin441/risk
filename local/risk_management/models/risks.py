@@ -682,7 +682,7 @@ class RiskEvaluationMixin(models.AbstractModel):
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')
     eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on',
                             readonly=True)
-    is_valid = fields.Boolean('Valid')
+    is_valid = fields.Boolean('Validated')
 
     @api.depends('review_date')
     def _compute_is_obsolete(self):
