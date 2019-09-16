@@ -402,6 +402,7 @@
                 <field name="severity"/>
                 <field name="occurrence"/>
                 <field name="is_valid"/>
+                <field name="risk_type" invisible="1"/>
                 <field name="threshold_value" invisible="1"/>
                 <field name="is_obsolete" invisible="1"/>
                 <field name="value" invisible="1"/>
