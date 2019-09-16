@@ -2141,7 +2141,7 @@ msgstr "Étape"
 #. module: risk_management
 #: model:risk_management.business_process.input_output,description:risk_management.customer_invoice_io
 msgid "Standard commercial document send to a buyer listing in detail the services or goods that we sold to the customer."
-msgstr "Standard commercial document send to a buyer listing in detail the services or goods that we sold to the customer."
+msgstr "Document commercial standard contenant une liste détaillée des services ou des biens que nous avons vendus au client."
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_status
@@ -2180,9 +2180,9 @@ msgstr "Sous-categorie"
 msgid "Success rate of the marketing of the offer by strategic segment.\n"
 "                Number of strategic segments.\n"
 "                Dimensioning and validated consistency of the strategic business model"
-msgstr "Success rate of the marketing of the offer by strategic segment.\n"
-"                Number of strategic segments.\n"
-"                Dimensioning and validated consistency of the strategic business model"
+msgstr "Taux de réussite de commercialisation de l’offre par segment stratégique.\n"
+"                Nombre de segments stratégiques.\n"
+"                Dimensionnement et cohérence validée du modèle stratégique de l’entreprise."
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.business_process_search_view
@@ -2228,45 +2228,45 @@ msgstr "Tâches"
 msgid "The accounting process is three separate types of transactions used to record business transactions\n"
 "                    in the accounting records. This information is then aggregated into financial statements.\n"
 "                    The transaction types are as follows:"
-msgstr "The accounting process is three separate types of transactions used to record business transactions\n"
-"                    in the accounting records. This information is then aggregated into financial statements.\n"
-"                    The transaction types are as follows:"
+msgstr "Le processus de comptabilisation est constitué de trois types de transactions distincts utilisés pour enregistrer les transactions commerciales \n "
+"dans les enregistrements comptables. Ces informations sont ensuite agrégées dans des états financiers. \n"
+"Les types de transaction sont les suivants:"
 
 #. module: risk_management
 #: code:addons/risk_management/models/process.py:451
 #, python-format
 msgid "The data source cannot be a recipient of the data"
-msgstr "The data source cannot be a recipient of the data"
+msgstr "La source de la donnée ne peut pas faire partie des destinataires de la donnée"
 
 #. module: risk_management
 #: model:risk_management.business_process.input_output,description:risk_management.delivery_form_io
 msgid "The delivery note is a document that is given to the customer indicating the quantity and the nature\n"
 "                    of the goods received by him. It is established at least in 2 signed copies of the parties: the seller\n"
 "                    or the carrier and the recipient customer."
-msgstr "The delivery note is a document that is given to the customer indicating the quantity and the nature\n"
-"                    of the goods received by him. It is established at least in 2 signed copies of the parties: the seller\n"
-"                    or the carrier and the recipient customer."
+msgstr "Le bon de livraison est un document remis au client indiquant la quantité et la nature \n "
+"de la marchandise reçue par lui. Il est établi au moins dans 2 copies signées des parties: le vendeur \n"
+"ou le transporteur et le client destinataire."
 
 #. module: risk_management
 #: model:risk_management.business_process,description:risk_management.delivery_process
 msgid "The delivery process is aimed at controlling, packaging and shipping of goods sold to the destination chosen by the\n"
 "                    customer, in the best conditions of time and costs."
-msgstr "The delivery process is aimed at controlling, packaging and shipping of goods sold to the destination chosen by the\n"
-"                    customer, in the best conditions of time and costs."
+msgstr "Le processus de livraison vise à contrôler, emballer et expédier les marchandises vendues vers la destination choisie par le \ n "
+"client, dans les meilleures conditions de temps et de coûts."
 
 #. module: risk_management
 #: model:risk_management.business_process,description:risk_management.accounting_process
 msgid "The first transaction type is to ensure that reversing entries from the previous period have, in fact, been reversed."
-msgstr "The first transaction type is to ensure that reversing entries from the previous period have, in fact, been reversed."
+msgstr "Le premier type de transaction consiste à s'assurer que les entrées d'annulation de la période précédente ont bien été inversées."
 
 #. module: risk_management
 #: model:risk_management.business_process,description:risk_management.project_charter_dev_process
 msgid "The key benefit of this process is a well-defined project start and project boundaries, creation of a\n"
 "                    formal record of the project, and a direct way for senior management to formally accept and commit to\n"
 "                    the project."
-msgstr "The key benefit of this process is a well-defined project start and project boundaries, creation of a\n"
-"                    formal record of the project, and a direct way for senior management to formally accept and commit to\n"
-"                    the project."
+msgstr "Le principal avantage de ce processus est la définition claire du début et des limites du projet, la création d'un \n "
+"compte rendu officiel du projet et la définition d'un moyen pour la direction d’accepter formellement et de s’engager dans \n"
+"                    le projet."
 
 #. module: risk_management
 #: sql_constraint:risk_management.business_process.input_output:0
@@ -2278,28 +2278,28 @@ msgstr "Le nom de la donnée d'entré/sortie doit être unique au sein d'un mêm
 msgid "The project charter is the document issued by the project initiator or sponsor that formally authorizes\n"
 "                    the existence of the project and provides the Project Manager with the authority to apply organizational\n"
 "                    resources to project activities."
-msgstr "The project charter is the document issued by the project initiator or sponsor that formally authorizes\n"
-"                    the existence of the project and provides the Project Manager with the authority to apply organizational\n"
-"                    resources to project activities."
+msgstr "La charte de projet est le document délivré par l'initiateur du projet ou son sponsor qui autorise formellement \ n "
+"L’existence du projet et donne au responsable du projet le pouvoir d’affecter les ressources de l'organisation \ n"
+"aux activités du projet."
 
 #. module: risk_management
 #: model:risk_management.business_process.input_output,description:risk_management.sales_journal_io
 msgid "The sales journal is the prime entry book used in our accounting system to keep track of the sales of items\n"
 "                that customers(debtors) have purchased on account by charging a receivable on the debit side of an accounts\n"
 "                receivable account and crediting revenue on the credit side."
-msgstr "The sales journal is the prime entry book used in our accounting system to keep track of the sales of items\n"
-"                that customers(debtors) have purchased on account by charging a receivable on the debit side of an accounts\n"
-"                receivable account and crediting revenue on the credit side."
+msgstr "Le journal des ventes est le livre de base utilisé dans notre système comptable pour suivre les ventes des articles \n "
+"que les clients (débiteurs) ont acheté en compte en débitant un compte \n"
+"à recevoir et en créditant un compte produit."
 
 #. module: risk_management
 #: model:risk_management.business_process,description:risk_management.accounting_process
 msgid "The second group is comprised of the steps needed to record individual business transactions in the accounting records."
-msgstr "The second group is comprised of the steps needed to record individual business transactions in the accounting records."
+msgstr "Le deuxième groupe comprend les étapes nécessaires pour enregistrer des transactions commerciales individuelles dans les registres comptables.."
 
 #. module: risk_management
 #: model:risk_management.business_process,description:risk_management.accounting_process
 msgid "The third group is the period-end processing required to close the books and produce financial statements."
-msgstr "The third group is the period-end processing required to close the books and produce financial statements."
+msgstr "Le troisième groupe est le traitement de fin de période requis pour clôturer les livres et produire des états financiers."
 
 #. modules: risk_management, project_risk
 #: model:ir.actions.act_window,help:project_risk.act_project_risk_reg
@@ -2317,31 +2317,31 @@ msgstr "Les processus suivant ne peuvent pas faire partir  des destinataires du 
 #: model:risk_management.business_process.input_output,description:risk_management.quote_req_io
 msgid "This is a standard business document we receive from customers, whose purpose is to invite us into a bidding process to bid on\n"
 "                    specific products or services. RfQ generally means the same thing as Call for bids (CfB) and Invitation for bid (IfB)"
-msgstr "This is a standard business document we receive from customers, whose purpose is to invite us into a bidding process to bid on\n"
-"                    specific products or services. RfQ generally means the same thing as Call for bids (CfB) and Invitation for bid (IfB)"
+msgstr "Ceci est un document commercial standard que nous recevons de nos clients et dont le but est de nous inviter à participer à un appel d'offres pour proposer des \n "
+"produits ou services spécifiques de notre catalogue. 'Demande de prix' signifie généralement la même chose que 'Appel d'offres' et 'Invitation à soumissionner'"
 
 #. module: risk_management
 #: model:risk_management.business_process.input_output,description:risk_management.purchase_order_io
 msgid "This is a standard commercial document and first official offer issued by a buyer to us\n"
 "                    indicating types, quantities, and agreed prices for products or services"
-msgstr "This is a standard commercial document and first official offer issued by a buyer to us\n"
-"                    indicating types, quantities, and agreed prices for products or services"
+msgstr "Il s’agit d’un document commercial standard contenant la première offre officielle émise par un acheteur \n "
+"indiquant les types, les quantités et les prix convenus des produits ou des services"
 
 #. module: risk_management
 #: model:risk_management.business_process,description:risk_management.project_charter_dev_process
 msgid "This process aim at developing a document that formally authorizes the existence of the project and\n"
 "                    provides the Project Manager with the authority to apply organizational resources to project activities."
-msgstr "This process aim at developing a document that formally authorizes the existence of the project and\n"
-"                    provides the Project Manager with the authority to apply organizational resources to project activities."
+msgstr "Ce processus a pour objectif de développer un document qui autorise formellement l’existence du projet et \n "
+"donne au chef de projet le pouvoir d’affecter les ressources de l'organisation aux activités du projet."
 
 #. module: risk_management
 #: model:risk_management.business_process,description:risk_management.sales_process
 msgid "This process is aimed at initiating and supporting the identification and evaluation of likely customers (prospects),\n"
 "                    sales presentation, and successful conclusion of sales activities. It requires a close coordination\n"
 "                    of people, equipment, tools, and techniques, and includes advertising and promotion."
-msgstr "This process is aimed at initiating and supporting the identification and evaluation of likely customers (prospects),\n"
-"                    sales presentation, and successful conclusion of sales activities. It requires a close coordination\n"
-"                    of people, equipment, tools, and techniques, and includes advertising and promotion."
+msgstr "Ce processus vise à initier et à soutenir l’identification et l’évaluation des clients potentiels (prospects), \n "
+"la présentation commerciale et la conclusion réussie des activités de vente. Cela nécessite une étroite coordination \n"
+"des personnes, des équipements, des outils et des techniques, et comprend la publicité et la promotion."
 
 #. module: risk_management
 #: model:ir.model.fields,help:risk_management.field_risk_management_business_process_module
@@ -2471,13 +2471,13 @@ msgstr "Autres risques"
 #. module: risk_management
 #: model:risk_management.risk.info,short_name:risk_management.risk_info_2
 msgid "Unfavorable economic climate impacting the dynamics of the co..."
-msgstr "Unfavorable economic climate impacting the dynamics of the co..."
+msgstr "Conjoncture économique défavorable impactant la dynamique d’activité d..."
 
 #. module: risk_management
 #: model:risk_management.business_risk,risk_info_name:risk_management.business_risk_2
 #: model:risk_management.risk.info,name:risk_management.risk_info_2
 msgid "Unfavorable economic climate impacting the dynamics of the company's activity: inflation, slowdown, GDP decline, unemployment"
-msgstr "Unfavorable economic climate impacting the dynamics of the company's activity: inflation, slowdown, GDP decline, unemployment"
+msgstr "Conjoncture économique défavorable impactant la dynamique d’activité de l’entreprise: inflation, ralentissement, baisse ou régression du PIB, chômage"
 
 #. module: risk_management
 #: selection:project_risk.project_risk,status:0
@@ -2497,8 +2497,8 @@ msgstr "Improbable"
 #: model:risk_management.risk.info,consequence:risk_management.risk_info_4
 msgid "Unpaid bills, cash-flow difficulties, which may lead to a situation of cessation of payments leading to the opening\n"
 "                    of a bankruptcy or liquidation procedure."
-msgstr "Unpaid bills, cash-flow difficulties, which may lead to a situation of cessation of payments leading to the opening\n"
-"                    of a bankruptcy or liquidation procedure."
+msgstr "Impayés, tensions de trésorerie, pouvant conduire à une situation de cessation des paiements engendrant l’ouverture\n"
+" d’une procédure de redressement judiciaire ou de liquidation judiciaire."
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_search
@@ -2611,7 +2611,7 @@ msgstr "Quelle est la capacité de l'entreprise à détecter le problème (ou le
 #: model:risk_management.business_risk,risk_info_consequence:risk_management.business_risk_2
 #: model:risk_management.risk.info,consequence:risk_management.risk_info_2
 msgid "customer insolvency."
-msgstr "customer insolvency."
+msgstr "nsolvabilité clients."
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_kanban
