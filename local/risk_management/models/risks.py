@@ -59,7 +59,7 @@ class RiskInfo(models.Model):
     cause = fields.Html(Translate=True, string='Cause', index=True)
     consequence = fields.Html(translate=True, string='Consequence', index=True)
     control = fields.Html(translate=True, string='Steering / Monitoring')
-    action = fields.Html(translate=True, string='Action / Hedging policy')
+    action = fields.Html(translate=True, string='Actions / Hedging policy')
     dso_help = fields.Html(translate=True, string='Help with eval.')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')

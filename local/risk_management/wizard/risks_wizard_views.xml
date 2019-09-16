@@ -120,7 +120,7 @@
                         <page string="Steering / Monitoring">
                             <field name="risk_info_control"/>
                         </page>
-                        <page string="Action / Hedging policy">
+                        <page string="Actions / Hedging policy">
                             <field name="risk_info_action"/>
                         </page>
                     </notebook>

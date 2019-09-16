@@ -496,7 +496,7 @@ class ProcessDataChannel(models.Model):
 
 class BusinessProcessTask(models.Model):
     _name = 'risk_management.business_process.task'
-    _description = 'An activity in a process'
+    _description = 'A process task'
     _order = 'sequence, name'
     _sql_constraints = [
         (

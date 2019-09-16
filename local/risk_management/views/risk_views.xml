@@ -201,9 +201,9 @@
                 <filter name="my_tasks" string="My tasks"
                         domain="['|', ('owner_id', '=', uid), ('business_process_id.responsible_id', '=', uid)]"/>
                 <filter string="Unassigned" name="unassigned" domain="[('owner_id', '=', False)]"/>
-                <filter string="Daily Task" name="daily" domain="[('frequency', '=', 'daily')]"/>
-                <filter string="Weekly Task" name="weekly" domain="[('frequency', '=', 'weekly')]"/>
-                <filter string="Monthly Task" name="monthly" domain="[('frequency', '=', 'monthly')]"/>
+                <filter string="Daily Tasks" name="daily" domain="[('frequency', '=', 'daily')]"/>
+                <filter string="Weekly Tasks" name="weekly" domain="[('frequency', '=', 'weekly')]"/>
+                <filter string="Monthly Tasks" name="monthly" domain="[('frequency', '=', 'monthly')]"/>
                 <filter string="Annual Task" name="annual" domain="[('frequency', '=', 'annually')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Process" name="process" context="{'group_by': 'business_process_id'}"/>
@@ -895,7 +895,7 @@
                 <header>
                     <button name="add_partner_input"
                             type="object"
-                            string="Add partner input"
+                            string="Add a partner input"
                             class="btn-danger oe_read_only"
                             groups="risk_management.group_manager"
                     />

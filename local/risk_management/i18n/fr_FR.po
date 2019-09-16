@@ -66,7 +66,7 @@ msgstr "Acceptable"
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_help_wizard_risk_info_action
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_info_action
 #: model:ir.ui.view,arch_db:risk_management.view_risk_help_wizard
-msgid "Action / Hedging policy"
+msgid "Actions / Hedging policy"
 msgstr "Actions / Couverture"
 
 #. module: risk_management
@@ -118,7 +118,7 @@ msgstr "Presque impossible"
 
 #. module: risk_management
 #: model:ir.model,name:risk_management.model_risk_management_business_process_task
-msgid "An activity in a process"
+msgid "A process Task"
 msgstr "Une activité dans un processus"
 
 #. module: risk_management

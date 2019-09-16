@@ -168,7 +168,7 @@ class RiskHelpWizard(models.TransientModel):
     risk_info_id = fields.Many2one('risk_management.risk.info', default=_get_default_risk_info, required=True,
                                    ondelete='cascade')
     risk_info_control = fields.Html(translate=True, string='Steering / Monitoring', related='risk_info_id.control')
-    risk_info_action = fields.Html(translate=True, string='Action / Hedging policy', related='risk_info_id.action')
+    risk_info_action = fields.Html(translate=True, string='Actions / Hedging policy', related='risk_info_id.action')
 
     @api.multi
     def write_changes(self):
