@@ -20,7 +20,9 @@ Sponsors
 
 Maintainers
 -----------
-* `NH IT <http://nh-itc.com/>`__
+
+* `Justin Fotue Kamga <fotuejustin441@gmail.com>`__
+* `IT Services SARL <http://nh-itc.com/>`__
 
 Further information
 ===================
@@ -28,4 +30,5 @@ Further information
 - HTML Description: `<doc/doc_risk_management_fr_FR.html>`__
 - Usage instructions: `<doc/Index.rst>`__
 - Changelog: `<doc/changelog.rst>`__
+
 Tested on Odoo 11.0
