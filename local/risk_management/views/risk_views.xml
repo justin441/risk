@@ -471,7 +471,10 @@
                 <field name="risk_info_description"/>
                 <field name="risk_info_cause"/>
                 <field name="risk_info_consequence"/>
-                <filter name="evaluated" string="Evaluated" domain="[('latest_level_value', '!=', 0)]"/>
+                <field name="stage"/>
+                <filter name="unconfirmed" string="waiting for confirmation" domain="[('stage', '=', 'Identification')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('stage', '=', 'Id. Done')]"/>
+                <filter name="evaluated" string="Evaluated" domain="[('stage', '=', 'Eval. Done')]"/>
                 <separator/>
                 <filter name="acceptable" string="Acceptable" domain="[('status', '=', 'A')]"/>
                 <filter name="not_acceptable" string="Unacceptable" domain="[('status', '=', 'N')]"/>
@@ -483,14 +486,9 @@
                 <filter name="my_assigned" string="Assigned to me" domain="[('owner', '=', uid)]"/>
                 <filter name="my_followed" string="Followed by Me" domain="[('message_is_follower','=',True)]"/>
                 <filter name="unassigned" string="Unassigned" domain="[('owner', '=', False)]"/>
-                <filter name="unconfirmed" string="waiting for confirmation" domain="[('is_confirmed', '=', False)]"/>
                 <separator/>
                 <filter name="inactive" string="Latent" domain="[('active', '=', False)]"
                         groups="risk_management.group_risk_manager"/>
-                <separator/>
-                <filter name="unevaluated" string="Un-evaluated" domain="[('latest_level_value', '=', 0)]"/>
-                <filter name="untreated" string="Untreated"
-                        domain="[('latest_level_value', '!=', False), ('treatment_task_id.child_ids', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Category" name="Category" context="{'group_by': 'risk_info_category'}"/>
                     <filter string="Stage" name="Stage" context="{'group_by': 'stage'}"/>
@@ -786,7 +784,7 @@
         <field name="res_model">risk_management.business_risk</field>
         <field name="view_mode">tree,form,kanban,calendar</field>
         <field name="search_view_id" ref="view_business_risk_search"/>
-        <field name="context" eval="{'search_default_evaluated':1}"/>
+        <field name="context" eval="{'search_default_confirmed':1}"/>
         <field name="help" type="html">
             <p class="oe_view_nocontent">
                 There is no risk in this risk register at the moment.

@@ -395,6 +395,7 @@ msgstr "Configuration"
 #: model:ir.model.fields,field_description:risk_management.field_project_risk_project_risk_is_confirmed
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_is_confirmed
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_risk_identification_mixin_is_confirmed
+#: model:ir.ui.view,arch_db:risk_management.view_business_risk_search
 msgid "Confirmed"
 msgstr "Confirmé"
 
@@ -2444,10 +2445,6 @@ msgstr "Tâche de traitement du risque"
 msgid "Type"
 msgstr "Type"
 
-#. module: risk_management
-#: model:ir.ui.view,arch_db:risk_management.view_business_risk_search
-msgid "Un-evaluated"
-msgstr "Non évalué"
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.view_business_risk_search
@@ -2499,11 +2496,6 @@ msgid "Unpaid bills, cash-flow difficulties, which may lead to a situation of ce
 "                    of a bankruptcy or liquidation procedure."
 msgstr "Impayés, tensions de trésorerie, pouvant conduire à une situation de cessation des paiements engendrant l’ouverture\n"
 " d’une procédure de redressement judiciaire ou de liquidation judiciaire."
-
-#. module: risk_management
-#: model:ir.ui.view,arch_db:risk_management.view_business_risk_search
-msgid "Untreated"
-msgstr "Non traité"
 
 #. module: risk_management
 #: model:res.groups,name:risk_management.group_risk_user
