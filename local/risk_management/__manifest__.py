@@ -27,7 +27,7 @@
         'data/risk_categories_data.xml',
         'data/risk_data.xml',
         'data/process_data.xml',
-        # 'data/r_365_risks_db.xml',
+        'data/r_365_risks_db.xml',
         'wizard/risks_wizard_views.xml',
         'views/risk_views.xml',
         'views/risk_templates.xml',
