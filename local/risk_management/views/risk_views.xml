@@ -472,9 +472,9 @@
                 <field name="risk_info_cause"/>
                 <field name="risk_info_consequence"/>
                 <field name="stage"/>
-                <filter name="unconfirmed" string="waiting for confirmation" domain="[('stage', '=', 'Identification')]"/>
-                <filter name="confirmed" string="Confirmed" domain="[('stage', '=', 'Id. Done')]"/>
-                <filter name="evaluated" string="Evaluated" domain="[('stage', '=', 'Eval. Done')]"/>
+                <filter name="unconfirmed" string="waiting for confirmation" domain="[('is_confirmed', '=', False)]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('is_confirmed', '=', True)]"/>
+                <filter name="evaluated" string="Evaluated" domain="[('latest_level_value', '!=', False)]"/>
                 <separator/>
                 <filter name="acceptable" string="Acceptable" domain="[('status', '=', 'A')]"/>
                 <filter name="not_acceptable" string="Unacceptable" domain="[('status', '=', 'N')]"/>
@@ -673,7 +673,7 @@
                                 type="object"
                                 class="oe_stat_button oe_read_only"
                                 icon="fa-tasks"
-                                attrs="{'invisible': ['|', '|', ('owner', '=', False), ('stage', 'not in', ['Eval. Done', 'Treatment', 'Done']), ('treatment_task_id', '=', False)]}"
+                                attrs="{'invisible': ['|', '|', ('owner', '=', False), ('state', 'not in', ['4', '5', '6']), ('treatment_task_id', '=', False)]}"
                         >
                             <field string="Treatment tasks" name="treatment_task_count" widget="statinfo"/>
                         </button>
