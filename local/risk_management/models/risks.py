@@ -213,9 +213,9 @@ class RiskIdentificationMixin(models.AbstractModel):
     status = fields.Selection(selection=[('U', 'Unknown status'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                               compute='_compute_status', string='Status', search='_search_status',
                               track_visibility="onchange")
-    state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage')
+    state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage', compute_sudo=True)
     stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, copy=False,
-                        track_visibility="onchange", translate=True)
+                        track_visibility="onchange", translate=True,  compute_sudo=True)
     priority = fields.Integer('Priority', compute='_compute_priority')
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
         'risk_management.risk_treatment_project'), readonly=True, required=True)
@@ -342,7 +342,8 @@ class RiskIdentificationMixin(models.AbstractModel):
 
         return [('id', 'in', [rec.id for rec in recs])]
 
-    @api.depends('active', 'is_confirmed', 'treatment_task_id', 'treatment_task_count', 'evaluation_ids')
+    @api.depends('active', 'is_confirmed', 'treatment_task_id', 'treatment_task_id.child_ids', 'treatment_task_count',
+                 'evaluation_ids')
     def _compute_stage(self):
         for risk in self:
             # non-obsolete evaluations
@@ -353,6 +354,7 @@ class RiskIdentificationMixin(models.AbstractModel):
 
             if not risk.active:
                 risk.state = False
+                risk.stage = 'New'
             elif not risk.is_confirmed:
                 # risk has been reported but not confirmed
                 risk.state = '1'  # still in identification stage
@@ -379,21 +381,21 @@ class RiskIdentificationMixin(models.AbstractModel):
 
     @api.depends('state')
     def _compute_stage_str(self):
-        for risk_id in self:
-            if not risk_id.state:
-                risk_id.stage = 'New'
-            elif risk_id.state == '1':
-                risk_id.stage = 'Identification'
-            elif risk_id.state == '2':
-                risk_id.stage = 'Id. Done'
-            elif risk_id.state == '3':
-                risk_id.stage = 'Evaluation'
-            elif risk_id.state == '4':
-                risk_id.stage = 'Eval. Done'
-            elif risk_id.state == '5':
-                risk_id.stage = 'Treatment'
-            elif risk_id.state == '6':
-                risk_id.stage = 'Done'
+        for risk in self:
+            if not risk.state:
+                risk.stage = 'New'
+            elif risk.state == '1':
+                risk.stage = 'Identification'
+            elif risk.state == '2':
+                risk.stage = 'Id. Done'
+            elif risk.state == '3':
+                risk.stage = 'Evaluation'
+            elif risk.state == '4':
+                risk.stage = 'Eval. Done'
+            elif risk.state == '5':
+                risk.stage = 'Treatment'
+            elif risk.state == '6':
+                risk.stage = 'Done'
 
     @api.multi
     def get_treatments_view(self):
