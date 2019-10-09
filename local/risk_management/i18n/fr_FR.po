@@ -2624,7 +2624,7 @@ msgstr "project_risk.set_threshold_wizard"
 #: code:addons/risk_management/models/risks.py:241
 #, python-format
 msgid "risk "
-msgstr "risque"
+msgstr "risque "
 
 #. module: risk_management
 #: model:ir.model,name:risk_management.model_risk_management_base_eval_wizard
