@@ -287,6 +287,57 @@ class BusinessProcess(models.Model):
 
         return super(BusinessProcess, self).create(vals)
 
+    @api.multi
+    def unlink(self):
+        analytic_accounts_to_delete = self.env['account.analytic.account']
+        for rec in self:
+            if rec.analytic_account_id and not rec.analytic_account_id.line_ids:
+                analytic_accounts_to_delete |= rec.analytic_account_id
+        res = super(BusinessProcess, self).unlink()
+        if res:
+            analytic_accounts_to_delete.unlink()
+        return res
+
+
+class AccountAnalyticAccount(models.Model):
+    _inherit = 'account.analytic.account'
+    _description = 'Analytic Account'
+
+    business_process_ids = fields.One2many('risk_management.business_process', 'analytic_account_id',
+                                           string='Processes')
+    business_process_count = fields.Integer(compute='_compute_process_count', string='Business Process Count')
+
+    def _compute_process_count(self):
+        for account in self:
+            account.business_process_count = len(account.with_context(active_test=False).business_process_ids)
+
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        if args is None:
+            args = []
+        if self.env.context.get('current_model') == 'risk_management.business_process':
+            return self.search(args + [('name', operator, name)], limit=limit).name_get()
+
+        return super(AccountAnalyticAccount, self).name_search(name, args=args, operator=operator, limit=limit)
+
+    @api.multi
+    def projects_action(self):
+        processes = self.with_context(active_test=False).mapped('business_process_ids')
+        result = {
+            "type": "ir.actions.act_window",
+            "res_model": "risk_management.business_process",
+            "views": [[False, "tree"], [False, "form"]],
+            "domain": [["id", "in", processes.ids]],
+            "context": {"create": False},
+            "name": "Business Processes",
+        }
+        if len(processes) == 1:
+            result['views'] = [(False, "form")]
+            result['res_id'] = processes.id
+        else:
+            result = {'type': 'ir.actions.act_window_close'}
+        return result
+
 
 class BusinessProcessIO(models.Model):
     _name = 'risk_management.business_process.input_output'
