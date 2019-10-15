@@ -321,7 +321,7 @@ class AccountAnalyticAccount(models.Model):
         return super(AccountAnalyticAccount, self).name_search(name, args=args, operator=operator, limit=limit)
 
     @api.multi
-    def projects_action(self):
+    def process_action(self):
         processes = self.with_context(active_test=False).mapped('business_process_ids')
         result = {
             "type": "ir.actions.act_window",
