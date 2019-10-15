@@ -123,7 +123,7 @@ class RiskCriteriaMixin(models.AbstractModel):
     @api.depends('detectability', 'occurrence', 'severity')
     def _compute_value_threat(self):
         """
-       if the risk is a threat, return the product of the criteria score,
+       if the risk is a threat, return the product of the criteria scores,
        """
         for rec in self:
             if rec.detectability or rec.occurrence or rec.severity:
@@ -666,6 +666,15 @@ class BusinessRisk(models.Model):
 
         return risk
 
+    @api.multi
+    def unlink(self):
+        res = super(BusinessRisk, self).unlink()
+        if res:
+            # On deleting a risk, delete all treatment task related to it
+            parent_tasks = self.env['project.task'].search([('business_risk_id', 'in', self.ids)])
+            child_tasks = self.env['project.task'].search([('parent_id', 'in', parent_tasks.ids)])
+            (parent_tasks | child_tasks).unlink()
+        return res
 
 # -------------------------------------- Risk evaluation ----------------------------------
 
