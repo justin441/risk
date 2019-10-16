@@ -176,7 +176,7 @@
 
     <!-- views-->
 
-    <record model="ir.ui.view" id="process_task_all">
+    <record model="ir.ui.view" id="tree_process_task_all">
         <field name="name">process_task.tree</field>
         <field name="model">risk_management.business_process.task</field>
         <field name="arch" type="xml">
@@ -695,14 +695,14 @@
                             <field name="name"/>
                         </h1>
                     </div>
-                    <group>
+                    <group class="oe_edit_only">
                         <field name="risk_info_id"/>
                         <field name="company_id" groups="base.group_multi_company"/>
-                        <field name="ref_asset_id"/>
                     </group>
                     <group>
                         <group>
                             <field name="risk_type"/>
+                            <field name="ref_asset_id"/>
                             <field name="owner"/>
                         </group>
                         <group>
