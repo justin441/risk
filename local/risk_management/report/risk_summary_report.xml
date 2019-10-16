@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="assets_backend_risk" name="Risk Report Asset" inherit_id="web.report_assets_editor">
+        <xpath expr="." position="inside">
+            <script src="/web/static/lib/nvd3/d3.v3.js"></script>
+            <script src="/web/static/lib/nvd3/nv.d3.js"></script>
+            <script type="text/javascript" src="/risk_management/static/src/js/risk_management_timeline.js"/>
+            <link href="/web/static/lib/nvd3/nv.d3.css" rel="stylesheet" type="text/css"></link>
+        </xpath>
+    </template>
+
+    <report
+            id="action_risk_summary"
+            name="risk_management.risk_summary_report"
+            file="risk_management.risk_summary_report"
+            model="risk_management.business_risk"
+            string="Risk Summary"
+            report_type="qweb-html"
+            print_report_name="'Risk report - %s' % (object.name).replace(' ', '_')"
+    />
+
+    <template id="risk_summary_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 t-field="o.name"></h2>
+                        <p t-field="o.risk_info_description"></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <menuitem id="risk_report_menu" name="Report" parent="main_menu_risk_management" sequence="20"/>
+</odoo>
