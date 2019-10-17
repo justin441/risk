@@ -728,6 +728,9 @@ class BusinessRiskEvaluation(models.Model):
     business_risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk', required=True,
                                        ondelete='cascade')
     risk_type = fields.Selection(related='business_risk_id.risk_type', readonly=True)
+    threshold_detectability = fields.Integer(compute='_compute_threshold_criteria', store=True)
+    threshold_occurrence = fields.Integer(compute='_compute_threshold_criteria', store=True)
+    threshold_severity = fields.Integer(compute='_compute_threshold_criteria', store=True)
     threshold_value = fields.Integer(related='business_risk_id.threshold_value', store=True, readonly=True)
     value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
@@ -741,6 +744,14 @@ class BusinessRiskEvaluation(models.Model):
                 rec.value = rec.value_threat
             elif rec.risk_type == 'O':
                 rec.value = rec.value_opportunity
+
+    @api.depends('business_risk_id')
+    def _compute_threshold_criteria(self):
+        for rec in self:
+            rec.threshold_detectability = rec.business_risk_id.detectability
+            rec.threshold_occurrence = rec.business_risk_id.occurrence
+            rec.threshold_severity = rec.business_risk_id.severity
+            rec.threshold_value = rec.business_risk_id.threshold_value
 
     @api.model
     def create(self, vals):
@@ -774,6 +785,13 @@ class BusinessRiskEvaluation(models.Model):
 
     @api.multi
     def write(self, vals):
+        if vals.get('business_risk_id', False):
+            # write the `business_risk_id` field once and never change it
+            for rec in self:
+                if rec.business_risk_id and rec.business_risk_id != vals['business_risk_id']:
+                    exceptions.ValidationError('You cannot change the Risk associated with any evaluation')
+                    break
+
         res = super(BusinessRiskEvaluation, self).write(vals)
         if res and vals.get('is_valid', False):
             res_model_id = self.env['ir.model']._get_id('risk_management.business_risk')
