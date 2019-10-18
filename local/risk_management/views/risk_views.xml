@@ -702,13 +702,15 @@
                     <group>
                         <group>
                             <field name="risk_type"/>
-                            <field name="ref_asset_id"/>
                             <field name="owner"/>
                         </group>
                         <group>
                             <field name="is_confirmed" groups="risk_management.group_risk_manager"/>
                             <field name="review_date"/>
                         </group>
+                    </group>
+                    <group>
+                        <field name="ref_asset_id"/>
                     </group>
                     <group class="oe_read_only">
                         <group>
