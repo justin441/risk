@@ -235,10 +235,13 @@ class RiskIdentificationMixin(models.AbstractModel):
         for risk in self:
             risk.priority = list(sorted_risks).index(risk.id) + 1
 
-    @api.depends('uuid')
+    @api.depends('uuid', 'risk_type')
     def _compute_name(self):
         for rec in self:
-            rec.name = _('risk ') + '#%s' % rec.uuid[:8]
+            if rec.risk_type == 'O':
+                rec.name = _('Opportunity ') + '#%s' % rec.uuid[:8]
+            else:
+                rec.name = _('Threat ') + '#%s' % rec.uuid[:8]
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -757,9 +760,10 @@ class BusinessRiskEvaluation(models.Model):
     def create(self, vals):
         same_day_eval = self.env['risk_management.business_risk.evaluation'].search([
             ('eval_date', '=', fields.Date.context_today(self)),
-            ('business_risk_id', '=', vals['business_risk_id'])
+            ('business_risk_id', '=', vals['business_risk_id']),
+            ('create_uid', '=', self.env.user)
         ])
-        # if another estimation was created the same day, just update it
+        # if another evaluation was created the same day by the same user, just update it
         if same_day_eval.exists():
             vals.update({'is_valid': False})
             if len(same_day_eval.exists()) > 1:
