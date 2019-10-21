@@ -66,7 +66,7 @@ class BaseEvaluationWizard(models.AbstractModel):
         elif self.risk_id.risk_type == 'O':
             inv_detectability_score = [str(x) for x in range(1, 6)]
             opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
-            detectability_opp = opp_detectability_dict.get(self.detectability)
+            detectability_opp = opp_detectability_dict.get(self.detectability, False)
             self.threshold_value = detectability_opp * int(self.occurrence) * int(self.severity)
 
 
@@ -122,7 +122,7 @@ class BaseRiskLevelWizard(models.AbstractModel):
         elif self.risk_id.risk_type == 'O':
             inv_detectability_score = [str(x) for x in range(1, 6)]
             opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
-            detectability_opp = opp_detectability_dict.get(self.detectability)
+            detectability_opp = opp_detectability_dict.get(self.detectability, False)
             self.latest_level = detectability_opp * (int(self.occurrence) or 1) * (int(self.severity) or 1)
 
     @api.depends('risk_id')
