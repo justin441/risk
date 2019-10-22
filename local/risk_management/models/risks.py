@@ -152,7 +152,6 @@ class RiskIdentificationMixin(models.AbstractModel):
     _name = 'risk_management.risk_identification.mixin'
     _inherit = ['risk_management.risk_criteria.mixin', 'mail.thread', 'mail.activity.mixin']
     _mail_post_access = 'read'
-    _order = 'priority asc, report_date desc'
 
     def _compute_default_review_date(self):
         """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days ahead of the report date"""
@@ -216,7 +215,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage', compute_sudo=True)
     stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, copy=False,
                         track_visibility="onchange", translate=True,  compute_sudo=True)
-    priority = fields.Integer('Priority', compute='_compute_priority')
+    priority = fields.Integer('Priority', compute='_compute_priority', store=True)
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
         'risk_management.risk_treatment_project'), readonly=True, required=True)
     treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment',
@@ -235,13 +234,24 @@ class RiskIdentificationMixin(models.AbstractModel):
         for risk in self:
             risk.priority = list(sorted_risks).index(risk.id) + 1
 
+    @api.model
+    def recompute_priorities(self):
+        """Recomputes priorities for all the risks in the database; called after any update that
+        modifies the risk level or the risk threshold
+        """
+        risks = self.env[self._name].with_context(active_test=False).search([]).sorted('create_date')
+        sorted_risks = risks.sorted(lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
+        for risk in risks:
+            risk.priority = list(sorted_risks).index(risk.id) + 1
+
     @api.depends('uuid', 'risk_type')
     def _compute_name(self):
         for rec in self:
-            if rec.risk_type == 'O':
-                rec.name = _('Opportunity ') + '#%s' % rec.uuid[:8]
-            else:
-                rec.name = _('Threat ') + '#%s' % rec.uuid[:8]
+            if rec.uuid:
+                if rec.risk_type == 'O':
+                    rec.name = _('Opportunity ') + '#%s' % rec.uuid[:8]
+                else:
+                    rec.name = _('Threat ') + '#%s' % rec.uuid[:8]
 
     @api.depends('risk_type', 'detectability', 'occurrence', 'severity')
     def _compute_threshold_value(self):
@@ -536,6 +546,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                         rec.treatment_task_id.active = True
                 elif rec.treatment_task_id and rec.treatment_task_id.active:
                     rec.treatment_task_id.active = False
+            self.recompute_priorities()
 
         activity = self.env['mail.activity']
         ir_model = self.env['ir.model']
@@ -570,6 +581,7 @@ class BusinessRisk(models.Model):
     _name = 'risk_management.business_risk'
     _description = 'Business risk'
     _inherit = ['risk_management.risk_identification.mixin']
+    _order = 'priority, create_date desc'
 
     company_id = fields.Many2one('res.company', string='Company', required=True, index=True,
                                  default=lambda self: self.env.user.company_id,
@@ -761,7 +773,7 @@ class BusinessRiskEvaluation(models.Model):
         same_day_eval = self.env['risk_management.business_risk.evaluation'].search([
             ('eval_date', '=', fields.Date.context_today(self)),
             ('business_risk_id', '=', vals['business_risk_id']),
-            ('create_uid', '=', self.env.user)
+            ('create_uid', '=', self.env.user.id)
         ])
         # if another evaluation was created the same day by the same user, just update it
         if same_day_eval.exists():
@@ -771,7 +783,7 @@ class BusinessRiskEvaluation(models.Model):
                 same_day_eval.exists()[1:].unlink()
             same_day_eval = same_day_eval.exists()
             same_day_eval.write(vals)
-            evaluation = same_day_eval.id
+            evaluation = same_day_eval
 
         else:
             evaluation = super(BusinessRiskEvaluation, self).create(vals)
@@ -785,6 +797,7 @@ class BusinessRiskEvaluation(models.Model):
                 'note': '<p>Validate the risk assessment.</p>',
                 'date_deadline': fields.Date.to_string(act_deadline_date)
             })
+        self.env['risk_management.business_risk'].recompute_priorities()
         return evaluation
 
     @api.multi
