@@ -2,10 +2,8 @@
 <odoo>
     <template id="assets_backend_risk" name="Risk Report Asset" inherit_id="web.report_assets_editor">
         <xpath expr="." position="inside">
-            <script src="/web/static/lib/nvd3/d3.v3.js"></script>
-            <script src="/web/static/lib/nvd3/nv.d3.js"></script>
+            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
             <script type="text/javascript" src="/risk_management/static/src/js/risk_management_timeline.js"/>
-            <link href="/web/static/lib/nvd3/nv.d3.css" rel="stylesheet" type="text/css"></link>
         </xpath>
     </template>
 
@@ -23,13 +21,22 @@
         <t t-call="web.html_container">
             <div t-att-data-risk="doc_ids" id="risk_ids">
                 <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
-                    <div class="page">
-                        <h2 t-field="o.name"></h2>
-                        <p t-field="o.risk_info_description"></p>
-                    </div>
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <div class="risk-summary">
+                                <h2 t-field="o.name"></h2>
+                                <p t-field="o.risk_info_description"></p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8 offset-md-2">
+                                   <canvas t-attf-id="risk-{{o.id}}-chart" t-attf-aria-label="{{o.name}}'s timeline" role="img" width="800" height="600">
+                                       
+                                   </canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
                 </t>
-            </t>
             </div>
         </t>
     </template>
