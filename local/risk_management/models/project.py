@@ -60,26 +60,26 @@ class Task(models.Model):
     def write(self, vals):
         res = super(Task, self).write(vals)
         if res and vals.get('active', False):
+            # task has been reactivated
             activity = self.env['mail.activity']
             res_model_id = self.env['ir.model']._get_id('risk_management.business_risk')
             act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
             for rec in self:
                 if rec.business_risk_id:
-                    # close preceding activities
+                    # If it's a risk treatment task: this means the status of the risk changed to `Not acceptable`
+                    # close any preceding activities on business risk
                     activity.search([
                         ('res_id', '=', rec.business_risk_id.id),
                         ('res_model_id', '=', res_model_id),
-                        ('note', 'ilike', 'Select and implement measures to modify risk'),
-                        ('summary', 'ilike', 'Next step in Risk Management')
                     ]).action_done()
 
-                    # Next activity
+                    # Add a new activity
                     rec.business_risk_id.write({
                         'activity_ids': [(0, False, {
                             'res_id': rec.business_risk_id.id,
                             'res_model_id': res_model_id,
                             'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                            'note': '<p>Reassess the  risk to make sure that risk treatment has been effective.</p>',
+                            'note': '<p>Select and implement measures to modify risk.</p>',
                             'date_deadline': fields.Date.to_string(act_deadline_date)
                         })]
                     })
