@@ -446,7 +446,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                 rec.last_evaluator_id = False
             else:
                 # get the latest evaluation
-                latest_evaluation = rec.evaluation_ids.sorted().exists()[0]
+                latest_evaluation = rec.evaluation_ids.exists().sorted()[0]
                 rec.last_evaluate_date = latest_evaluation.eval_date
                 rec.last_evaluator_id = latest_evaluation.create_uid
                 if latest_evaluation.is_obsolete:
@@ -823,7 +823,7 @@ class BusinessRiskEvaluation(models.Model):
                                                    'Assess the probability of risk occurring and its possible impact,'
                                                    'as well as the company\'s ability to detect it should it occur.')
                                                   ]).action_done()
-                if rec.value > rec.threshold_value:
+                if rec.business_risk_id.status == 'N':
                     # add an activity to treat the risk
                     self.env['mail.activity'].create({
                         'res_id': rec.business_risk_id.id,
