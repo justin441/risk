@@ -163,11 +163,11 @@ class RiskIdentificationMixin(models.AbstractModel):
     def _get_stage_select(self):
         return [
             ('1', 'Identification'),
-            ('2', 'Id. done'),
+            ('2', 'Identification done'),
             ('3', 'Evaluation'),
-            ('4', 'Eval. done'),
+            ('4', 'Evaluation done'),
             ('5', 'Treatment'),
-            ('6', 'Done')
+            ('6', 'Treatment done')
         ]
 
     uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)

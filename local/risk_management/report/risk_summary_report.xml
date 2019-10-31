@@ -2,6 +2,10 @@
 <odoo>
     <template id="assets_backend_risk" name="Risk Report Asset" inherit_id="web.report_assets_editor">
         <xpath expr="." position="inside">
+            <link
+                    href="/risk_management/static/src/css/risk_chart.css"
+                    rel="stylesheet" type="text/css"
+            />
             <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
             <script type="text/javascript" src="/risk_management/static/src/js/risk_management_timeline.js"/>
         </xpath>
@@ -12,9 +16,9 @@
             name="risk_management.risk_summary_report"
             file="risk_management.risk_summary_report"
             model="risk_management.business_risk"
-            string="Risk Summary"
+            string="Summary"
             report_type="qweb-html"
-            print_report_name="'Risk report - %s' % (object.name).replace(' ', '_')"
+            print_report_name="'%s_report' % (object.name).replace(' ', '_')"
     />
 
     <template id="risk_summary_report">
@@ -23,22 +27,137 @@
                 <t t-foreach="docs" t-as="o">
                     <t t-call="web.external_layout">
                         <div class="page">
-                            <div class="risk-summary">
-                                <h2 t-field="o.name"></h2>
-                                <p t-field="o.risk_info_description"></p>
+                            <div class="col-xs-4 col-xs-offset-8">
+                                <strong>Printing date:</strong>
+                                <span t-esc="time.strftime('%Y-%m-%d')"
+                                      t-options='{"widget": "date"}'/>
                             </div>
-                            <div class="row">
-                                <div class="col-md-8 offset-md-2">
-                                   <canvas t-attf-id="risk-{{o.id}}-chart" t-attf-aria-label="{{o.name}}'s timeline" role="img" width="800" height="600">
-                                       
-                                   </canvas>
+                            <div class="container" style="margin-top: 20px;">
+                                <h1><t t-esc="o.name"/>'s Report Summary
+                                </h1>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <table class="table">
+                                            <tr>
+                                                <td colspan="2">
+                                                    <dl>
+                                                        <dt>Category:</dt>
+                                                        <dd>
+                                                            <span t-field="o.risk_info_category"/>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                                <td>
+                                                    <dl>
+                                                        <dt>Sub Category:</dt>
+                                                        <dd>
+                                                            <span t-field="o.risk_info_subcategory"/>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <dl>
+                                                        <dt>Reported by:</dt>
+                                                        <dd>
+                                                            <span t-field="o.reported_by"/>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                                <td>
+                                                    <dl>
+                                                        <dt>Assigned to:</dt>
+                                                        <dd>
+                                                            <span t-field="o.owner"/>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                                <td>
+                                                    <dl>
+                                                        <dt>Stage:</dt>
+                                                        <dd>
+                                                            <span t-field="o.state"/>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <dl>
+                                                        <dt>Current Level:</dt>
+                                                        <dd>
+                                                            <t t-if="o.latest_level_value != False">
+                                                                <span t-field="o.latest_level_value"/>
+                                                            </t>
+                                                            <t t-else="">Unknown</t>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                                <td>
+                                                    <dl>
+                                                        <dt>Current Threshold:</dt>
+                                                        <dd>
+                                                            <t t-if="o.threshold_value != False">
+                                                                <span t-field="o.threshold_value"/>
+                                                            </t>
+                                                            <t t-else="">Unknown</t>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                                <td>
+                                                    <dl>
+                                                        <dt>Next review:</dt>
+                                                        <dd>
+                                                            <span t-field="o.review_date"/>
+                                                        </dd>
+                                                    </dl>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
                                 </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <dl>
+                                            <dt>Risk Definition:</dt>
+                                            <dd>
+                                                <span t-field="o.risk_info_name"/>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xs-12">
+                                        <dl>
+                                            <dt>Details:</dt>
+                                            <dd>
+                                                <span t-field="o.risk_info_description"/>
+                                            </dd>
+                                            <dt>Cause(s):</dt>
+                                            <dd>
+                                                <span t-field="o.risk_info_cause"/>
+                                            </dd>
+                                            <dt>Consequence(s)</dt>
+                                            <dd>
+                                                <span t-field="o.risk_info_consequence"/>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="reportGraph">
+                                <canvas t-attf-id="risk-{{o.id}}-chart"
+                                        t-attf-aria-label="{{o.name}}'s timeline" role="img"
+                                >
+                                </canvas>
                             </div>
                         </div>
                     </t>
                 </t>
             </div>
         </t>
+
     </template>
 
     <menuitem id="risk_report_menu" name="Report" parent="main_menu_risk_management" sequence="20"/>
