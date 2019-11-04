@@ -17,23 +17,26 @@ class TestBusinessRisk(TestRiskReportCases):
         })
         risks = br.search([]).sorted('create_date')
         sorted_risks = risks.sorted(lambda rec: rec.latest_level_value - rec.threshold_value)
-        self.assertEqual(list(risks).index(self.business_risk1), 0)
-        self.assertEqual(list(risks).index(self.business_risk2), 1)
-        self.assertEqual(list(risks).index(risk), 2)
-        self.assertEqual(list(sorted_risks).index(self.business_risk1), 0)
-        self.assertEqual(list(sorted_risks).index(self.business_risk2), 1)
-        self.assertEqual(list(sorted_risks).index(risk), 2)
-        self.assertEqual(risk.priority, 3)
-        self.assertEqual(self.business_risk1.priority, 1)
-        self.assertEqual(self.business_risk2.priority, 2)
-        self.business_risk1.write({
-            'detectability': '3',
-            'occurrence': '4',
-            'severity': '3'
-        })
-        self.assertEqual(self.business_risk1.priority, 3)
-        self.assertEqual(self.business_risk2.priority, 1)
-        self.assertEqual(risk.priority, 2)
+        self.assertEqual(list(risks).index(self.business_risk1), self.num_risk)
+        self.assertEqual(list(risks).index(self.business_risk2), self.num_risk + 1)
+        self.assertEqual(list(risks).index(risk), self.num_risk + 2)
+        self.assertEqual(list(sorted_risks).index(self.business_risk1), self.num_risk)
+        self.assertEqual(list(sorted_risks).index(self.business_risk2), self.num_risk + 1)
+        self.assertEqual(list(sorted_risks).index(risk), self.num_risk + 2)
+        self.assertEqual(risk.priority, self.num_risk + 3)
+        self.assertEqual(self.business_risk1.priority, self.num_risk + 1)
+        self.assertEqual(self.business_risk2.priority, self.num_risk + 2)
+
+        if self.num_risk == 0:
+            # for the following to make the database need to be empty prior to the creation of the test data
+            self.business_risk1.write({
+                'detectability': '3',
+                'occurrence': '4',
+                'severity': '3'
+            })
+            self.assertEqual(self.business_risk1.priority, 3)
+            self.assertEqual(self.business_risk2.priority, 1)
+            self.assertEqual(risk.priority, 2)
 
     def test_compute_stage(self):
         """Tests the evolution of the risk through the different stages of risk management"""
