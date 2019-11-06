@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record model="ir.ui.view" id="risk_report_wizard">
+        <field name="name">Business risk profile</field>
+        <field name="model">risk_management.risk_profile.wizard</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Risk Profile Report">
+                <group>
+                    <field name="company_id"/>
+                </group>
+                <group>
+                    <field name="ref_asset_id"/>
+                </group>
+                <footer>
+                    <button name="get_report" string="Get Report" type="object" class="oe_highlight"/>
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <act_window id="action_risk_profile_report_wizard"
+                name="Risk Profile"
+                res_model="risk_management.risk_profile.wizard"
+                view_mode="form"
+                target="new"/>
+
+    <menuitem action="action_risk_profile_report_wizard"
+              id="menu_risk_profile_report_wizard"
+              parent="risk_report_menu"/>
+</odoo>

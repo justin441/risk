@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="assets_backend_risk_profile" name="Risk Report Asset" inherit_id="web.report_assets_editor">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/css" href="/risk_management/static/src/lib/chartjs/Chart.css"/>
+            <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/Chart.js"/>
+        </xpath>
+    </template>
+
+     <report id="action_risk_profile_report"
+            model="risk_management.risk_profile.wizard"
+            string="Risk Profile"
+            report_type="qweb-html"
+            name="risk_management.risk_profile_report"
+            file="risk_management.risk_profile_report"
+            paperformat="paperformat_risk_report"
+            menu="False"/>
+
+    <template id="risk_profile_report">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>
