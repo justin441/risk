@@ -525,6 +525,11 @@ class RiskIdentificationMixin(models.AbstractModel):
             self.invalidate_cache(ids=self.ids)
             updated_self = self.env[self._name].browse(self.ids)
             for rec in updated_self:
+                # update record's latest evaluation's threshold value
+                latest_evaluation = rec.evaluation_ids.exists().sorted()[0]
+                latest_evaluation.write({
+                    "threshold_value": rec.threshold_value
+                })
                 if rec.status == 'N':
                     if not rec.treatment_task_id:
                         task = self.env['project.task'].create({
@@ -746,7 +751,7 @@ class BusinessRiskEvaluation(models.Model):
     threshold_detectability = fields.Integer(compute='_compute_threshold_criteria', store=True)
     threshold_occurrence = fields.Integer(compute='_compute_threshold_criteria', store=True)
     threshold_severity = fields.Integer(compute='_compute_threshold_criteria', store=True)
-    threshold_value = fields.Integer(related='business_risk_id.threshold_value', store=True, readonly=True)
+    threshold_value = fields.Integer(compute='_compute_threshold_criteria', store=True, readonly=True)
     value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
 
     @api.depends('business_risk_id',
@@ -760,7 +765,6 @@ class BusinessRiskEvaluation(models.Model):
             elif rec.risk_type == 'O':
                 rec.value = rec.value_opportunity
 
-    @api.depends('business_risk_id')
     def _compute_threshold_criteria(self):
         for rec in self:
             rec.threshold_detectability = rec.business_risk_id.detectability
