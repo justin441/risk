@@ -32,6 +32,8 @@
         'views/risk_views.xml',
         'views/risk_templates.xml',
         'report/risk_summary_report.xml',
+        'report/risk_profile_wizard.xml',
+        'report/risk_profile_report.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

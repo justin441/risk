@@ -1,8 +1,6 @@
 import logging
 from odoo import models, api
 
-_logger = logging.getLogger(__name__)
-
 
 class RiskSummaryReport(models.AbstractModel):
     _name = 'report.risk_management.risk_summary_report'

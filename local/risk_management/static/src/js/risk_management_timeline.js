@@ -4,22 +4,22 @@ odoo.define('risk_management.timeline_graph', function (require) {
     require('web.dom_ready');
     let ajax = require('web.ajax');
 
-     // wkhtmltopdf 0.12.5 crash fix.
+    // wkhtmltopdf 0.12.5 crash fix.
     // https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
     (function (setLineDash) {
-      CanvasRenderingContext2D.prototype.setLineDash = function () {
-        if (!arguments[0].length) {
-          arguments[0] = [1, 0];
-        }
-        // Now, call the original method
-        return setLineDash.apply(this, arguments);
-      };
+        CanvasRenderingContext2D.prototype.setLineDash = function () {
+            if (!arguments[0].length) {
+                arguments[0] = [1, 0];
+            }
+            // Now, call the original method
+            return setLineDash.apply(this, arguments);
+        };
     })(CanvasRenderingContext2D.prototype.setLineDash);
     Function.prototype.bind = Function.prototype.bind || function (thisp) {
-      var fn = this;
-      return function () {
-        return fn.apply(thisp, arguments);
-      };
+        var fn = this;
+        return function () {
+            return fn.apply(thisp, arguments);
+        };
     };
 
     // risks ids
@@ -208,7 +208,6 @@ odoo.define('risk_management.timeline_graph', function (require) {
         risks.forEach(function (risk) {
 
             if (risk.evaluations.length === 0) {
-                console.log(risk);
             } else {
                 chartRisk(risk);
             }
@@ -232,7 +231,6 @@ odoo.define('risk_management.timeline_graph', function (require) {
         // Firefox 68 - 70 does not seem to be able to parse eval_date into a Date object
         let evalDataStr = JSON.stringify(data);
         let evalData = JSON.parse(evalDataStr);
-        console.log(evalData);
         let risk_data = [];
         risk_ids.forEach(function (risk_id) {
             let risk = {id: risk_id, name: "", evaluations: []};
