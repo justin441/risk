@@ -2,14 +2,27 @@
 <odoo>
     <template id="assets_backend_risk" name="Risk Report Asset" inherit_id="web.report_assets_editor">
         <xpath expr="." position="inside">
-            <link
-                    href="/risk_management/static/src/css/risk_chart.css"
-                    rel="stylesheet" type="text/css"
-            />
-            <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+            <link rel="stylesheet" type="text/css" href="/risk_management/static/src/lib/chartjs/Chart.css"/>
+            <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/Chart.js"/>
             <script type="text/javascript" src="/risk_management/static/src/js/risk_management_timeline.js"/>
         </xpath>
     </template>
+
+    <record model="report.paperformat" id="paperformat_risk_report">
+        <field name="name">paperformat.risk.report</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_width">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">30</field>
+        <field name="margin_right">5</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">20</field>
+        <field name="dpi">90</field>
+    </record>
 
     <report
             id="action_risk_summary"
@@ -19,6 +32,7 @@
             string="Summary"
             report_type="qweb-html"
             print_report_name="'%s_report' % (object.name).replace(' ', '_')"
+            paperformat="paperformat_risk_report"
     />
 
     <template id="risk_summary_report">
@@ -27,14 +41,16 @@
                 <t t-foreach="docs" t-as="o">
                     <t t-call="web.external_layout">
                         <div class="page">
-                            <div class="col-xs-4 col-xs-offset-8">
+                            <div class="container" style="margin-top: 20px;">
+                                <h1><t t-esc="o.name"/>'s Report Summary
+                                </h1>
+                                <div class="row">
+                                    <div class="col-xs-4 col-xs-offset-8">
                                 <strong>Printing date:</strong>
                                 <span t-esc="time.strftime('%Y-%m-%d')"
                                       t-options='{"widget": "date"}'/>
                             </div>
-                            <div class="container" style="margin-top: 20px;">
-                                <h1><t t-esc="o.name"/>'s Report Summary
-                                </h1>
+                                </div>
                                 <div class="row">
                                     <div class="col-xs-12">
                                         <table class="table">
@@ -145,12 +161,12 @@
                                         </dl>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="reportGraph">
-                                <canvas t-attf-id="risk-{{o.id}}-chart"
-                                        t-attf-aria-label="{{o.name}}'s timeline" role="img"
-                                >
-                                </canvas>
+                                <div id="image-holder" style="height:440; width:850;">
+                                    <canvas t-attf-id="risk-{{o.id}}-chart"
+                                            t-attf-aria-label="{{o.name}}'s timeline" role="img"
+                                    >
+                                    </canvas>
+                                </div>
                             </div>
                         </div>
                     </t>
