@@ -7,7 +7,7 @@
         </xpath>
     </template>
 
-     <report id="action_risk_profile_report"
+    <report id="action_risk_profile_report"
             model="risk_management.risk_profile.wizard"
             string="Risk Profile"
             report_type="qweb-html"
@@ -18,12 +18,110 @@
 
     <template id="risk_profile_report">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
-                    <div class="page">
-
+            <t t-call="web.external_layout">
+                <div class="page" t-att-data-risks="risk_ids">
+                    <h1 class="text-center">Risk Profile</h1>
+                    <div class="row">
+                        <dt class="col-md-4">Company:</dt>
+                        <dd class="col-md-8">
+                            <t t-esc="company_name"/>
+                        </dd>
                     </div>
-                </t>
+                    <t t-if="asset_name">
+                        <div class="row">
+                            <dt class="col-md-4">Asset:</dt>
+                            <dd class="col-md-8">
+                                <t t-esc="asset_name"/>
+                            </dd>
+                        </div>
+                        <div class="row">
+                            <dt class="col-md-4">Asset Type</dt>
+                            <dd class="col-md-8">
+                                <t t-esc="asset_type"/>
+                            </dd>
+                        </div>
+                    </t>
+
+                    <h3>Summary</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center">Active risks</th>
+                                <th scope="col" class="text-center">Confirmed risks</th>
+                                <th scope="col" class="text-center">Unacceptable risks</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <td>
+                                <t t-esc="summary['total_num']"/>
+                            </td>
+                            <td>
+                                <t t-esc="summary['confirmed_num']"/>
+                            </td>
+                            <td>
+                                <strong>
+                                    <t t-esc="summary['unacceptable_num']"/>
+                                </strong>
+                            </td>
+                        </tbody>
+                    </table>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="per-category-pie"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="per-stage-pie"></canvas>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <canvas id="treatment-task-bar"></canvas>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <th class="text-center" style="width: 5%">Priority</th>
+                            <th class="text-center" style="width: 65%">Description</th>
+                            <th class="text-center" style="width: 10%">Type</th>
+                            <th class="text-center" style="width: 10%">Threshold</th>
+                            <th class="text-center" style="width: 10%">Level</th>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="docs" t-as="doc">
+                                <tr>
+                                    <th scope="row" class="text-center">#
+                                        <t t-esc="doc.priority"/>
+                                    </th>
+                                    <td>
+                                        <span t-field="doc.risk_info_description"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="doc.risk_type"/>
+                                    </td>
+                                    <td t-if="doc.threshold_value == 0" class="warning text-center">N/A</td>
+                                    <td t-elif="doc.status == 'U'" class="text-center">
+                                        <span t-field="doc.threshold_value"/>
+                                    </td>
+                                    <td t-else="" class="info text-center">
+                                        <span t-field="doc.threshold_value"/>
+                                    </td>
+                                    <td t-if="doc.latest_level_value == 0" class="warning text-center">N/A</td>
+                                    <td t-elif="doc.status == 'U'" class="text-center">
+                                        <span t-field="doc.latest_level_value"/>
+                                    </td>
+                                    <td t-elif="doc.status == 'N'" class="danger text-center">
+                                        <span t-field="doc.latest_level_value"/>
+                                    </td>
+                                    <td t-elif="doc.status == 'A'" class="success text-center">
+                                        <span t-field="doc.latest_level_value"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                </div>
             </t>
         </t>
     </template>

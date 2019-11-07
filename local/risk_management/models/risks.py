@@ -197,9 +197,9 @@ class RiskIdentificationMixin(models.AbstractModel):
     is_confirmed = fields.Boolean('Confirmed', states={'3': [('readonly', True)], '4': [('readonly', True)],
                                                        '5': [('readonly', True)], '6': [('readonly', True)]},
                                   track_visibility="onchange")
-    threshold_value = fields.Integer(compute='_compute_threshold_value', string='Risk threshold', store=True,
+    threshold_value = fields.Integer(compute='_compute_threshold_value', string='Threshold', store=True,
                                      track_visibility="onchange")
-    latest_level_value = fields.Integer(compute='_compute_latest_eval', string='Risk Level', store=True,
+    latest_level_value = fields.Integer(compute='_compute_latest_eval', string='Level', store=True,
                                         track_visibility="onchange")
     last_evaluator_id = fields.Many2one('res.users', compute='_compute_latest_eval', string='Evaluated by', store=True)
     max_level_value = fields.Integer(default=125, readonly=True, string='Max. Level')

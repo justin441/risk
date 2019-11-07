@@ -43,11 +43,21 @@ class RiskProfileReport(models.AbstractModel):
         if asset_id:
             asset_repr = asset_type + ',' + str(asset_id)  # asset representation in risk model
             risks = risks.search([('asset', '=', asset_repr)])
+        profile_summary = {
+            'total_num': len(risks),
+            'confirmed_num': len(risks.filtered('is_confirmed')),
+            'unacceptable_num': len(risks.filtered(lambda r: r.status == 'N'))
+        }
         return {
             'doc_ids': data['ids'],
             'doc_model': data['model'],
             'docs': risks,
-            'user_lang': self.env.user.lang
+            'risk_ids': risks.ids,
+            'user_lang': self.env.user.lang,
+            'company_name': self.env['res.company'].browse(company_id).name,
+            'asset_name': self.env[asset_type].browse(asset_id).name if asset_type else False,
+            'asset_type': self.env[asset_type].browse(asset_id)._description if asset_type else False,
+            'summary': profile_summary
         }
 
 
