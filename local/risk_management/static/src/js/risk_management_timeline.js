@@ -23,7 +23,7 @@ odoo.define('risk_management.timeline_graph', function (require) {
     };
 
     // risks ids
-    let risk_ids = $('#risk-ids').data('risk');
+    let risk_ids = $('#risk-ids').data('risk') || [];
 
     const render_chart = function (risks) {
         Chart.defaults.global.elements.line.fill = false;
