@@ -45,8 +45,16 @@ class RiskProfileReport(models.AbstractModel):
             risks = risks.search([('asset', '=', asset_repr)])
         profile_summary = {
             'total_num': len(risks),
+            'total_threat_num': len(risks.filtered(lambda r: r.risk_type == 'T')),
+            'total_opp_num': len(risks.filtered(lambda r: r.risk_type == 'O')),
             'confirmed_num': len(risks.filtered('is_confirmed')),
-            'unacceptable_num': len(risks.filtered(lambda r: r.status == 'N'))
+            'confirmed_threat_num': len(risks.filtered('is_confirmed').filtered(lambda r: r.risk_type == 'T')),
+            'confirmed_opp_num': len(risks.filtered('is_confirmed').filtered(lambda r: r.risk_type == 'O')),
+            'unacceptable_num': len(risks.filtered(lambda r: r.status == 'N')),
+            'unacceptable_threat_num': len(risks.filtered(lambda r: r.status == 'N').filtered(
+                lambda r: r.risk_type == 'T')),
+            'unacceptable_opp_num': len(risks.filtered(lambda r: r.status == 'N').filtered(
+                lambda r: r.risk_type == 'O')),
         }
         return {
             'doc_ids': data['ids'],

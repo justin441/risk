@@ -47,30 +47,82 @@
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th scope="col" class="text-center">Active risks</th>
-                                <th scope="col" class="text-center">Confirmed risks</th>
-                                <th scope="col" class="text-center">Unacceptable risks</th>
+                                <th scope="col" colspan="3" class="text-center">Active risks</th>
+                                <th scope="col" colspan="3" class="text-center">Confirmed risks</th>
+                                <th scope="col" colspan="3" class="text-center">Unacceptable risks</th>
                             </tr>
                         </thead>
                         <tbody class="text-center">
+                            <tr>
+                                <th class="text-center" scope="col">
+                                    <em>Total</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Threats</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Opportunities</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Total</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Threats</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Opportunities</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Total</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Threats</em>
+                                </th>
+                                <th class="text-center" scope="col">
+                                    <em>Opportunities</em>
+                                </th>
+                            </tr>
                             <td>
                                 <t t-esc="summary['total_num']"/>
+                            </td>
+                            <td>
+                                <t t-esc="summary['total_threat_num']"/>
+                            </td>
+                            <td>
+                                <t t-esc="summary['total_opp_num']"/>
                             </td>
                             <td>
                                 <t t-esc="summary['confirmed_num']"/>
                             </td>
                             <td>
-                                <strong>
-                                    <t t-esc="summary['unacceptable_num']"/>
-                                </strong>
+                                <t t-esc="summary['confirmed_threat_num']"/>
+                            </td>
+                            <td>
+                                <t t-esc="summary['confirmed_opp_num']"/>
+                            </td>
+                            <td>
+                                <t t-esc="summary['unacceptable_num']"/>
+
+                            </td>
+                            <td>
+
+                                <t t-esc="summary['unacceptable_threat_num']"/>
+
+                            </td>
+                            <td>
+
+                                <t t-esc="summary['unacceptable_opp_num']"/>
+
                             </td>
                         </tbody>
                     </table>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <canvas id="per-category-pie"></canvas>
                         </div>
-                        <div class="col-md-6">
+                    </div>
+                    <div class="row">
+                         <div class="col-md-12">
                             <canvas id="per-stage-pie"></canvas>
                         </div>
                     </div>
@@ -82,8 +134,8 @@
 
                     <table class="table table-bordered">
                         <thead>
-                            <th class="text-center" style="width: 5%">Priority</th>
-                            <th class="text-center" style="width: 65%">Description</th>
+                            <th class="text-center" style="width: 10%">Priority</th>
+                            <th class="text-center" style="width: 60%">Description</th>
                             <th class="text-center" style="width: 10%">Type</th>
                             <th class="text-center" style="width: 10%">Threshold</th>
                             <th class="text-center" style="width: 10%">Level</th>
@@ -91,8 +143,9 @@
                         <tbody>
                             <t t-foreach="docs" t-as="doc">
                                 <tr>
-                                    <th scope="row" class="text-center">#
-                                        <t t-esc="doc.priority"/>
+                                    <t t-set="num" t-value="'#' + str(doc.priority)"/>
+                                    <th scope="row" class="text-center">
+                                        <t t-esc="num"/>
                                     </th>
                                     <td>
                                         <span t-field="doc.risk_info_description"/>
