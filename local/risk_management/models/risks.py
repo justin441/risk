@@ -53,9 +53,11 @@ class RiskInfo(models.Model):
     risk_category_id = fields.Many2one(comodel_name='risk_management.risk.category', string='Category',
                                        ondelete='restrict', required=True)
     subcategory = fields.Char(translate=True, string='Sub-category')
-    name = fields.Char(translate=True, index=True, copy=False, required=True, string='Name')
+    name = fields.Char(translate=True, index=True,
+                       copy=False, required=True, string='Name')
     short_name = fields.Char(translate=True, compute='_compute_short_name')
-    description = fields.Html(translate=True, string='Description', required=True)
+    description = fields.Html(
+        translate=True, string='Description', required=True)
     cause = fields.Html(Translate=True, string='Cause', index=True)
     consequence = fields.Html(translate=True, string='Consequence', index=True)
     control = fields.Html(translate=True, string='Steering / Monitoring')
@@ -63,7 +65,8 @@ class RiskInfo(models.Model):
     dso_help = fields.Html(translate=True, string='Help with eval.')
     business_risk_ids = fields.One2many(comodel_name='risk_management.business_risk', inverse_name='risk_info_id',
                                         string='Occurrence(Business)')
-    occurrences = fields.Integer(string='Occurrences', compute="_compute_occurrences")
+    occurrences = fields.Integer(
+        string='Occurrences', compute="_compute_occurrences")
 
     @api.depends('name')
     def _compute_short_name(self):
@@ -78,14 +81,16 @@ class RiskInfo(models.Model):
         """Searches risk by name or description"""
         args = [] if args is None else args.copy()
         if not (name == '' and operator == 'ilike'):
-            args += ['|', ('name', operator, name), ('description', operator, name)]
+            args += ['|', ('name', operator, name),
+                     ('description', operator, name)]
         return super(RiskInfo, self)._name_search(name='', args=args, operator='ilike', limit=limit,
                                                   name_get_uid=name_get_uid)
 
     @api.multi
     def _compute_occurrences(self):
         for risk in self:
-            br = self.env['risk_management.business_risk'].search([('risk_info_id', '=', risk.id)])
+            br = self.env['risk_management.business_risk'].search(
+                [('risk_info_id', '=', risk.id)])
             risk.occurrences = len(br)
 
 
@@ -94,17 +99,20 @@ class RiskCriteriaMixin(models.AbstractModel):
 
     @api.model
     def _get_detectability(self):
-        levels = [_('Continuous'), _('High'), _('Average'), _('Low'), _('Minimal')]
+        levels = [_('Continuous'), _('High'), _(
+            'Average'), _('Low'), _('Minimal')]
         return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     @api.model
     def _get_occurrence(self):
-        levels = [_('Almost impossible'), _('Unlikely'), _('Probable'), _('Very probable'), _('Almost certain')]
+        levels = [_('Almost impossible'), _('Unlikely'), _(
+            'Probable'), _('Very probable'), _('Almost certain')]
         return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     @api.model
     def _get_severity(self):
-        levels = [_('Low'), _('Average'), _('High'), _('Very High'), _('Maximal')]
+        levels = [_('Low'), _('Average'), _('High'),
+                  _('Very High'), _('Maximal')]
         return [(str(x), y) for x, y in enumerate(levels, 1)]
 
     detectability = fields.Selection(selection=_get_detectability, string='Detectability',
@@ -127,7 +135,8 @@ class RiskCriteriaMixin(models.AbstractModel):
        """
         for rec in self:
             if rec.detectability or rec.occurrence or rec.severity:
-                rec.value_threat = (int(rec.detectability) or 1) * (int(rec.occurrence) or 1) * (int(rec.severity) or 1)
+                rec.value_threat = (int(rec.detectability) or 1) * \
+                    (int(rec.occurrence) or 1) * (int(rec.severity) or 1)
             else:
                 rec.value_threat = False
 
@@ -139,24 +148,29 @@ class RiskCriteriaMixin(models.AbstractModel):
         threat case where the higher the ability to detect the threat occurrence the less the risk factor
         """
         inv_detectability_score = [str(x) for x in range(1, 6)]
-        opp_detectability_dict = dict((x, y) for x, y in zip(inv_detectability_score, range(5, 0, -1)))
+        opp_detectability_dict = dict((x, y) for x, y in zip(
+            inv_detectability_score, range(5, 0, -1)))
         for rec in self:
             if rec.detectability or rec.occurrence or rec.severity:
-                detectability_opp = opp_detectability_dict.get(rec.detectability, 1)
-                rec.value_opportunity = detectability_opp * (int(rec.occurrence) or 1) * (int(rec.severity) or 1)
+                detectability_opp = opp_detectability_dict.get(
+                    rec.detectability, 1)
+                rec.value_opportunity = detectability_opp * \
+                    (int(rec.occurrence) or 1) * (int(rec.severity) or 1)
             else:
                 rec.value_opportunity = False
 
 
 class RiskIdentificationMixin(models.AbstractModel):
     _name = 'risk_management.risk_identification.mixin'
-    _inherit = ['risk_management.risk_criteria.mixin', 'mail.thread', 'mail.activity.mixin']
+    _inherit = ['risk_management.risk_criteria.mixin',
+                'mail.thread', 'mail.activity.mixin']
     _mail_post_access = 'read'
 
     def _compute_default_review_date(self):
         """By default the review date is RISK_REPORT_DEFAULT_MAX_AGE days ahead of the report date"""
         create_date = fields.Date.from_string(fields.Date.context_today(self))
-        default_review_date = create_date + datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
+        default_review_date = create_date + \
+            datetime.timedelta(days=RISK_REPORT_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
     @api.model
@@ -170,8 +184,10 @@ class RiskIdentificationMixin(models.AbstractModel):
             ('6', 'Treatment done')
         ]
 
-    uuid = fields.Char(default=lambda self: str(uuid.uuid4()), readonly=True, required=True)
-    name = fields.Char(compute='_compute_name', index=True, readonly=True, store=True, rack_visibility="always")
+    uuid = fields.Char(default=lambda self: str(
+        uuid.uuid4()), readonly=True, required=True)
+    name = fields.Char(compute='_compute_name', index=True,
+                       readonly=True, store=True, rack_visibility="always")
     risk_type = fields.Selection(selection=(('T', 'Threat'), ('O', 'Opportunity')), string='Type', default='T',
                                  required=True, track_visibility="onchange",
                                  states={'4': [('readonly', True)], '5': [('readonly', True)],
@@ -182,18 +198,28 @@ class RiskIdentificationMixin(models.AbstractModel):
                                            '6': [('readonly', True)]
                                            },
                                    )
-    risk_info_name = fields.Char('Risk Title', related='risk_info_id.name', readonly=True, store=True)
+    risk_info_name = fields.Char(
+        'Risk Title', related='risk_info_id.name', readonly=True, store=True)
     risk_info_category = fields.Char('Risk Category', related='risk_info_id.risk_category_id.name', readonly=True,
                                      store=True)
-    risk_info_subcategory = fields.Char('Sub-category', related='risk_info_id.subcategory', readonly=True)
-    risk_info_description = fields.Html('Description', related='risk_info_id.description', readonly=True)
-    risk_info_cause = fields.Html('Cause', related='risk_info_id.cause', readonly=True)
-    risk_info_consequence = fields.Html('Consequence', related='risk_info_id.consequence', readonly=True)
-    risk_info_control = fields.Html('Monitoring', related='risk_info_id.control', readonly=True)
-    risk_info_action = fields.Html('Hedging strategy', related='risk_info_id.action', readonly=True)
-    risk_info_dso = fields.Html('DSO', related='risk_info_id.dso_help', readonly=True)
-    report_date = fields.Date(string='Reported On', default=fields.Date.context_today, required=True)
-    reported_by = fields.Many2one(comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
+    risk_info_subcategory = fields.Char(
+        'Sub-category', related='risk_info_id.subcategory', readonly=True)
+    risk_info_description = fields.Html(
+        'Description', related='risk_info_id.description', readonly=True)
+    risk_info_cause = fields.Html(
+        'Cause', related='risk_info_id.cause', readonly=True)
+    risk_info_consequence = fields.Html(
+        'Consequence', related='risk_info_id.consequence', readonly=True)
+    risk_info_control = fields.Html(
+        'Monitoring', related='risk_info_id.control', readonly=True)
+    risk_info_action = fields.Html(
+        'Hedging strategy', related='risk_info_id.action', readonly=True)
+    risk_info_dso = fields.Html(
+        'DSO', related='risk_info_id.dso_help', readonly=True)
+    report_date = fields.Date(string='Reported On',
+                              default=fields.Date.context_today, required=True)
+    reported_by = fields.Many2one(
+        comodel_name='res.users', string='Reported by', default=lambda self: self.env.user)
     is_confirmed = fields.Boolean('Confirmed', states={'3': [('readonly', True)], '4': [('readonly', True)],
                                                        '5': [('readonly', True)], '6': [('readonly', True)]},
                                   track_visibility="onchange")
@@ -201,10 +227,14 @@ class RiskIdentificationMixin(models.AbstractModel):
                                      track_visibility="onchange")
     latest_level_value = fields.Integer(compute='_compute_latest_eval', string='Level', store=True,
                                         track_visibility="onchange")
-    last_evaluator_id = fields.Many2one('res.users', compute='_compute_latest_eval', string='Evaluated by', store=True)
-    max_level_value = fields.Integer(default=125, readonly=True, string='Max. Level')
-    last_evaluate_date = fields.Date(compute='_compute_latest_eval', string='Last Evaluation Date', store=True)
-    review_date = fields.Date(default=_compute_default_review_date, string="Review Date", track_visibility="onchange")
+    last_evaluator_id = fields.Many2one(
+        'res.users', compute='_compute_latest_eval', string='Evaluated by', store=True)
+    max_level_value = fields.Integer(
+        default=125, readonly=True, string='Max. Level')
+    last_evaluate_date = fields.Date(
+        compute='_compute_latest_eval', string='Last Evaluation Date', store=True)
+    review_date = fields.Date(default=_compute_default_review_date,
+                              string="Review Date", track_visibility="onchange")
     owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
                             track_visibility="onchange")
     active = fields.Boolean('Active', compute='_compute_active', inverse='_inverse_active', search='_search_active',
@@ -212,15 +242,18 @@ class RiskIdentificationMixin(models.AbstractModel):
     status = fields.Selection(selection=[('U', 'Unknown status'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
                               compute='_compute_status', string='Status', search='_search_status',
                               track_visibility="onchange")
-    state = fields.Selection(selection=_get_stage_select, compute='_compute_stage', string='Stage', compute_sudo=True)
+    state = fields.Selection(selection=_get_stage_select,
+                             compute='_compute_stage', string='Stage', compute_sudo=True)
     stage = fields.Char(compute='_compute_stage_str', string='Stage', store=True, copy=False,
                         track_visibility="onchange", translate=True,  compute_sudo=True)
-    priority = fields.Integer('Priority', compute='_compute_priority', store=True)
+    priority = fields.Integer(
+        'Priority', compute='_compute_priority', store=True)
     treatment_project_id = fields.Many2one('project.project', default=lambda self: self.env.ref(
         'risk_management.risk_treatment_project'), readonly=True, required=True)
     treatment_task_id = fields.Many2one('project.task', string='Treatment Task', compute='_compute_treatment',
                                         inverse='_inverse_treatment', store=True)
-    treatment_task_count = fields.Integer(related='treatment_task_id.subtask_count', string='Risk Treatment Tasks')
+    treatment_task_count = fields.Integer(
+        related='treatment_task_id.subtask_count', string='Risk Treatment Tasks')
 
     @api.onchange('owner')
     def _onchange_owner(self):
@@ -229,8 +262,10 @@ class RiskIdentificationMixin(models.AbstractModel):
 
     @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
-        risks = self.env[self._name].with_context(active_test=False).search([]).sorted('create_date')
-        sorted_risks = risks.sorted(lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
+        risks = self.env[self._name].with_context(
+            active_test=False).search([]).sorted('create_date')
+        sorted_risks = risks.sorted(
+            lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
         for risk in self:
             risk.priority = list(sorted_risks).index(risk.id) + 1
 
@@ -239,8 +274,10 @@ class RiskIdentificationMixin(models.AbstractModel):
         """Recomputes priorities for all the risks in the database; called after any update that
         modifies the risk level or the risk threshold
         """
-        risks = self.env[self._name].with_context(active_test=False).search([]).sorted('create_date')
-        sorted_risks = risks.sorted(lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
+        risks = self.env[self._name].with_context(
+            active_test=False).search([]).sorted('create_date')
+        sorted_risks = risks.sorted(
+            lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
         for risk in risks:
             risk.priority = list(sorted_risks).index(risk.id) + 1
 
@@ -317,19 +354,19 @@ class RiskIdentificationMixin(models.AbstractModel):
             # is the risk acceptable?
             if rec.risk_type == 'T':
                 return rec.active and rec.latest_level_value and rec.threshold_value and \
-                       rec.latest_level_value <= rec.threshold_value
+                    rec.latest_level_value <= rec.threshold_value
             elif rec.risk_type == 'O':
                 return rec.active and rec.latest_level_value and rec.threshold_value and \
-                       rec.threshold_value <= rec.latest_level_value
+                    rec.threshold_value <= rec.latest_level_value
 
         def unacceptable(rec):
             # is the risk unacceptable?
             if rec.risk_type == 'T':
                 return rec.active and rec.latest_level_value and rec.threshold_value and \
-                       rec.latest_level_value > rec.threshold_value
+                    rec.latest_level_value > rec.threshold_value
             elif rec.risk_type == 'O':
                 return rec.active and rec.latest_level_value and rec.threshold_value and \
-                       rec.threshold_value > rec.latest_level_value
+                    rec.threshold_value > rec.latest_level_value
 
         def unknown_status(rec):
             # is the risk status unknown?
@@ -347,11 +384,14 @@ class RiskIdentificationMixin(models.AbstractModel):
                     recs = recs.filtered(unknown_status)
             if operator == '!=':
                 if value == 'A':
-                    recs = recs.filtered(unacceptable) | recs.filtered(unknown_status)
+                    recs = recs.filtered(
+                        unacceptable) | recs.filtered(unknown_status)
                 elif value == 'N':
-                    recs = recs.filtered(acceptable) | recs.filtered(unknown_status)
+                    recs = recs.filtered(
+                        acceptable) | recs.filtered(unknown_status)
                 elif value == 'U':
-                    recs = recs.filtered(acceptable) | recs.filtered(unacceptable)
+                    recs = recs.filtered(
+                        acceptable) | recs.filtered(unacceptable)
 
         return [('id', 'in', [rec.id for rec in recs])]
 
@@ -363,7 +403,8 @@ class RiskIdentificationMixin(models.AbstractModel):
             up_to_date_evals = risk.evaluation_ids and risk.evaluation_ids.filtered(
                 lambda ev: not ev.is_obsolete)
             # validated non-obsolete evaluations
-            valid_evals = up_to_date_evals and up_to_date_evals.filtered('is_valid')
+            valid_evals = up_to_date_evals and up_to_date_evals.filtered(
+                'is_valid')
 
             if not risk.active:
                 risk.state = False
@@ -465,14 +506,16 @@ class RiskIdentificationMixin(models.AbstractModel):
     def _inverse_treatment(self):
         for rec in self:
             if rec.treatment_task_ids:
-                task = self.env['project.task'].browse(rec.treatment_task_ids[0].id)
+                task = self.env['project.task'].browse(
+                    rec.treatment_task_ids[0].id)
                 task.business_risk_id = False
             if rec.treatment_task_id:
                 rec.treatment_task_id.business_risk_id = rec
 
     @api.multi
     def _notification_recipients(self, message, groups):
-        groups = super(RiskIdentificationMixin, self)._notification_recipients(message, groups)
+        groups = super(RiskIdentificationMixin,
+                       self)._notification_recipients(message, groups)
 
         for group_name, group_method, group_data in groups:
             group_data['has_button_access'] = True
@@ -490,7 +533,8 @@ class RiskIdentificationMixin(models.AbstractModel):
     def _check_review_after_report(self):
         for rec in self:
             if (rec.review_date and rec.report_date) and (rec.review_date < rec.report_date):
-                raise exceptions.ValidationError(_('Review date must be after report date'))
+                raise exceptions.ValidationError(
+                    _('Review date must be after report date'))
 
     @api.multi
     def write(self, vals):
@@ -517,7 +561,8 @@ class RiskIdentificationMixin(models.AbstractModel):
                     'review_date': fields.Date.context_today(self),
                     'owner': False
                 })
-                self.with_context(active_test=False).mapped('treatment_task_id').write({'active': active})
+                self.with_context(active_test=False).mapped(
+                    'treatment_task_id').write({'active': active})
 
         res = super(RiskIdentificationMixin, self).write(vals)
         if res and (vals.get('detectability', False) or vals.get('occurrence', False) or vals.get('severity', False) or
@@ -526,10 +571,11 @@ class RiskIdentificationMixin(models.AbstractModel):
             updated_self = self.env[self._name].browse(self.ids)
             for rec in updated_self:
                 # update record's latest evaluation's threshold value
-                latest_evaluation = rec.evaluation_ids.exists().sorted()[0]
-                latest_evaluation.write({
-                    "threshold_value": rec.threshold_value
-                })
+                if rec.evaluation_ids:
+                    latest_evaluation = rec.evaluation_ids.exists().sorted()[0]
+                    latest_evaluation.write({
+                        "threshold_value": rec.threshold_value
+                    })
                 if rec.status == 'N':
                     if not rec.treatment_task_id:
                         task = self.env['project.task'].create({
@@ -591,12 +637,14 @@ class BusinessRisk(models.Model):
     company_id = fields.Many2one('res.company', string='Company', required=True, index=True,
                                  default=lambda self: self.env.user.company_id,
                                  help="Company affected by the risk")
-    ref_asset_id = fields.Reference(selection='_ref_models', string='Affected Asset')
+    ref_asset_id = fields.Reference(
+        selection='_ref_models', string='Affected Asset')
     asset = fields.Char(compute='_compute_asset', store=True)
     asset_desc = fields.Char(compute='_compute_asset', string='Asset Type')
     evaluation_ids = fields.One2many(comodel_name='risk_management.business_risk.evaluation',
                                      inverse_name='business_risk_id')
-    treatment_task_ids = fields.One2many('project.task', inverse_name='business_risk_id')
+    treatment_task_ids = fields.One2many(
+        'project.task', inverse_name='business_risk_id')
 
     @api.depends('ref_asset_id')
     def _compute_asset(self):
@@ -604,7 +652,8 @@ class BusinessRisk(models.Model):
         for rec in self:
             if rec.ref_asset_id:
                 rec.asset_desc = rec.ref_asset_id._description
-                rec.asset = rec.ref_asset_id._name + ',' + str(rec.ref_asset_id.id)
+                rec.asset = rec.ref_asset_id._name + \
+                    ',' + str(rec.ref_asset_id.id)
 
     @api.multi
     def _track_subtype(self, init_values):
@@ -623,7 +672,8 @@ class BusinessRisk(models.Model):
 
     @api.model
     def _ref_models(self):
-        m = self.env['res.request.link'].search([('object', '!=', 'risk_management.business_risk')])
+        m = self.env['res.request.link'].search(
+            [('object', '!=', 'risk_management.business_risk')])
         return [(x.object, x.name) for x in m]
 
     @api.model
@@ -641,7 +691,8 @@ class BusinessRisk(models.Model):
         act_type = self.env.ref('risk_management.risk_activity_todo')
 
         if existing:
-            existing = existing.exists()[0]  # if by chance there is more than one existing, which should not be!
+            # if by chance there is more than one existing, which should not be!
+            existing = existing.exists()[0]
             if not existing.active:
                 # the risk was already submitted but is inactive, just reactivate it
                 vals.update({'active': True})
@@ -657,7 +708,8 @@ class BusinessRisk(models.Model):
                 })
                 return existing
             else:
-                raise exceptions.UserError(_("This risk has already been reported."))
+                raise exceptions.UserError(
+                    _("This risk has already been reported."))
 
         if vals.get('company_id') and not context.get('default_company_id'):
             context['default_company_id'] = vals.get('company_id')
@@ -691,8 +743,10 @@ class BusinessRisk(models.Model):
         res = super(BusinessRisk, self).unlink()
         if res:
             # On deleting a risk, delete all treatment task related to it
-            parent_tasks = self.env['project.task'].search([('business_risk_id', 'in', self.ids)])
-            child_tasks = self.env['project.task'].search([('parent_id', 'in', parent_tasks.ids)])
+            parent_tasks = self.env['project.task'].search(
+                [('business_risk_id', 'in', self.ids)])
+            child_tasks = self.env['project.task'].search(
+                [('parent_id', 'in', parent_tasks.ids)])
             (parent_tasks | child_tasks).unlink()
         return res
 
@@ -706,10 +760,12 @@ class RiskEvaluationMixin(models.AbstractModel):
 
     def _compute_default_review_date(self):
         date = fields.Date.from_string(fields.Date.context_today(self))
-        default_review_date = date + datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
+        default_review_date = date + \
+            datetime.timedelta(days=RISK_EVALUATION_DEFAULT_MAX_AGE)
         return fields.Date.to_string(default_review_date)
 
-    review_date = fields.Date(string='Review Date', default=_compute_default_review_date)
+    review_date = fields.Date(string='Review Date',
+                              default=_compute_default_review_date)
     is_obsolete = fields.Boolean('Is Obsolete', compute='_compute_is_obsolete')
     eval_date = fields.Date(default=lambda self: fields.Date.context_today(self), string='Evaluated on',
                             readonly=True)
@@ -720,7 +776,8 @@ class RiskEvaluationMixin(models.AbstractModel):
         for rec in self:
             if rec.review_date:
                 review_date = fields.Date.from_string(rec.review_date)
-                rec.is_obsolete = review_date < fields.Date.from_string(fields.Date.today())
+                rec.is_obsolete = review_date < fields.Date.from_string(
+                    fields.Date.today())
             else:
                 rec.is_obsolete = False
 
@@ -747,12 +804,18 @@ class BusinessRiskEvaluation(models.Model):
 
     business_risk_id = fields.Many2one(comodel_name='risk_management.business_risk', string='Risk', required=True,
                                        ondelete='cascade')
-    risk_type = fields.Selection(related='business_risk_id.risk_type', readonly=True)
-    threshold_detectability = fields.Integer(compute='_compute_threshold_criteria', store=True)
-    threshold_occurrence = fields.Integer(compute='_compute_threshold_criteria', store=True)
-    threshold_severity = fields.Integer(compute='_compute_threshold_criteria', store=True)
-    threshold_value = fields.Integer(compute='_compute_threshold_criteria', store=True, readonly=True)
-    value = fields.Integer('Risk Level', compute='_compute_eval_value', store=True)
+    risk_type = fields.Selection(
+        related='business_risk_id.risk_type', readonly=True)
+    threshold_detectability = fields.Integer(
+        compute='_compute_threshold_criteria', store=True)
+    threshold_occurrence = fields.Integer(
+        compute='_compute_threshold_criteria', store=True)
+    threshold_severity = fields.Integer(
+        compute='_compute_threshold_criteria', store=True)
+    threshold_value = fields.Integer(
+        compute='_compute_threshold_criteria', store=True, readonly=True)
+    value = fields.Integer(
+        'Risk Level', compute='_compute_eval_value', store=True)
 
     @api.depends('business_risk_id',
                  'detectability',
@@ -810,19 +873,23 @@ class BusinessRiskEvaluation(models.Model):
             # write the `business_risk_id` field once and never change it
             for rec in self:
                 if rec.business_risk_id and rec.business_risk_id != vals['business_risk_id']:
-                    exceptions.ValidationError('You cannot change the Risk associated with any evaluation')
+                    exceptions.ValidationError(
+                        'You cannot change the Risk associated with any evaluation')
                     break
 
         res = super(BusinessRiskEvaluation, self).write(vals)
         if res and vals.get('is_valid', False):
-            res_model_id = self.env['ir.model']._get_id('risk_management.business_risk')
+            res_model_id = self.env['ir.model']._get_id(
+                'risk_management.business_risk')
             act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
             for rec in self:
                 # mark previous activities as done
                 self.env['mail.activity'].search(['&', '&', ('res_id', '=', rec.business_risk_id.id),
-                                                  ('res_model_id', '=', res_model_id),
+                                                  ('res_model_id',
+                                                   '=', res_model_id),
                                                   '|',
-                                                  ('note', 'ilike', 'Validate the risk assessment'),
+                                                  ('note', 'ilike',
+                                                   'Validate the risk assessment'),
                                                   ('note', 'ilike',
                                                    'Assess the probability of risk occurring and its possible impact,'
                                                    'as well as the company\'s ability to detect it should it occur.')
