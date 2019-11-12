@@ -5,10 +5,20 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
     let ids = $(".page").data('ids');
 
     const getPieData = function (risks, field) {
+        // Returns an object containing the field labels and number of occurrences for each field
+
+        /* An  array of objects containing the count for each value of field param;
+        interface [{fieldName: count}, ...];
+        example for stage field [{"id. done": 3}, ...]
+         */
         let fieldLabelCount = _.countBy(risks, function (risk) {
             return risk[field];
         });
+        /*
+        An array of arrays [[fieldName, count], ...]
+         */
         let labelNumPairs = Object.entries(fieldLabelCount);
+
         return {
             labels: labelNumPairs.map(function (pair) {
                 return pair[0];
@@ -21,11 +31,16 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
     };
 
     const randomNum = function () {
+        /*
+        Returns a random integer between 0 and 255
+         */
         return Math.floor(Math.random() * 256);
     };
 
-    // Returns an array of 3 values for rgb
     const randomRGB = function () {
+        /*
+        Returns an array of 3 values for rgb
+         */
         let red = randomNum();
         let green = randomNum();
         let blue = randomNum();
@@ -45,6 +60,9 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
     };
 
     const render_doughnut_category = function (risks) {
+        /*
+        Renders doughnut chart of risk categories
+         */
         let cat_data = getPieData(risks, 'risk_info_category');
         let ctx = $("#per-category-pie");
         let data = {
@@ -65,7 +83,11 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         });
 
     };
+
     const render_doughnut_stage = function (risks) {
+        /*
+        Renders doughnut chart of risk management stages
+         */
         let stage_data = getPieData(risks, 'stage');
         let ctx = $("#per-stage-pie");
         console.log(stage_data.labels.map(function (label) {
@@ -89,13 +111,14 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         });
     };
 
-    const render_bar_treatment = function (risks) {
-
+    const render_bar_treatment = function (task) {
+        /*
+        Renders bar chart of risk treatment tasks and their progress
+         */
+         console.log(data);
     };
 
     const render_graphs = function (risks) {
-        console.log(getPieData(risks, 'risk_info_category'));
-        console.log(getPieData(risks, 'stage'));
         render_doughnut_category(risks);
         render_doughnut_stage(risks);
     };
@@ -105,10 +128,19 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         method: 'search_read',
         args: [
             [['id', 'in', ids]],
-            ['id', 'name', 'risk_type', 'risk_info_category', 'stage', 'treatment_task_id']
+            ['name', 'risk_type', 'risk_info_category', 'stage', 'treatment_task_id']
         ]
     }).then(function (data) {
-        let treatment_tasks = [];
-        render_graphs(data)
+        ajax.rpc('/web/dataset/call', {
+            model: 'project.task',
+            method: 'search_read',
+            args: [
+                ['|', ['business_risk_id', 'in', ids], ['parent_id.business_risk_id', 'in', ids]],
+                ['id', 'name', 'parent_id', 'child_ids', 'stage_id']
+            ]
+        }).then(function (data) {
+            render_bar_treatment(data);
+            render_graphs(data);
+        });
     })
 });
