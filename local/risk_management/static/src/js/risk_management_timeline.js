@@ -107,22 +107,13 @@ odoo.define('risk_management.timeline_graph', function (require) {
                     }
                 },
                 animation: {
-                    onComplete: function (animation) {
-                        let image = new Image();
-                        // let chartCanvas =  $("#risk-" + r.id + "-chart");
-                        // image.src = animation.chart.canvas.toDataURL();
-                        // $(image).attr("style", $(this).attr("style"));
-                        // $(image).attr("style", "position: absolute;");
-                        // $(image).attr("width", 950);
-                        // $(image).attr("height", 480);
-                        //
-                        // // Replace the canvas object with its corresponding img-tag
-                        // chartCanvas.replaceWith($(image));
-                    }
+                    duration: 0 // general animation time
                 },
+                responsiveAnimationDuration: 0,
                 devicePixelRatio: 2,
                 aspectRatio: 2,
                 hover: {
+                    animationDuration: 0,
                     mode: "nearest",
                 },
                 tooltips: {
@@ -132,7 +123,7 @@ odoo.define('risk_management.timeline_graph', function (require) {
                             return data.datasets[tooltipItem.datasetIndex].criteriaScores[tooltipItem.index];
                         },
                         title: function (tooltipItem, data) {
-                            var date = data.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index].x;
+                            let date = data.datasets[tooltipItem[0].datasetIndex].data[tooltipItem[0].index].x;
                             return moment(date).format('ll')
                         }
                     }
@@ -202,12 +193,13 @@ odoo.define('risk_management.timeline_graph', function (require) {
 
         const chartRisk = function (risk) {
             let ctx = $("#risk-" + risk.id + "-chart");
-            return new Chart(ctx, {reponsive: false, type: 'line', data: chartData(risk), options: chartOptions(risk)});
+            return new Chart(ctx, {type: 'line', data: chartData(risk), options: chartOptions(risk)});
         };
 
         risks.forEach(function (risk) {
 
             if (risk.evaluations.length === 0) {
+                $("#risk-" + risk.id + "-chart").remove();
             } else {
                 chartRisk(risk);
             }
