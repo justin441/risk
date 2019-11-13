@@ -150,7 +150,10 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
             });
             return task;
         });
-
+        // filter out task whose child_ids attribute is an empy array
+        treatmentTasks = treatmentTasks.filter(function(task){
+            return task.child_ids.length > 0;
+        });
         // bar chart labels
         let labels = treatmentTasks.map(function (task) {
             return task.business_risk_id[1];
