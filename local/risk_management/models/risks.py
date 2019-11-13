@@ -437,19 +437,19 @@ class RiskIdentificationMixin(models.AbstractModel):
     def _compute_stage_str(self):
         for risk in self:
             if not risk.state:
-                risk.stage = 'New'
+                risk.stage = _('New')
             elif risk.state == '1':
-                risk.stage = 'Identification'
+                risk.stage = _('Identification')
             elif risk.state == '2':
-                risk.stage = 'Id. Done'
+                risk.stage = _('Identification Done')
             elif risk.state == '3':
-                risk.stage = 'Evaluation'
+                risk.stage = _('Evaluation')
             elif risk.state == '4':
-                risk.stage = 'Eval. Done'
+                risk.stage = _('Evaluation Done')
             elif risk.state == '5':
-                risk.stage = 'Treatment'
+                risk.stage = _('Treatment')
             elif risk.state == '6':
-                risk.stage = 'Done'
+                risk.stage = _('Treatment Done')
 
     @api.multi
     def get_treatments_view(self):
