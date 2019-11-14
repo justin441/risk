@@ -41,12 +41,13 @@
             <div t-att-data-risk="doc_ids" id="risk-ids">
                 <t t-foreach="docs" t-as="o">
                     <t t-call="risk_management.risk_summary_translatable" t-lang="user.lang"/>
+                    </t>
             </div>
         </t>
     </template>
 
     <template id="risk_summary_translatable">
-            <t t-set="doc" t-value="doc.with_context({'lang':user.lang})"/>
+            <t t-set="o" t-value="o.with_context({'lang':user.lang})"/>
         <t t-call="web.external_layout">
                         <div class="page">
                             <h1><t t-esc="o.name"/>'s Report Summary
