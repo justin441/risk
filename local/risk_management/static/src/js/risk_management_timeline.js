@@ -2,6 +2,8 @@ odoo.define('risk_management.timeline_graph', function (require) {
     'use strict';
 
     require('web.dom_ready');
+    var core = require('web.core');
+    var _t = core._t;
     let ajax = require('web.ajax');
     Chart.plugins.unregister(ChartDataLabels);
 
@@ -94,8 +96,8 @@ odoo.define('risk_management.timeline_graph', function (require) {
         };
 
         const chartOptions = function (r) {
-            let risk_name = r.name || 'Risk';
-            let chart_label = risk_name + ' Timeline';
+            let risk_name = r.name || _t('Risk');
+            let chart_label = risk_name + _t(' Timeline');
             return {
                 elements: {
                     line: {

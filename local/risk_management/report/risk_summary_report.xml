@@ -40,7 +40,14 @@
         <t t-call="web.html_container">
             <div t-att-data-risk="doc_ids" id="risk-ids">
                 <t t-foreach="docs" t-as="o">
-                    <t t-call="web.external_layout">
+                    <t t-call="risk_management.risk_summary_translatable" t-lang="user.lang"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="risk_summary_translatable">
+            <t t-set="doc" t-value="doc.with_context({'lang':user.lang})"/>
+        <t t-call="web.external_layout">
                         <div class="page">
                             <h1><t t-esc="o.name"/>'s Report Summary
                             </h1>
@@ -170,10 +177,6 @@
 
                         </div>
                     </t>
-                </t>
-            </div>
-        </t>
-
     </template>
 
     <menuitem id="risk_report_menu" name="Report" parent="main_menu_risk_management" sequence="20"/>

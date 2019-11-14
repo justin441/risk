@@ -61,7 +61,6 @@ class RiskProfileReport(models.AbstractModel):
             'doc_model': data['model'],
             'docs': risks,
             'risk_ids': risks.ids,
-            'user_lang': self.env.user.lang,
             'company_name': self.env['res.company'].browse(company_id).name,
             'asset_name': self.env[asset_type].browse(asset_id).name if asset_type else False,
             'asset_type': self.env[asset_type].browse(asset_id)._description if asset_type else False,

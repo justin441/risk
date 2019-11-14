@@ -1,6 +1,8 @@
 odoo.define('risk_management.risk_profile_graph', function (require) {
     'use strict';
     require('web.dom_ready');
+    var core = require('web.core');
+    var _t = core._t;
     Chart.plugins.unregister(ChartDataLabels);
     let ajax = require('web.ajax');
     let ids = $(".page").data('ids');
@@ -52,7 +54,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
     const pieOptions = {
         title: {
             display: true,
-            text: 'Risk Management Stages',
+            text: _t('Risk Management Stages'),
             position: 'bottom'
         },
         responsive: true,
@@ -93,7 +95,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         let ctx = $("#per-category-pie");
         let data = {
             labels: cat_data.labels,
-            label: "Risk Category",
+            label: _t("Risk Category"),
             datasets: [{
                 data: cat_data.occurrences,
                 backgroundColor: cat_data.labels.map(function () {
@@ -122,7 +124,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         let ctx = $("#per-stage-pie");
         let data = {
             labels: stage_data.labels,
-            label: 'Stages',
+            label: _t('Stages'),
             datasets: [{
                 data: stage_data.occurrences,
                 backgroundColor: stage_data.labels.map(function () {
@@ -218,7 +220,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         let options = {
             title: {
                 display: true,
-                text: 'Risks Treatments Progress',
+                text: _t('Risks Treatments Progress'),
                 position: 'bottom'
             },
             tooltips: {
