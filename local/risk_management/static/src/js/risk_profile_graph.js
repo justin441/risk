@@ -1,6 +1,7 @@
 odoo.define('risk_management.risk_profile_graph', function (require) {
     'use strict';
     require('web.dom_ready');
+    Chart.plugins.unregister(ChartDataLabels);
     let ajax = require('web.ajax');
     let ids = $(".page").data('ids');
 
@@ -66,7 +67,22 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         hover: {
             animationDuration: 0
         },
-        responsiveAnimationDuration: 0
+        responsiveAnimationDuration: 0,
+        plugins: {
+            datalabels: {
+                backgroundColor: function (context) {
+                    return context.dataset.backgroundColor;
+                },
+                borderColor: 'white',
+                borderRadius: 25,
+                borderWidth: 2,
+                color: 'white',
+                font: {
+                    weight: 'bold'
+                },
+                formatter: Math.round
+            }
+        }
     };
 
     const renderDoughnutCategory = function (risks) {
@@ -85,8 +101,9 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
                 })
             }]
         };
-        if(risks.length > 0){
+        if (risks.length > 0) {
             return new Chart(ctx, {
+                plugins: [ChartDataLabels],
                 type: 'pie',
                 data: data,
                 options: pieOptions
@@ -114,8 +131,9 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
             }]
         };
 
-        if(risks.length > 0){
+        if (risks.length > 0) {
             return new Chart(ctx, {
+                plugins: [ChartDataLabels],
                 type: 'pie',
                 data: data,
                 options: pieOptions
@@ -151,7 +169,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
             return task;
         });
         // filter out task whose child_ids attribute is an empy array
-        treatmentTasks = treatmentTasks.filter(function(task){
+        treatmentTasks = treatmentTasks.filter(function (task) {
             return task.child_ids.length > 0;
         });
         // bar chart labels
@@ -175,13 +193,19 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         stageCounts.forEach(function (counts, idx, arr) {
             let stages = Object.keys(counts);
             stages.forEach(function (stage) {
-                let currentDataset = _.find(datasets, {'label': stage});
+                let currentDataset = _.find(datasets, {
+                    'label': stage
+                });
                 if (currentDataset === undefined) {
                     // the dataset does not exist yet in the datasets array; Construct the new dataset and add it to datasets
                     let dataArr = new Array(arr.length).fill(0);
                     dataArr[idx] = counts[stage];
                     datasets.push(
-                        Object.assign({label: stage, data: dataArr, backgroundColor: randomRGB()}, baseDateset)
+                        Object.assign({
+                            label: stage,
+                            data: dataArr,
+                            backgroundColor: randomRGB()
+                        }, baseDateset)
                     );
                 } else {
 
@@ -224,8 +248,8 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         };
 
         let ctx = $("#treatment-task-bar");
-        
-        if(tasks.length > 0){
+
+        if (tasks.length > 0) {
             return new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -249,7 +273,9 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
         model: 'risk_management.business_risk',
         method: 'search_read',
         args: [
-            [['id', 'in', ids]],
+            [
+                ['id', 'in', ids]
+            ],
             ['name', 'risk_type', 'risk_info_category', 'stage', 'treatment_task_id']
         ]
     }).then(function (risk_data) {
@@ -257,7 +283,9 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
             model: 'project.task',
             method: 'search_read',
             args: [
-                ['|', ['business_risk_id', 'in', ids], ['parent_id.business_risk_id', 'in', ids]],
+                ['|', ['business_risk_id', 'in', ids],
+                    ['parent_id.business_risk_id', 'in', ids]
+                ],
                 ['id', 'business_risk_id', 'name', 'parent_id', 'child_ids', 'stage_id']
             ]
         }).then(function (task_data) {

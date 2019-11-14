@@ -5,6 +5,7 @@
             <link rel="stylesheet" type="text/css" href="/risk_management/static/src/lib/chartjs/Chart.css"/>
             <link rel="stylesheet" type="text/css" href="risk_management/static/src/css/risk_profile.css"/>
             <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/Chart.js"/>
+            <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/chartjs-plugin-datalabels.js"/>
             <script type="text/javascript" src="/risk_management/static/src/js/risk_profile_graph.js"/>
         </xpath>
     </template>

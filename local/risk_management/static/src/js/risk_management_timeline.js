@@ -3,6 +3,8 @@ odoo.define('risk_management.timeline_graph', function (require) {
 
     require('web.dom_ready');
     let ajax = require('web.ajax');
+    Chart.plugins.unregister(ChartDataLabels);
+
 
     // wkhtmltopdf 0.12.5 crash fix.
     // https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
@@ -34,10 +36,7 @@ odoo.define('risk_management.timeline_graph', function (require) {
         };
 
         const getEvalValues = function (evaluation) {
-            return {
-                x: evaluation.eval_date,
-                y: evaluation.value
-            };
+            return evaluation.value;
         };
 
         const getCriteriaScores = function (evaluation) {
@@ -45,10 +44,7 @@ odoo.define('risk_management.timeline_graph', function (require) {
         };
 
         const getThresholdValues = function (evaluation) {
-            return {
-                x: evaluation.eval_date,
-                y: evaluation.threshold_value
-            };
+            return evaluation.threshold_value;
         };
 
         const getThresholdCriteriaScores = function (evaluation) {
@@ -165,7 +161,19 @@ odoo.define('risk_management.timeline_graph', function (require) {
                         }
                     }]
 
-                }
+                },
+                plugins: {
+                    datalabels: {
+                        backgroundColor: function (context) {
+                            return context.dataset.backgroundColor;
+                        },
+                        borderRadius: 5,
+                        color: 'white',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                },
             };
         };
 
@@ -173,17 +181,19 @@ odoo.define('risk_management.timeline_graph', function (require) {
             return {
                 labels: getLabels(r),
                 datasets: [{
-                    data: getEvalData(r).map(getEvalValues),
-                    label: 'Risk Level',
-                    criteriaScores: getEvalData(r).map(getCriteriaScores),
-                    borderColor: 'rgb(255, 99, 132)',
-                    xAxesID: 'time-axis',
-                    yAxesID: 'level-axis'
-                },
+                        data: getEvalData(r).map(getEvalValues),
+                        label: 'Risk Level',
+                        criteriaScores: getEvalData(r).map(getCriteriaScores),
+                        borderColor: '#ea1d51',
+                        backgroundColor: '#ea1d51',
+                        xAxesID: 'time-axis',
+                        yAxesID: 'level-axis'
+                    },
                     {
                         label: 'Risk Threshold',
                         criteriaScores: getEvalData(r).map(getThresholdCriteriaScores),
-                        borderColor: 'rgb(25, 255, 210)',
+                        borderColor: '#36a2eb',
+                        backgroundColor: '#36a2eb',
                         data: getEvalData(r).map(getThresholdValues)
                     }
                 ]
@@ -193,7 +203,12 @@ odoo.define('risk_management.timeline_graph', function (require) {
 
         const chartRisk = function (risk) {
             let ctx = $("#risk-" + risk.id + "-chart");
-            return new Chart(ctx, {type: 'line', data: chartData(risk), options: chartOptions(risk)});
+            return new Chart(ctx, {
+                plugins: [ChartDataLabels],
+                type: 'line',
+                data: chartData(risk),
+                options: chartOptions(risk)
+            });
         };
 
         risks.forEach(function (risk) {
@@ -210,9 +225,12 @@ odoo.define('risk_management.timeline_graph', function (require) {
         model: 'risk_management.business_risk.evaluation',
         method: 'search_read',
         args: [
-            ['&', ['business_risk_id', 'in', risk_ids], ['is_valid', '=', 1]],
+            ['&', ['business_risk_id', 'in', risk_ids],
+                ['is_valid', '=', 1]
+            ],
             ['business_risk_id', 'eval_date', 'detectability', 'occurrence', 'severity', 'value',
-                'threshold_detectability', 'threshold_occurrence', 'threshold_severity', 'threshold_value']
+                'threshold_detectability', 'threshold_occurrence', 'threshold_severity', 'threshold_value'
+            ]
         ]
     }).then(function (data) {
         /* groups evaluations by risk's id and name
@@ -225,7 +243,11 @@ odoo.define('risk_management.timeline_graph', function (require) {
         let evalData = JSON.parse(evalDataStr);
         let risk_data = [];
         risk_ids.forEach(function (risk_id) {
-            let risk = {id: risk_id, name: "", evaluations: []};
+            let risk = {
+                id: risk_id,
+                name: "",
+                evaluations: []
+            };
             evalData.forEach(function (evaluation) {
                 evaluation.eval_date = new Date(evaluation.eval_date);
                 if (evaluation.business_risk_id[0] === risk_id) {
