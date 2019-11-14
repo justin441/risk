@@ -92,7 +92,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
                 options: pieOptions
             });
         } else {
-            ctx.remove();
+            ctx.parents(".row").remove();
         }
 
     };
@@ -121,7 +121,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
                 options: pieOptions
             });
         } else {
-            ctx.remove();
+            ctx.parents('.row').remove();
         }
     };
 
@@ -235,7 +235,7 @@ odoo.define('risk_management.risk_profile_graph', function (require) {
                 options: options
             });
         } else {
-            ctx.remove();
+            ctx.parents('.row').remove();
         }
     };
 
