@@ -47,7 +47,7 @@ msgstr "Un processus ne peut pas consommer ses propres données de sortie"
 #. module: risk_management
 #: model:risk_management.business_process.task,name:risk_management.task1
 msgid "A task"
-msgstr "A task"
+msgstr "Une tâche"
 
 #. module: risk_management
 #: sql_constraint:risk_management.business_process.task:0
