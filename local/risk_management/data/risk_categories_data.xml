@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo >
+    <!-- Risk Classes -->
     <data noupdate="1">
         <record id="risk_cat_1" model="risk_management.risk.category" >
             <field name="name">Geopolitical risks</field>

@@ -354,6 +354,21 @@
         </field>
     </record>
 
+    <record id="analytic_account_inherited_form" model="ir.ui.view">
+        <field name="name">analytic.account.form.inherit</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="analytic.view_account_analytic_account_form"/>
+        <field eval="19" name="priority"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='toggle_active']" position="before">
+                <button class="oe_stat_button" type="object" name="process_action"
+                        icon="fa-puzzle-piece" attrs="{'invisible': [('business_process_count', '=', 0)]}">
+                    <field string="Business Processes" name="business_process_count" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
     <!-- actions-->
     <record model="ir.actions.act_window" id="act_business_process_2_process_method_all">
         <field name="name">Methods</field>
@@ -507,7 +522,7 @@
                   decoration-danger="status=='N'"
                   decoration-bf="status=='N'" decoration-success="status=='A'"
             >
-                 <field name="priority"/>
+                <field name="priority"/>
                 <field name="name"/>
                 <field name="risk_info_id"/>
                 <field name="ref_asset_id"/>
@@ -725,7 +740,8 @@
                                    options="{'current_value': 'threshold_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
                             <field name="latest_level_value" widget="progressbar"
                                    options="{'current_value': 'latest_level_value', 'ref_value': 'threshold_value', 'max_value': 'max_level_value'}"/>
-                            <field name="last_evaluator_id" attrs="{'invisible': [('latest_level_value', '=', False)]}"/>
+                            <field name="last_evaluator_id"
+                                   attrs="{'invisible': [('latest_level_value', '=', False)]}"/>
                         </group>
                         <group>
                             <field name="reported_by"/>

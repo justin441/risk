@@ -106,6 +106,10 @@
             <field name="name">A task</field>
             <field name="business_process_id" ref="quality_process"/>
         </record>
+        <record id="task1" model="risk_management.business_process.task">
+            <field name="name">Another task</field>
+            <field name="business_process_id" ref="quality_process"/>
+        </record>
 
         <!-- Process IO -->
         <record id="quote_req_io" model="risk_management.business_process.input_output">

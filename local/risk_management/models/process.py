@@ -341,7 +341,7 @@ class AccountAnalyticAccount(models.Model):
 
 class BusinessProcessIO(models.Model):
     _name = 'risk_management.business_process.input_output'
-    _description = 'Business Process input or output'
+    _description = 'Business Process input/output'
     _order = "name, id"
     _sql_constraints = [
         (

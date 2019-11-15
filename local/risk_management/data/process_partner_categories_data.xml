@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <data>
+        <!-- Partner Categories for use with business process -->
         <record id="process_partner_cat" model="res.partner.category" >
             <field name="name">Process partner</field>
             <field name="color" eval="1"/>
