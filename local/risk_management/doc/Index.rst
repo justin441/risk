@@ -23,8 +23,8 @@ Configuration
 
 Usage
 =====
-`TODO`
+:doc:`User documentation <./usage>`
 
-Uninstallation
-==============
+Un-installation
+===============
 `TODO`
