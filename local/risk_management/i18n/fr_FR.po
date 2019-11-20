@@ -1190,7 +1190,7 @@ msgstr "Destinataires internes"
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_input_output_business_process_id
 msgid "Internal source"
-msgstr "Origin interne"
+msgstr "Origine interne"
 
 #. module: risk_management
 #: model:ir.model,name:risk_management.model_risk_management_business_process_channel
@@ -1607,7 +1607,7 @@ msgstr "Origine"
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.business_process_form_view
 msgid "Output"
-msgstr "Sortie"
+msgstr "Sorties"
 
 #. module: risk_management
 #: model:ir.model.fields,help:risk_management.field_risk_management_business_process_method_output_ref_id
