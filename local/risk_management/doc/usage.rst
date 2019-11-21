@@ -19,7 +19,7 @@ Les fonctionnalités du module `Risk Management` peuvent être regroupées sous 
     - l'enregistrement des risques signalés par les utilisateurs (en principes les employés de l'entreprise);
     - la notation des risques sur les critères de "détectabilité", de "probabilité d'occurrence" et de "sévérite";
     - le classement des risques par ordre de priorité, c'est à dire en fonction des scores de leur évaluation;
-    - suivre les activités de traitement des risques.
+    - le suivi des activités de traitement des risques.
 #. La seconde catégorie, celle de la modélisation des processus, est subsidiaire et implémente de façon simplifiée l'`approche processus`. Elle comprend les fonctionnalités suivantes:
     - décrire les processus de l'entreprise ainsi que leurs interfaces;
     - définir les méthodes et les ressources des processus;
@@ -53,13 +53,13 @@ Suivant la définition classique, un processus est un ensemble constitué d'acti
 
     Un processus
 
-L’*approche processus* est une approche systémique. Cela veut dire, entre autres, qu’il y aura plusieurs niveaux d’analyse. L'entreprise est un processus qui comprends d'autre processus qui constituent ses sous-processus (marketing, commercial, logistique entrant). Ces derniers peuvent être à leur tour divisés en de processus plus spécifiques encore, la finesse d'analyse étant dictée par des facteurs tels que la taille de l'entreprise.
+L’*approche processus* est une approche systémique. Cela veut dire, entre autres, qu’il y aura plusieurs niveaux d’analyse. L'entreprise est un processus qui comprends d'autre processus qui constituent ses sous-processus (marketing, commercial, logistique entrante, par exemple). Ces derniers peuvent être à leur tour divisés en de processus plus spécifiques encore, la finesse d'analyse étant dictée par des facteurs tels que la taille de l'entreprise ou son domaine d'activité.
 
 Le découpage de l'entreprise en processus se base souvent sur le découpage fonctionnel existant.
 
 Créer un processus
 ********************
-Après avoir ouvert l'application en cliquant sur `Risques` dans la barre des menus d'**Odoo**, l'utilisateur peut acceder à la liste des processus en allant dans le volet des menus à gauche et en cliquant sur le lien *processus* sous le groupe *Configuration*. L'image ci-dessous montre une capture d'ecran d'une vue *kanban* de la liste des processus. Pour créer un processus, cliquer sur le bouton "Créer" entouré sur la capture.
+Après avoir ouvert l'application en cliquant sur `Risques` dans la barre des menus d'**Odoo**, l'utilisateur peut acceder à la liste des processus en allant dans le volet des menus du module à gauche et en cliquant sur le lien *processus* sous le groupe *Configuration*. L'image ci-dessous montre une capture d'ecran d'une vue *kanban* de la liste des processus. Pour créer un processus, cliquer sur le bouton "Créer" entouré en rouge sur la capture.
 
 .. figure:: img/process_list.png
     :width: 576px
@@ -73,14 +73,19 @@ Après avoir ouvert l'application en cliquant sur `Risques` dans la barre des me
 Un processus est caractérisé par:
 
 - un **nom**,
-- une **description** qui indique la finalité du processus,
-- le **responsable du processus**, qui répond des engagements du processus,
+- une **description**, qui indique la finalité du processus,
+- un **type**; les choix de type de procédure prédéfinis comprennent:
+    - les processus *opérationnels*,
+    - les processus de *pilotage*,
+    - les processus de *support* et, enfin,
+    - les processus de gestion de projet;
+- un **responsable du processus**, qui est celui qui répond des engagements du processus,
 - des **entrées**,
 - des **sorties**,
-- les **activités** qui transforment les entrées en sorties en apportant une valeur ajoutée;
-- Les **procédures et méthodes** définissant les contraintes et les règles d'exécution du processus;
-- le **personnel du processus**, constitué du responsable du processus et des propriétaires des activités du processus;
-- la **visibilité du processus**: privée (seul le personnel du processus y a accès) ou publique (les membres des autres processus y ont accès).
+- des **tâches** qui transforment les entrées en sorties en apportant une valeur ajoutée;
+- des **procédures et méthodes** définissant les contraintes et les règles d'exécution du processus;
+- un **personnel**, constitué du responsable du processus et des propriétaires des tâches du processus;
+- une **visibilité**: privée (seul le personnel du processus y a accès) ou publique (les membres des autres processus y ont accès).
 
 La figure ci-dessous montre un formulaire de creation de processus.
 
@@ -93,15 +98,17 @@ La figure ci-dessous montre un formulaire de creation de processus.
 
     Formulaire de processus
 
+Un processus peut être desactivé en cliquant sur le bouton marqué *Actif/ve*
+
 Les données d'entrée et de sortie des processus
 ###############################################
-Les données d'entrée et de sortie des processus prennent la formes de message *non-persistants* (c'est à dire que leurs état peut toujours être modifié, même longtemps après leur creation, par exemple pour y ajouter de nouveaux destinataires) entre les processus, ou entre les processus et des catégories de partenaires externes de l'entreprise. Ces messages représentent aussi bien des informations tels que des factures ou des rapports, que des services et même des bien materiels transitant entre deux processus ou entre un processus et des partenaires externes.  Par exemple, une bon de commande client est une donnée d'entrée dont l'origine est la catégorie de partenaire *clients* et le destinataire un processus de l'entreprise (processus commercial dans le cas ou c'est celui-ci qui est chargé de traité les commandes clients); comme autre exemple de donnée on peut citer la facture de vente dont l'origine peut être le processus de vente et les destinataires le processus comptabilité et la categorie de partenaire *clients*.
+Les données d'entrée et de sortie des processus prennent la forme de messages *non-persistants* (c'est à dire que leurs état peut toujours être modifié, même longtemps après leur creation, par exemple pour y ajouter de nouveaux destinataires) entre les processus, ou entre les processus et des catégories de partenaires externes de l'entreprise. Ces messages représentent aussi bien des informations sous formes de documents tels que des factures ou des rapports, que des services, ou même des biens materiels, transitant entre deux processus ou entre un processus et des partenaires externes.  Par exemple, une bon de commande client est une donnée d'entrée dont l'origine est la catégorie de partenaire **clients** et le destinataire un processus de l'entreprise (**processus** commercial dans le cas où c'est celui-ci qui est chargé de traiter les commandes clients); comme autre exemple de donnée d'entrée/sortie on peut citer la facture de vente dont l'origine peut être le **processus de vente** et les destinataires le **processus comptabilité** et la categorie de partenaire **clients**.
 
-Les données de sorties sont le resultats des contrats d'interface, c'est à dire qu'une donnée a un fournisseur (un processus) d'une part et un client d'autre part(un processus ou une categorie de partenaire); le contrat d'interface lie le fournisseur et le client et établit les conditions dans lesquelles le premier produira la sortie pour le second. Pour cette raison les données de sorties des processus sont crées au niveau de ceux-ci, mais pas les données d'entrée. Les destinataires des données de sortie, c'est à dire ceux pour qui celles-ci constituent des données d'entrée, sont ajoutés dans les champs destinataires des ces données.
+Les données de sorties sont le resultats des contrats d'interface, c'est à dire qu'une donnée a un fournisseur (un processus) d'une part et un client d'autre part(un processus ou une categorie de partenaire); le contrat d'interface lie le fournisseur et le client et établit les conditions dans lesquelles le premier produira la sortie pour le second. Pour cette raison les données de sorties des processus sont crées au niveau de ceux-ci, mais pas les données d'entrée. Les destinataires des données de sortie, c'est à dire ceux pour qui celles-ci constituent des données d'entrée, sont ajoutés dans les champs destinataires des ces données de sortie.
 
 Cependant les entrées de processus dont l'origine est exterieur à l'entreprise (comme par exemple les commandes clients) sont créées au niveau de l'un des processus à qui elles sont destinées.
 
-    Certaines données représentent la *voix du consommateur*. Une commande client par exemple représente la *voix du consommateur*. Les processus qui traitent les données *voix du consommateur* deviennent des processus clés pour l'entreprise.
+    Certaines données représentent la *voix du consommateur*. Une commande client par exemple représente la *voix du consommateur*. Les processus qui traitent les données *voix du consommateur* sont marqués par le système comme étant des processus clés pour l'entreprise.
 
 Créer une sortie de processus
 ******************************
@@ -132,10 +139,10 @@ Une sortie de processus est caractérisée par:
 - un **nom**; exemple: *Facture client*, *Bon de commande*;
 - une **description**, qui donne un aperçu du contenu de la sortie;
 - une **origine**; elle est soit externe lorsqu'elle vient d'une catégorie de partenaire, soit interne lorsqu'elle vient d'un autre processus;
-- une **'entrée qu'elle référence**; une sortie d'un processus peut référencer une entrée de ce même processus. Par exemple, une facture client peut référencer un bon de commande client. Ceci permet entre autre de suivre la voix du client à travers les opérations de l'entreprise.
-- des **canaux autorisés**; les données de sorties sont transmis à leurs destinataires à travers des canaux prédéfinis: ce peut être par email, par téléphone;
+- une **référence**; une sortie d'un processus peut faire référence à une entrée de ce même processus. Par exemple, une facture client peut faire référence à un bon de commande client. Ceci permet entre autre de suivre la voix du client à travers les opérations de l'entreprise.
+- des **canaux autorisés**; les données de sorties sont transmis à leurs destinataires à travers des canaux prédéfinis: ce peut être par email, par téléphone ou *remise en main propre*;
 - des **destinataires**: destinataires internes et/ou destinataires externes.
-- des **pièces jointes** pour apporter des précisions sur le contenu de la sortie; exemple: un modèle de facture;
+- des **pièces jointes**, pour apporter des précisions sur le contenu de la sortie; exemple: un modèle de facture;
 
 Le formulaire de creation des entrées est le même que celui des sorties, ls seules différences au moment de son invocation étant le champs de l'origine ainsi que l'origine par défaut sélectionnée.
 
@@ -150,8 +157,137 @@ la figure ci-après présente un aperçu du formulaire de creation d'une sortie.
 
     Formulaire des données de sortie.
 
-Les activités
-#############
+Les tâches de processus
+#######################
+Les différentes tâches d'un processus concourrent à transformer les entrées de ce processus en sortie.
+Une tâche est caracterisée par:
+
+- le **processus** auquel elle appartient,
+- un **nom**,
+- une **description* de la tâche**,
+- un **propriétaire**, c'est à dire l'employé à qui la tâche est assignée,
+- une **fréquence** d'exécution de la tâche (journalière, hebdomadaire, mensuelle, trimestrielle ou annuel); ceci permet aux utilisateurs de savoir quelles sont leurs responsabilités pour chaque période.
+
+Créer une tâche
+***************
+
+La liste des tâches d'un processus donné est accessible à partir du formulaire de ce dernier en cliquant sur le bouton *tâches* tel qu'indiqué sur la figure ci-après:
+
+.. figure:: img/process_tasks.png
+    :width: 543px
+    :align: center
+    :height: 202px
+    :alt: Process task button
+    :figclass: align-center
+
+    Acceder aux tâches du processus
+
+Sur la page listant les tâches, cliquer sur le bouton *Créer* pour ajouter une tâche au processus.
+
+Les Méthodes ou Procédures
+##########################
+
+Les méthodes contiennent les instructions et les règles à suivre pour exécuter les processus auxquels elles sont attachées.
+Les procédures sont souvent considérées comme le principal, si ce n'est l'unique, point de défaillance des processus, raison pour laquelle l'amélioration des processus commence souvent par un examen minitieux des procédures de ceux-ci.
+
+Les procédures sont produites par les processus de type *pilotage*. Chaque procédure doit donc faire référence à une sortie d'un processus de pilotage. Ainsi des documents peuvent être attachés à une procédure via la donnée de sortie à laquelle elle fait référence.
+
+*À faire*: Ajouter la gestion des versions aux procedures
+
+Créer une procédure
+*******************
+La liste des procédures d'un processus donné sont accessibles de la même façon que celle des tâches, mais en cliquant sur le bouton marqué *Procédures*.
+
+Sur la page listant les procédures, il faut cliquer sur le bouton *Créer* pour ajouter une nouvelle procédure au processus.
+
+Une procédure est caractérisée par:
+
+- son **titre**,
+- son **contenu**; c'est ici qu'est détaillée la procédure,
+- le **processus auquel** elle est rattachée,
+- la **référence de la sortie** d'un processus de pilotage.
+
+La figure ci-après présente un aperçu du formulaire de création de procédure.
+
+.. figure:: img/method_form.png
+    :width: 525px
+    :align: center
+    :height: 268px
+    :alt: Process Method form
+    :figclass: align-center
+
+    Formulaire des procédures
+
+La gestion des risques
+----------------------
+Les fonctionnalités de gestion des risques permettent de gérer les aspects suivant du processus de gestion des risques:
+
+- l'identification des risques,
+- l'évaluation des risques,
+- le traitement des risques et
+- la revue des risques.
+
+L'identification du risque
+##########################
+Les utilisateurs peuvent signaler des risques touchant les processus ou d'autres actifs de l'entreprise. Pour ce faire ils peuvent acceder au registre des risques:
+
+- soit en cliquant sur le menu *Registre des risques* dans le volet des menus (voir figure ci-dessus),
+- soit, pour acceder aux risque d'un processus en particulier, en cliquant sur le bouton *risques* du formulaire dudit processus.
+
+.. figure:: img/risk_register_menu.png
+    :width: 498px
+    :align: center
+    :height: 240px
+    :alt: Risk Register Access
+    :figclass: align-center
+
+    Registre des risques
+
+La creation d'un risque se fait en 2 étapes:
+
+- l'enregistrement des informations sur le risque et
+- le signalement du risque proprement dit.
+
+L'enregistrement les informations sur le risque
+************************************************
+
+Les informations sur le risque comprennent principalement:
+
+- la classe du risque,
+- le nom du risque,
+- la description du risque,
+- la (les) cause(s) du risque et
+- la (les) conséquence(s) du risque.
+
+Ces informations sont conservées dans un modèle à part du signalement du risque proprement dit, de sorte à pouvoir être réutilisées ulterieurement pour d'autres signalements de risque.
+
+Le signalement du risque
+************************
+En cliquant sur le bouton *Créer* de la page du registre des risques, l'utilisateur accède au formulaire de signalement du risque, dont un aperçu est présenté dans la figure ci-dessous. Pour signaler un risque les informations suivantes doivent être renseignées:
+
+- l'enregistrement contenant les informations sur le risque; celui ci peut être recherché par son nom ou sa description en saisissant des termes que ceux-ci sont susceptible de contenir dans le champ **Risque**; s'il n'existe pas de risque contenant les termes saisis, on peut en créer un en cliquant sur les derniers lien du menu déroulant de ce champ. Les détails du risque sont affichés dans l'onget *Détails du risque* du formulaire lorsque le champ *Risque* est renseigné;
+- le type de risque: il peut s'agir d'une menace (risque négatif), le type par défaut, ou d'une opportunité (risque positif);
+- l'actif affecté par le risque: il peut s'agir d'un processus ou de tout objet *referençable* de la base de données **Odoo**.
+
+.. figure:: img/risk_form.png
+    :width: 527px
+    :align: center
+    :height: 262px
+    :alt: Risk Form
+    :figclass: align-center
+
+    Formualaire de signalement des risques
+
+Après le signalement du risque, celui-ci doit être confirmé pour que la phase d'idenfication du risque soit achevée et que puisse commencé la phase d'évaluation du risque.
+Par défaut, seuls les utilisateurs appartenant au groupe *Risk Manager* peuvent confirmer le risque. Ils le font en cochant le champ *Confirmé* du formulaire de signalement du risque.
+
+.. todo: ref. permissions
+
+Les utilisateurs du groupe *Risk Manager* peuvent également fixe la date de réévaluation du risque (il est de 90 jours par défaut), qui est la date au delà de laquelle le signalement du risque devient obsolète.
+
+L'évaluation du risque
+######################
+
 
 
 
