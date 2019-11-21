@@ -2447,7 +2447,7 @@ msgstr "Historique"
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_process_method_name
 msgid "Title"
-msgstr "Civilité"
+msgstr "Titre"
 
 #. module: risk_management
 #: model:project.task.type,name:risk_management.risk_treatment_stage_1
