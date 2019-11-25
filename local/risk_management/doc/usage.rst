@@ -220,6 +220,7 @@ La figure ci-après présente un aperçu du formulaire de création de procédur
 
 La gestion des risques
 ----------------------
+
 Les fonctionnalités de gestion des risques permettent de gérer les aspects suivant du processus de gestion des risques:
 
 - l'identification des risques,
@@ -227,8 +228,16 @@ Les fonctionnalités de gestion des risques permettent de gérer les aspects sui
 - le traitement des risques et
 - la revue des risques.
 
+Qu'est-ce que le risque
+#######################
+
+Le mot risque contient 2 idées clés: *incertitude* et *résultats*. Dans l'usage commun, le risque est plus souvent associé aux résultats négatifs qu'aux positifs, mais en général les deux types de résultats sont présents. L'idée de résultat peut ếtre élargie à celles de *buts* et d'*objectifs*. Un conducteur qui brûle un feu rouge a 2 objectifs immédiats: gagner du temps au lieu d'attendre le feu vert, et eviter de causer un accident. Il existe une incertitude quand à l'atteinte de ces 2 objectifs. le premier objectif se rapporte à un résultat positif (gagner du temps) et le second à un resultat négatif (éviter un accident).
+
+Suivant la définition de la norme iso 31000:2019 le risque peut être considéré commé l'*effet de l'incertitude sur les objectifs*. Cet effet peut être positif ou négatif: Ainsi nous avons des risques positifs que nous nommons *opportunités* et des risques négatifs que nous nommons *menaces*. Le module *Risk Management* entend le risque comme la *conséquence d'un événement*, tel qu'un accident survenant suite au non respect du feu rouge, la *la probabilité d'occurence* dudit événement. Un autre aspect à prendre en compte dans la définition du risque est la capacité de l'agent ou du sujet du risque à *détecter* l'occurence du risque considéré.
+
 L'identification du risque
 ##########################
+
 Les utilisateurs peuvent signaler des risques touchant les processus ou d'autres actifs de l'entreprise. Pour ce faire ils peuvent acceder au registre des risques:
 
 - soit en cliquant sur le menu *Registre des risques* dans le volet des menus (voir figure ci-dessus),
@@ -283,10 +292,50 @@ Par défaut, seuls les utilisateurs appartenant au groupe *Risk Manager* peuvent
 
 .. todo: ref. permissions
 
-Les utilisateurs du groupe *Risk Manager* peuvent également fixe la date de réévaluation du risque (il est de 90 jours par défaut), qui est la date au delà de laquelle le signalement du risque devient obsolète.
+Les utilisateurs du groupe *Risk Manager* peuvent également fixer la date de réévaluation du risque (il est de 90 jours par défaut), qui est la date au delà de laquelle le signalement du risque devient obsolète.
 
 L'évaluation du risque
 ######################
+
+Chaque risque est évalué suivant 3 critères dont la signification est donnée ci-après; chacun de ces critères est mesuré sur une échelle à 5 valeur qualitative:
+
+La détectabilité
+    La détectabilité du risque mesure la capacité de l'organisme affecté par le risque à constater l'occurence du risque. Pour prendre un exemple, imaginons une entreprise de négoce possédant un entrepôt de stockage de la marchandise; on désire évaluer le risque de fraude interne (vol de marchandises) dans cet entrepôt. La détectabilité permet de répondre à cette question: si un vol dans cet entrepôt survenait, combien de temps passerait avant que l'entreprise s'en rende compte?
+
+    Dans notre exemple, si les contrôles et les inventaires physiques sont fréquents, disons une fois par mois, la détectabilité serait plus élevée que si ceux-ci survenaient seulement une fois par semestre par exemple.
+
+    La particularité de la détectabilité est que les scores attribués à chaque niveau détectabilité pour les menaces sont inversés pour les opportunités. Cela se comprend facilement si on considère comment le *facteur risque* est calculé. Dans le cas d'une menace comme dans l'exemple ci dessous une grande capacité à détecter les occurrences fait baisser le score du risque, alors que quand il s'agit d'une opportunité, plus la capacité de l'entreprise à  détecter l'occurrence de l'opportunité est grande, plus elle a de chance de concrétiser cette opportunité, et plus le score du risque est élevé. Le tableau suivant donne l'échelle utilisée pour mesurer la détectabilité ainsi que les score attribué à chacun des niveau:
+
+    .. csv-table:: Échelle de *détectabilité*
+       :header: "Niveau", "Score menace", "Score Opportunité"
+       :widths: 30, 10, 10
+
+       "*Continu*", 1, 5
+       "*Élevé*", 2, 4
+       "*Moyen*", 3, 3
+       "*Faible*", 4, 2
+       "*Minimal*", 5, 1
+
+La sévérité
+    La sévérité du risque mesure l'impact que l'occurrence du risque aurait sur les activités de l'organisme impacté par le risque. Cet impact s'exprime souvent en terme de perte financière. Dans le module *Risk Management* cependant la séverité du risque est mesurée à l'aide de l'échelle suivant:
+
+    .. csv-table:: Échelle de *Sévérité*
+       :header: "Niveau", "Score"
+       :widths: 50, 10
+
+       "*Faible*", 1
+       "*Moyen*", 2
+       "*Élevé*", 3
+       "*Très élevé*", 4
+       "*Maximal*", 5
+
+L'Occurrence :
+    L'occurrence mesure la *probabilité* que le risque se concrétise. Il est courant de croire que la *probabilité* peut être mesurée au sens de la quantifier par comparaison avec un standard. Mais cette idée est erronée,
+
+
+
+
+
 
 
 
