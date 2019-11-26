@@ -1,8 +1,12 @@
 .. _user_documentation:
 
-=====================================================
-Documentation Utilisateur du Module `Risk Management`
-=====================================================
+========================
+Module `Risk Management`
+========================
+
+------------------------------
+Documentation de l'utilisateur
+------------------------------
 
 Introduction
 ============
@@ -16,16 +20,16 @@ Fonctionnalités de l'application
 Les fonctionnalités du module `Risk Management` peuvent être regroupées sous 2 catégories:
 
 #. La première et principale catégorie, celle de la gestion des risques, comprend les fonctionnalités suivantes:
-    - l'enregistrement des risques signalés par les utilisateurs (en principes les employés de l'entreprise);
+    - le signalement des risques par les utilisateurs (en principes les employés de l'entreprise);
     - la notation des risques sur les critères de "détectabilité", de "probabilité d'occurrence" et de "sévérite";
     - le classement des risques par ordre de priorité, c'est à dire en fonction des scores de leur évaluation;
     - le suivi des activités de traitement des risques.
 #. La seconde catégorie, celle de la modélisation des processus, est subsidiaire et implémente de façon simplifiée l'`approche processus`. Elle comprend les fonctionnalités suivantes:
-    - décrire les processus de l'entreprise ainsi que leurs interfaces;
-    - définir les méthodes et les ressources des processus;
-    - modifier les éléments précédents en réponse aux risques.
+    - la description des processus de l'entreprise ainsi que leurs interfaces;
+    - la définition les méthodes et les ressources des processus;
+    - la modification et l'adaptation des éléments précédents en réponse aux risques.
 
-Étant donné que l'amélioration des processus est la *raison d'être* de la gestion des risque, nous commencerons par présenter les fonctionnalités de modélisation des processus.
+Étant donné que l'amélioration continue des processus est la *raison d'être* de la gestion des risque, nous commencerons par présenter les fonctionnalités de modélisation des processus.
 
 
 La modélisation des Processus
@@ -233,7 +237,7 @@ Qu'est-ce que le risque
 
 Le mot risque contient 2 idées clés: *incertitude* et *résultats*. Dans l'usage commun, le risque est plus souvent associé aux résultats négatifs qu'aux positifs, mais en général les deux types de résultats sont présents. L'idée de résultat peut ếtre élargie à celles de *buts* et d'*objectifs*. Un conducteur qui brûle un feu rouge a 2 objectifs immédiats: gagner du temps au lieu d'attendre le feu vert, et eviter de causer un accident. Il existe une incertitude quand à l'atteinte de ces 2 objectifs. le premier objectif se rapporte à un résultat positif (gagner du temps) et le second à un resultat négatif (éviter un accident).
 
-Suivant la définition de la norme iso 31000:2019 le risque peut être considéré commé l'*effet de l'incertitude sur les objectifs*. Cet effet peut être positif ou négatif: Ainsi nous avons des risques positifs que nous nommons *opportunités* et des risques négatifs que nous nommons *menaces*. Le module *Risk Management* entend le risque comme la *conséquence d'un événement*, tel qu'un accident survenant suite au non respect du feu rouge, la *la probabilité d'occurence* dudit événement. Un autre aspect à prendre en compte dans la définition du risque est la capacité de l'agent ou du sujet du risque à *détecter* l'occurence du risque considéré.
+Suivant la définition de la norme iso 31000:2019 le risque peut être considéré commé l'*effet de l'incertitude sur les objectifs*. Cet effet peut être positif ou négatif: Ainsi nous avons des risques positifs que nous nommons *opportunités* et des risques négatifs que nous nommons *menaces*. Le module *Risk Management* entend le risque comme la conjonction de la *conséquence d'un événement* (tel qu'un accident survenant suite au non respect du feu rouge) et *la probabilité d'occurence* dudit événement. Un autre aspect à pris en compte dans la définition du risque est la capacité de l'agent ou du sujet du risque à *détecter* l'occurence du risque considéré.
 
 L'identification du risque
 ##########################
@@ -330,7 +334,63 @@ La sévérité
        "*Maximal*", 5
 
 L'Occurrence :
-    L'occurrence mesure la *probabilité* que le risque se concrétise. Il est courant de croire que la *probabilité* peut être mesurée au sens de la quantifier par comparaison avec un standard. Mais cette idée est erronée,
+    L'occurrence mesure la *probabilité* que le risque se concrétise.
+
+    La nécessité d'un raisonnement probabiliste découle de la connaissance incomplète qui entraîne une incertitude. Il est donc essentiel pour l'analyse du risque qui est l'effet de l'incertitude sur les objectifs.
+
+    La notion de probabilité n'est pas toujours bien comprise. Il est courant de croire que la *probabilité* peut être mesurée, le terme *mesurer* etant entendu ici dans le sens strict de *déterminer et quantifier de façon objective une propriété par comparaison avec un standard*, à la façon dont on peut mesurer un distance ou un volume par exemple. La croyance que la probabilité peut être mesurée est erronée. La probabilité que nous attribuons à un événement décrit nos connaissances à son sujet et notre degré de conviction rationnelle que cet événement se produira. Et la probabilité n'est pas juste une opinion. Le physicien E. T. Jaynes affirme que l'attribution d'une probabilité est *subjective* dans le sens où il ne décrit qu'un état de la connaissance, et non pas quelque chose qui pourrait être mesurée dans une expérience physique.
+
+    En ce sens, la probabilité est une méthode descriptive qui comble le vide laissé par les informations manquantes sur un événement donné.
+
+    Les scientifiques expriment parfois la probabilité par un nombre compris entre 0 (impossible) et 1 (certain). Cela peut porter à croire que la probabilité peut être mesuré de la même façon que la température d'un objet. Ce n'est pas le cas. Lorsque des physiciens disent qu'un evenement donné a une probabilité de 1 sur 3000.000 par exemple, ils utilisent les données expérimentales en leur possession et leur connaissances du sujet pour calculer cette probabilité.
+
+    Les probabilités peuvent être exprimées quantitativement ou qualitativement. Ce qu'il est important de retenir c'est que ces échelles quantitatives ne sont pas des mesures, mais des quantifications des probabilités. Des mesures, telles que les indicateurs clés des risques, peuvent faire partie des connaissances utilisées pour attribuer la probabilité. Mais ces indicateurs ne sont pas une mesure de la probabilité. Souvent les fréquences d'un événement sont utilisées pour attribuer la probabilité, mais la fréquence est habituellement différente de la probabilité d'un événement particulier avec ses propres circonstances. Supposons qu'en moyenne une personne sur 100.000.000 soit tué par des lions chaque année en Afrique. La fréquence annuelle des morts suite à des attaques des lions sur un continent ne peut pas être une *mesure* de la probabilité de se faire tuer par un lion dans des circonstances particulières. Si un individu se trouve par exemple en pleine savane du Serengueti à pied en pleine nuit, savoir qu'une personne sur 100 millions est tué par des lions chaque année en Afrique ne suffira pas à le rassurer.
+
+    Le fait que l'attribution d'une probabilité à un événement soit subjective la rend vulnérable à certains biais tels que l'`ancrage <https://fr.wikipedia.org/wiki/Ancrage_(psychologie)>`_ et l'`heuristique de disponibilité <https://fr.wikipedia.org/wiki/Heuristique_de_disponibilit%C3%A9>`_.
+
+    Le module *Risk Management* utilise une échelle quantitative pour attribuer des probabilités au risque. A chaque niveau de cette échelle correspond un score entre 1 et 5. Le tableau ci-dessous donne le valeur de cette échelle.
+
+    .. csv-table:: Échelle de l'*Occurrence*
+       :header: "Niveau", "Score"
+       :widths: 50, 10
+
+       "*Presqu'impossible*", 1
+       "*Improbable*", 2
+       "*Probable*", 3
+       "*Très probable*", 4
+       "*Presque certain*", 5
+
+Création d'une évaluation
+*************************
+Par défaut les utilisateurs ayant les droits nécessaires pour ajouter des évaluations aux risques sont ceux du groupe *Risk Manager*. Les risques confirmés peuvent être évalués à tous moment, mais les évaluations doivent être validées par les utilisateurs du groupe *Manager*. Une fois validées les évaluations ne sont pas modifiables.
+
+Pour ajouter une évaluation à un risque, dans le formulaire en mode lecture du risque en question, cliquer sur le bouton *Évaluation*. Le formulaire du risque qui s'ouvre est représenté ci-dessous.
+
+Outre les valeurs à assigner à chacun des critères *détectabilité*, *sévérité* et *occurrence*, le formulaire comporte:
+
+- un champs *date de réévaluation* qui permet de fixer la date après laquelle l'évaluation sera obsolète;
+- un champs *commentaire* qui permet d'ajouter des détails à l'évaluation, par exemple une estimation de l'impact financier du risque.
+
+.. figure:: img/eval_form.png
+    :width: 519px
+    :align: center
+    :height: 290px
+    :alt: Eval Form
+    :figclass: align-center
+
+    Formualaire d'évaluation des risques
+
+Définiton du Seuil de risque
+****************************
+
+
+
+
+
+
+
+
+
 
 
 
