@@ -1,8 +1,8 @@
 .. _user_documentation:
 
-========================
-Module `Risk Management`
-========================
+==========================
+Module `Gestion du risque`
+==========================
 
 ------------------------------
 Documentation de l'utilisateur
@@ -11,13 +11,13 @@ Documentation de l'utilisateur
 Introduction
 ============
 
-Le module `Risk Management` est un module **Odoo** conçu pour faciliter la gestion des risques au sein de l'entreprise. Il permet d'enregistrer les risques et de suivre l'évaluation et, eventuellement, le traitement de ceux-ci.
+Le module `Gestion du risque` est un module **Odoo** conçu pour faciliter la gestion des risques au sein de l'entreprise. Il permet aux utilisateurs de signaler les risques qu'ils perçoivent dans le cadre de leur fonction au sein de l'entreprise, de suivre les évaluations de ses risques et, eventuellement, leur traitement.
 
-L'approche de la gestion du risque adoptée dans la conception du module `Risk Management` va dans le sens de la norme ISO 9001:2015 qui voit la gestion du risque "comme un outil de l'amélioration continue". Pour se faire la gestion des risques se base par défaut sur une cartographie des processus de l'entreprise; ceci donne la possibilité de rattacher chaque risque à un de ces  processus.
+L'approche de la gestion du risque adoptée dans la conception du module `Gestion du risque` va dans le sens de la norme ISO 9001:2015 qui voit la gestion du risque comme *un outil de l'amélioration continue*. Pour ce faire la gestion des risques se base par défaut sur la cartographie des processus de l'entreprise; cela offre l'option de rattacher chaque risque à un de ces  processus. Cela dit en l'absence d'une cartographie des processus les risques peuvent être, toujours optionnellement, rattachés à d'autres actifs de l'entreprise.
 
 Fonctionnalités de l'application
 ================================
-Les fonctionnalités du module `Risk Management` peuvent être regroupées sous 2 catégories:
+Les fonctionnalités du module `Gestion du risque` peuvent être regroupées sous 2 catégories:
 
 #. La première et principale catégorie, celle de la gestion des risques, comprend les fonctionnalités suivantes:
     - le signalement des risques par les utilisateurs (en principes les employés de l'entreprise);
@@ -35,7 +35,7 @@ Les fonctionnalités du module `Risk Management` peuvent être regroupées sous 
 La modélisation des Processus
 -----------------------------
 
-Le module `Risk Management` n'implémente pas une solution complète de **modélisation des processus metiers**, et, d'une façon générale, la fonctionnalité de modélisation des processus ne se conforme à aucune des méthodes courantes de modélisations des processsus telles que `BPMP (Business Process Model and Notation) <https://www.omg.org/bpmn/>`_ ou `EPC (Event-driven process chain) <https://fr.wikipedia.org/wiki/Chaines_de_processus_%C3%A9v%C3%A9nementielles>`_. De plus, cette fonctionnalité ne permet pas, du moins pour le moment, une représentation graphique du modèle des processus.
+Le module `Gestion du risque` n'implémente pas une solution complète de **modélisation des processus metiers**, et, d'une façon générale, la fonctionnalité de modélisation des processus ne se conforme à aucune des méthodes courantes de modélisations des processsus telles que `BPMP (Business Process Model and Notation) <https://www.omg.org/bpmn/>`_ ou `EPC (Event-driven process chain) <https://fr.wikipedia.org/wiki/Chaines_de_processus_%C3%A9v%C3%A9nementielles>`_. De plus, cette fonctionnalité ne permet pas, du moins pour le moment, une représentation graphique du modèle des processus.
 
 La fonctionnalité de modélisation des processus est présente pour servir de fil conducteur et de point d'ancrage pour les parties prenantes au processsus de gestion des risques. En effet chaque risque identifié peut être rattaché à un processus, et donc est accessible à partir de ce processus. De plus les risques peuvent être ajoutés à partir des processus. Par ailleurs la fonctionnalité de modélisation de processus permet de regrouper en un seul point pour être consultés par les utilisateurs:
 
@@ -237,7 +237,7 @@ Qu'est-ce que le risque
 
 Le mot risque contient 2 idées clés: *incertitude* et *résultats*. Dans l'usage commun, le risque est plus souvent associé aux résultats négatifs qu'aux positifs, mais en général les deux types de résultats sont présents. L'idée de résultat peut ếtre élargie à celles de *buts* et d'*objectifs*. Un conducteur qui brûle un feu rouge a 2 objectifs immédiats: gagner du temps au lieu d'attendre le feu vert, et eviter de causer un accident. Il existe une incertitude quand à l'atteinte de ces 2 objectifs. le premier objectif se rapporte à un résultat positif (gagner du temps) et le second à un resultat négatif (éviter un accident).
 
-Suivant la définition de la norme iso 31000:2019 le risque peut être considéré commé l'*effet de l'incertitude sur les objectifs*. Cet effet peut être positif ou négatif: Ainsi nous avons des risques positifs que nous nommons *opportunités* et des risques négatifs que nous nommons *menaces*. Le module *Risk Management* entend le risque comme la conjonction de la *conséquence d'un événement* (tel qu'un accident survenant suite au non respect du feu rouge) et *la probabilité d'occurence* dudit événement. Un autre aspect à pris en compte dans la définition du risque est la capacité de l'agent ou du sujet du risque à *détecter* l'occurence du risque considéré.
+Suivant la définition de la norme iso 31000:2019 le risque peut être considéré commé l'*effet de l'incertitude sur les objectifs*. Cet effet peut être positif ou négatif: Ainsi nous avons des risques positifs que nous nommons *opportunités* et des risques négatifs que nous nommons *menaces*. Le module *Gestion du risque* entend le risque comme la conjonction de la *conséquence d'un événement* (tel qu'un accident survenant suite au non respect du feu rouge) et *la probabilité d'occurence* dudit événement. Un autre aspect à pris en compte dans la définition du risque est la capacité de l'agent ou du sujet du risque à *détecter* l'occurence du risque considéré.
 
 L'identification du risque
 ##########################
@@ -301,14 +301,21 @@ Les utilisateurs du groupe *Risk Manager* peuvent également fixer la date de r�
 L'évaluation du risque
 ######################
 
-Chaque risque est évalué suivant 3 critères dont la signification est donnée ci-après; chacun de ces critères est mesuré sur une échelle à 5 valeur qualitative:
+Critérisation
+*************
+
+Chaque risque est évalué suivant 3 critères; chacun des critères du risque est mesuré sur une échelle à 5 valeur qualitative correspondant à des **score** allant de 1 à 5. La multiplication des scores des 3 critères permet d'obtenir le **Facteur Risque** qui permettra de hiérarchiser les risques.
+La signification de chaque critère est donnée ci-après:
 
 La détectabilité
-    La détectabilité du risque mesure la capacité de l'organisme affecté par le risque à constater l'occurence du risque. Pour prendre un exemple, imaginons une entreprise de négoce possédant un entrepôt de stockage de la marchandise; on désire évaluer le risque de fraude interne (vol de marchandises) dans cet entrepôt. La détectabilité permet de répondre à cette question: si un vol dans cet entrepôt survenait, combien de temps passerait avant que l'entreprise s'en rende compte?
+    La détectabilité du risque mesure la capacité de l'organisme affecté par le risque à constater, à se rendre compte éffectivement de l'occurence du risque.
 
-    Dans notre exemple, si les contrôles et les inventaires physiques sont fréquents, disons une fois par mois, la détectabilité serait plus élevée que si ceux-ci survenaient seulement une fois par semestre par exemple.
+    Quelques fois la constation de l'occurrence du risque est immédiate: par exemple dans le cas des risques météorologique. S'il y a forte chute de neige ou violente tempête il est difficile de ne pas s'en rendre compte.
 
-    La particularité de la détectabilité est que les scores attribués à chaque niveau détectabilité pour les menaces sont inversés pour les opportunités. Cela se comprend facilement si on considère comment le *facteur risque* est calculé. Dans le cas d'une menace comme dans l'exemple ci dessous une grande capacité à détecter les occurrences fait baisser le score du risque, alors que quand il s'agit d'une opportunité, plus la capacité de l'entreprise à  détecter l'occurrence de l'opportunité est grande, plus elle a de chance de concrétiser cette opportunité, et plus le score du risque est élevé. Le tableau suivant donne l'échelle utilisée pour mesurer la détectabilité ainsi que les score attribué à chacun des niveau:
+    D'autre fois la détection de l'occurrence du risque nécessitera: c'est le ca pour par exemples les risques de fraude interne, les risques d'intrusion informatique, etc.
+    Un exemple peut aider à comprendre la notion de détectabilité: imaginons une entreprise de négoce possédant un entrepôt de stockage de la marchandise; on désire évaluer le risque de fraude interne (vol de marchandises) dans cet entrepôt. La détectabilité permet de répondre à cette question: si un vol survenait dans cet entrepôt, combien de temps passerait avant que l'entreprise s'en rende compte? Dans cet exemple, si les contrôles et les inventaires physiques sont fréquents, disons une fois par mois, la détectabilité serait plus élevée que si ceux-ci survenaient seulement une fois par semestre par exemple.
+
+    La particularité de la détectabilité est que les scores attribués à chaque niveau de l'échelle de détectabilité pour les **menaces** évoluent en sens inverse de ceux attribués pour les **opportunités**. Cela se comprend facilement si on considère comment le *facteur risque* est calculé. Dans le cas d'une menace comme dans l'exemple ci dessous une grande capacité à détecter les occurrences fait baisser le score du risque, alors que quand il s'agit d'une opportunité, plus la capacité de l'entreprise à  détecter l'occurrence de l'opportunité est grande, plus elle a de chance de concrétiser cette opportunité, et plus le score du risque est élevé. Le tableau suivant donne l'échelle utilisée pour mesurer la détectabilité ainsi que les score attribué à chacun des niveau:
 
     .. csv-table:: Échelle de *détectabilité*
        :header: "Niveau", "Score menace", "Score Opportunité"
@@ -321,7 +328,7 @@ La détectabilité
        "*Minimal*", 5, 1
 
 La sévérité
-    La sévérité du risque mesure l'impact que l'occurrence du risque aurait sur les activités de l'organisme impacté par le risque. Cet impact s'exprime souvent en terme de perte financière. Dans le module *Risk Management* cependant la séverité du risque est mesurée à l'aide de l'échelle suivant:
+    La sévérité du risque mesure l'impact que l'occurrence du risque aurait sur les activités de l'organisme impacté par le risque. Cet impact s'exprime souvent en terme de perte financière. Dans le module *Gestion du risque* cependant la séverité du risque est mesurée à l'aide de l'échelle suivant:
 
     .. csv-table:: Échelle de *Sévérité*
        :header: "Niveau", "Score"
@@ -348,7 +355,7 @@ L'Occurrence :
 
     Le fait que l'attribution d'une probabilité à un événement soit subjective la rend vulnérable à certains biais tels que l'`ancrage <https://fr.wikipedia.org/wiki/Ancrage_(psychologie)>`_ et l'`heuristique de disponibilité <https://fr.wikipedia.org/wiki/Heuristique_de_disponibilit%C3%A9>`_.
 
-    Le module *Risk Management* utilise une échelle quantitative pour attribuer des probabilités au risque. A chaque niveau de cette échelle correspond un score entre 1 et 5. Le tableau ci-dessous donne le valeur de cette échelle.
+    Le module *Gestion du risque* utilise une échelle quantitative pour attribuer des probabilités au risque. A chaque niveau de cette échelle correspond un score entre 1 et 5. Le tableau ci-dessous donne le valeur de cette échelle.
 
     .. csv-table:: Échelle de l'*Occurrence*
        :header: "Niveau", "Score"
@@ -362,14 +369,16 @@ L'Occurrence :
 
 Création d'une évaluation
 *************************
-Par défaut les utilisateurs ayant les droits nécessaires pour ajouter des évaluations aux risques sont ceux du groupe *Risk Manager*. Les risques confirmés peuvent être évalués à tous moment, mais les évaluations doivent être validées par les utilisateurs du groupe *Manager*. Une fois validées les évaluations ne sont pas modifiables.
+Par défaut les utilisateurs ayant les droits nécessaires pour ajouter des évaluations aux risques sont ceux du groupe *Risk Manager*. Les risques confirmés peuvent être évalués à tous moment, mais les évaluations doivent être validées par les utilisateurs du groupe *Manager*. Une fois validées les évaluations ne sont pas modifiables. Il est possible d'obtenir l'évolution d'un risque au cours du temps graçe à l'historique de ses évaluations.
 
-Pour ajouter une évaluation à un risque, dans le formulaire en mode lecture du risque en question, cliquer sur le bouton *Évaluation*. Le formulaire du risque qui s'ouvre est représenté ci-dessous.
+.. todo: ref rapports
 
-Outre les valeurs à assigner à chacun des critères *détectabilité*, *sévérité* et *occurrence*, le formulaire comporte:
+Pour ajouter une évaluation à un risque, dans le formulaire en mode lecture du risque en question, cliquer sur le bouton *Évaluation*. Le formulaire du risque qui s'ouvre alors est représenté sur la figure ci-dessous.
 
-- un champs *date de réévaluation* qui permet de fixer la date après laquelle l'évaluation sera obsolète;
-- un champs *commentaire* qui permet d'ajouter des détails à l'évaluation, par exemple une estimation de l'impact financier du risque.
+Outre les valeurs à assigner à chacun des critères *détectabilité*, *sévérité* et *occurrence*, le formulaire comporte les champs suivant:
+
+- *date de réévaluation*: ce champ permet de fixer la date après laquelle l'évaluation sera obsolète; la durée de vie d'une évaluation est de 30 jours par défaut;
+- *commentaire*: ce champ permet d'ajouter des détails à l'évaluation, par exemple une estimation de l'impact financier du risque.
 
 .. figure:: img/eval_form.png
     :width: 519px
@@ -380,31 +389,57 @@ Outre les valeurs à assigner à chacun des critères *détectabilité*, *sévé
 
     Formualaire d'évaluation des risques
 
-Définiton du Seuil de risque
-****************************
+Le seuil de risque
+******************
 
+Le **Seuil du Risque** détermine, pour un risque donné, le **Facteur Risque** *acceptable* pour l'entreprise. Il est défini par la combinaison des mêmes critères que le **Facteur Risque**: la *détectabilité*, la *sévérité* et l'*occurrence*. Le **Seuil de Risque** peut être vu comme un moyen de définir un niveau souhaité pour chacun des critères, et servir le cas échéant d'indicateur de performance pour le traitement du risque.
 
+    Du point de vue du modèle conceptuel des données, le seuil de risque et les     critères permettant de le déterminer sont définis au niveau du signalement du       risque. Sa connexité à l'évaluation du risque tient au fait que c'est en        le comparant au facteur risque que le système détermine si le risque est        *acceptable* ou non. Si le facteur risque est supérieur au seuil de risque,     le risque est *inacceptable* et un *traitement du risque* est necessaire pour   ramener le facteur risque à un niveau inférieur ou égal au seuil de risque.
 
+.. todo: cf traitement du risque
 
+Définition du seuil de risque
+*****************************
+Par défaut les utilisateurs ayant les droits nécessaires pour définir le **Seuil de Risque** sont ceux du groupe *Risk Manager*. Le **Seuil de Risque** ne peut être défini que sur les risques confirmés.
 
+Pour définir le **Seuil de Risque**, l'utilisateur doit cliquer sur le bouton *Définir le seuil*, en haut et à gauche du formulaire en mode lecture du risque considéré. Le formulaire de définition du seuil qui s'ouvre alors est représenté sur la figure ci-dessous.
 
+.. figure:: img/threshold_form.png
+    :width: 544px
+    :align: center
+    :height: 320px
+    :alt: Threshold Form
+    :figclass: align-center
 
+    Formualaire de définition du seuil de risque
 
+Le Traitement du risque
+#######################
+Le traitement des risques constitue la phase centrale de la gestion des risques. C’est grâce aux actions réalisées à cette étape que l’organisation pourra de façon concrète réduire les risques auxquels elle est exposée. Ces
+actions devraient agir sur la *détectabilité*, sur la *sévérité*, sur l'*occurrence* ou sur les trois critères du risque, lorsque possible.
 
+À ce stade crucial du processus, les acteurs sont donc appelés à identifier, à sélectionner et à mettre en œuvre les mesures devant permettre de réduire les risques à un niveau acceptable. Trois étapes particulières sont ainsi concernées par le traitement des risques:
 
+#. La première consiste à identifier les mesures potentielles relevant de la prévention, de la préparation, de l’intervention et du rétablissement.
+#. L’étape suivante porte sur l’évaluation et la sélection des mesures.
+#. Enfin, la dernière est celle de la planification et de la mise en oeuvre des mesures retenues.
 
+Le traitement des risques se décrit ainsi comme un processus de sélection et de mise en œuvre de mesures destinées à réduire les risques.
 
+Le module *Gestion du risque* s'appuie sur le module `Projet <https://www.odoo.com/documentation/user/13.0/fr/project.html>`_ pour la gestion activités de traitement des risques. En effet, à l'installation du module *Gestion du risque*, un projet intitulé *Risk Treatment* est créé dans le module *Projet* pour contenir les activités de traitement des risques.
 
+Après l'identification et l'évaluation d'un risque, si le niveau de celui-ci est *inacceptable*, c'est à dire que le **Facteur Risque** est supérieur au **Seuil de Risque**, une *tâche* nommée d'après le risque concerné est ajoutée au projet *Risk Treatment* pour servir de conteneur pour les activités de traitement dudit risque. Un bouton intitulé *Traitement* apparaît alors sur le formulaire du risque concerné: Ce bouton permet d'acceder aux *sous-taches* de la *tache* précédemment créée et qui constituent les activités à proprement parlé de traitement du risque.
 
+La figure ci-dessous donne un aperçu du formulaire en mode lecture d'un risque *inacceptable*.
 
+.. figure:: img/N_risk_form.png
+    :width: 544px
+    :align: center
+    :height: 320px
+    :alt: Unacceptable risk Form
+    :figclass: align-center
 
-
-
-
-
-
-
-
+    Risque inacceptable
 
 
 
