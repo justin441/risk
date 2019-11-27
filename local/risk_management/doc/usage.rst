@@ -480,13 +480,31 @@ Le module `Gestion du risque` ne permet pour le moment de produire que 2 types d
 .. figure:: img/risk_summary_report.png
     :width: 520px
     :align: center
-    :height: 350px
+    :height: 345px
     :alt: Unacceptable risk Form
     :figclass: align-center
 
     Resumé du risque
 
-#. Le profil du risque: Ce profil peut être généré pour l'ensemble de l'entreprise ou seulement pour un actif en particulier (un projet ou un processus par exemple). Il comporte la liste des risques actifs et la représentation graphique de la distribution des risques par *catégorie de risque* et par étape dand le processus de gestion du risque ainsi qu'un graphique de l'évolution des tâches de gestion des risques qui ont atteint l'étape du *traitement*.
+#. Le profil du risque: Ce profil peut être généré pour l'ensemble de l'entreprise ou seulement pour un actif en particulier (un projet ou un processus par exemple). Il comporte la liste des risques actifs et la représentation graphique de la distribution des risques par *catégorie de risque* et par étape dand le processus de gestion du risque, ainsi qu'un graphique de l'évolution des tâches de gestion des risques qui ont atteint l'étape du *traitement*.
+
+.. figure:: img/risk_profile_1.png
+    :width: 475px
+    :align: center
+    :height: 340px
+    :alt: Unacceptable risk Form
+    :figclass: align-center
+
+    Profil du risque 1
+
+.. figure:: img/risk_profile_2.png
+    :width: 520px
+    :align: center
+    :height: 300px
+    :alt: Unacceptable risk Form
+    :figclass: align-center
+
+    Profil du risque 2
 
 
 
