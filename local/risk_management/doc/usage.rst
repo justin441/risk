@@ -405,7 +405,7 @@ Par défaut les utilisateurs ayant les droits nécessaires pour définir le **Se
 Pour définir le **Seuil de Risque**, l'utilisateur doit cliquer sur le bouton *Définir le seuil*, en haut et à gauche du formulaire en mode lecture du risque considéré. Le formulaire de définition du seuil qui s'ouvre alors est représenté sur la figure ci-dessous.
 
 .. figure:: img/threshold_form.png
-    :width: 544px
+    :width: 545px
     :align: center
     :height: 320px
     :alt: Threshold Form
@@ -428,18 +428,68 @@ Le traitement des risques se décrit ainsi comme un processus de sélection et d
 
 Le module *Gestion du risque* s'appuie sur le module `Projet <https://www.odoo.com/documentation/user/13.0/fr/project.html>`_ pour la gestion activités de traitement des risques. En effet, à l'installation du module *Gestion du risque*, un projet intitulé *Risk Treatment* est créé dans le module *Projet* pour contenir les activités de traitement des risques.
 
-Après l'identification et l'évaluation d'un risque, si le niveau de celui-ci est *inacceptable*, c'est à dire que le **Facteur Risque** est supérieur au **Seuil de Risque**, une *tâche* nommée d'après le risque concerné est ajoutée au projet *Risk Treatment* pour servir de conteneur pour les activités de traitement dudit risque. Un bouton intitulé *Traitement* apparaît alors sur le formulaire du risque concerné: Ce bouton permet d'acceder aux *sous-taches* de la *tache* précédemment créée et qui constituent les activités à proprement parlé de traitement du risque.
+Après l'identification et l'évaluation d'un risque, si le niveau de celui-ci est *inacceptable*, c'est à dire que le **Facteur Risque** est supérieur au **Seuil de Risque**, une *tâche* nommée d'après le risque concerné est ajoutée au projet *Risk Treatment* s'il n'en existe pas déjà un portant le même nom. Cette tâche est destinée à servir de conteneur pour les activités de traitement dudit risque. Un bouton intitulé *Traitement* apparaît alors sur le formulaire du risque concerné: Ce bouton permet d'acceder aux *sous-taches* de la *tache* précédemment créée, lesquelles sous-tâches constituent les activités à proprement parlé de traitement du risque.
 
 La figure ci-dessous donne un aperçu du formulaire en mode lecture d'un risque *inacceptable*.
 
 .. figure:: img/N_risk_form.png
-    :width: 544px
+    :width: 528px
     :align: center
-    :height: 320px
+    :height: 340px
     :alt: Unacceptable risk Form
     :figclass: align-center
 
     Risque inacceptable
+
+La figure ci-dessous donne un aperçu de la vue *kanban* des taches de traitement du risque de la précédente figure.
+
+.. figure:: img/treatment_task_kanban.png
+    :width: 410px
+    :align: center
+    :height: 340px
+    :alt: Unacceptable risk Form
+    :figclass: align-center
+
+    Tâches de traitement du risque
+
+Le formulaire des taches de traitement des risques comportent un champ *Critère cible*, indiqué sur la figure ci-dessous par une flèche. Ce champ permet d'indiquer l'aspect du risque que la tâche de traitement du risque vise à modifier: ce peut être améliorer la capacité de l'organisation à détecter le risque (*détectabilité*), reduire (augmenter dans le cas d'une opportunité) l'impact du risque (*sévérité*) ou encore diminuer (augmenter dans le cas d'une opportunité) la probabilité de realisation du risque (*occurrence*).
+
+.. figure:: img/treatment_task_form.png
+    :width: 520px
+    :align: center
+    :height: 350px
+    :alt: Unacceptable risk Form
+    :figclass: align-center
+
+    Formulaire de tâche de traitement du risque
+
+Les rapports
+------------
+
+Le module `Gestion du risque` ne permet pour le moment de produire que 2 types de rapport:
+
+#. Le resumé du risque: ce rapport donne les informations les plus pertinentes sur un risque donné, à savoir:
+    - son intitulé,
+    - sa description,
+    - sa (ses) cause(s),
+    - sa (ses) conséquences,
+    - dans quel étape du processus de gestion du risque il se trouve: identification, évaluation ou traitement;
+    - Son statut (*acceptable*, *inacceptable*)
+    - une représentation graphique de l'évalution au cours du temps de son **Facteur Risque** et de son **Seuil de Risque**.
+
+.. figure:: img/risk_summary_report.png
+    :width: 520px
+    :align: center
+    :height: 350px
+    :alt: Unacceptable risk Form
+    :figclass: align-center
+
+    Resumé du risque
+
+#. Le profil du risque: Ce profil peut être généré pour l'ensemble de l'entreprise ou seulement pour un actif en particulier (un projet ou un processus par exemple). Il comporte la liste des risques actifs et la représentation graphique de la distribution des risques par *catégorie de risque* et par étape dand le processus de gestion du risque ainsi qu'un graphique de l'évolution des tâches de gestion des risques qui ont atteint l'étape du *traitement*.
+
+
+
 
 
 
