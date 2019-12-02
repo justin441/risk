@@ -494,7 +494,7 @@
                 <filter name="acceptable" string="Acceptable" domain="[('status', '=', 'A')]"/>
                 <filter name="not_acceptable" string="Unacceptable" domain="[('status', '=', 'N')]"/>
                 <separator/>
-                <filter name="threats" string="ThreatS" domain="[('risk_type', '=', 'T')]"/>
+                <filter name="threats" string="Threats" domain="[('risk_type', '=', 'T')]"/>
                 <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
                 <separator/>
                 <filter name="my_reported" string="Reported by me" domain="[('reported_by', '=', uid)]"/>
