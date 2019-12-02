@@ -23,7 +23,7 @@ Fonctionnalités de l'application
 ================================
 Les fonctionnalités du module `Gestion du risque` peuvent être regroupées sous 2 catégories:
 
-#. La première et principale catégorie, celle de la gestion des risques, comprend les fonctionnalités suivantes:
+#. La première et principale catégorie est celle de la gestion des risques; elle comprend les fonctionnalités suivantes:
     - le signalement des risques par les utilisateurs (en principes les employés de l'entreprise);
     - la notation des risques sur les critères de *détectabilité*, de *probabilité d'occurrence* et de *sévérite*;
     - le classement des risques par ordre de priorité, c'est à dire en fonction des scores de leur évaluation et de la tolérance de l'entreprise pour le risque;
@@ -65,11 +65,9 @@ Suivant la définition classique, un processus est un ensemble constitué d'acti
 
     Un processus
 
-L’*approche processus* est une approche systémique. Cela veut dire, entre autres, qu’il y aura plusieurs niveaux d’analyse. L'entreprise est un processus qui comprend d'autre processus qui constituent ses sous-processus ( par exemple: marketing,commercial, logistique entrante). Ces derniers peuvent être à leur tour divisés en de processus plus spécifiques encore, la finesse d'analyse étant dictée par des facteurs tels que la taille de l'entreprise ou son  domaine d'activité.
+L’*approche processus* est une approche systémique. Cela veut dire, entre autres, qu’il y aura plusieurs niveaux d’analyse. L'entreprise est un processus qui comprend d'autre processus qui constituent ses sous-processus ( par exemple: marketing,commercial, logistique entrante). Ces derniers peuvent être à leur tour divisés en des processus plus spécifiques encore, la finesse d'analyse étant dictée par des facteurs tels que la taille de l'entreprise ou son  domaine d'activité. La fonctionnalite de modélisation des processus du module *Gestion du risque* n'implémente pas un modèle hiérarchique des processus qui permettrait d'ajouter des sous-processus à un processus donnée.
 
 Le découpage de l'entreprise en processus se base souvent sur le découpage fonctionnel existant.
-
-La fonctionnalite de modélisation des processus du module *Gestion du risque* n'implémente pas un modèle hiérarchique des processus qui permettrait d'ajouter des sous-processus à un processus donnée.
 
 Créer un processus
 ********************
@@ -91,7 +89,7 @@ Un processus est caractérisé par:
 
 - un **nom**,
 - une **description**, qui indique entre autres informations la finalité du processus,
-- un **type**; les choix de type de processus prédéfinis comprennent:
+- un **type**; le choix des types de processus prédéfinis comprend:
 
   * les processus *opérationnels*,
   * les processus de *pilotage*,
@@ -117,19 +115,17 @@ La figure ci-dessous montre un formulaire de creation de processus.
 
     Formulaire de processus
 
-Le champ `module odoo` permet de définir un module odoo installé dont qui contient une fonctionnalité permettant de gérer le processus. Par exemple, le processus de vente peut être géré par le module, bien nommé, `Vente <https://www.odoo.com/documentation/user/11.0/fr/sales.html>`_.
-
-    Definir un module odoo sur le processus offre un *hook* permettant de définir les    indicateurs de performance du module.
+Le champ `module odoo` permet de définir un module odoo installé qui possède une fonctionnalité permettant de gérer le processus. Par exemple, le processus de vente peut être géré par le module `Vente <https://www.odoo.com/documentation/user/11.0/fr/sales.html>`_. Rattacher un module odoo au processus par le biais de ce champ offre un *hook* permettant de définir les indicateurs de performance du module.
 
 Un processus peut être desactivé en cliquant sur le bouton marqué *Actif/ve*
 
 Les données d'entrée et de sortie des processus
 ###############################################
-Les données d'entrée et de sortie des processus prennent la forme de messages entre les processus, ou entre les processus et des catégories de partenaires externes de l'entreprise. Chaque message comprend une *origine* (qui est son fournisseur) et une *destination* (le client).
+Les données d'entrée et de sortie des processus prennent la forme de messages entre les processus, ou entre les processus et des catégories de partenaires externes tels que les clients, les fournisseurs, les organismes gouvernementaux, etc. Chaque message comprend une *origine* (qui est le fournisseur de la donnée) et une *destination* (le client de la donnée).
 
 Ces messages peuvent représenter aussi bien des informations sous formes de documents tels que des factures ou des rapports, que des services, ou même des biens materiels, transitant entre deux processus ou entre un processus et des partenaires externes.
 
-Par exemple, une bon de commande client est une donnée d'entrée dont l'origine est la catégorie de partenaire **clients** et la destination un processus de l'entreprise (**processus** commercial dans le cas où c'est celui-ci qui est chargé de traiter les commandes clients); comme autre exemple de donnée d'entrée/sortie on peut citer la facture de vente dont l'origine peut être le **processus de vente** et les destinataires le **processus comptabilité** et la categorie de partenaire **clients**.
+Par exemple, une bon de commande client est une donnée d'entrée dont l'origine est la *catégorie de partenaire* **clients** et la destination un processus de l'entreprise (le processus *commercial* par exemple, dans le cas où c'est celui-ci qui est chargé de traiter les commandes clients); comme autre exemple de donnée d'entrée/sortie on peut citer la facture de vente dont l'origine peut être le **processus de vente** et les destinataires le **processus comptabilité** et la categorie de partenaire **clients**.
 
 Les données de sorties résultent des contrats d'interface, c'est à dire qu'une donnée a un fournisseur (un processus) d'une part et un client d'autre part(un processus ou une categorie de partenaire); le fournisseur et le client sont liés par un contrat qui établit les conditions dans lesquelles le premier produira ses sortie pour le second. Pour cette raison les données de sorties sont créées au niveau des processus, mais pas les données d'entrée. Les destinataires des données de sortie, c'est à dire ceux pour qui celles-ci constituent des données d'entrée, sont ajoutés dans les champs destinataires des ces données de sortie. Cependant les entrées de processus dont l'origine est exterieur à l'entreprise (comme par exemple les commandes clients) sont créées au niveau de l'un des processus à qui elles sont destinées.
 
@@ -137,8 +133,7 @@ Les données de sorties résultent des contrats d'interface, c'est à dire qu'un
 
 Création d'une sortie de processus
 **********************************
-Pour ajouter une sortie à un processus, aller dans l'onglet "Sorties" du formulaire du processus en mode création et
-cliquer sur le lien qui *ajouter un element*, tel que visible sur la figure ci-dessous.
+Pour ajouter une sortie à un processus, aller dans l'onglet "Sorties" du formulaire du processus en mode création et cliquer sur le lien *ajouter un element*, tel que visible sur la figure ci-dessous.
 
 .. figure:: img/process_form_add_output.png
     :width: 545px
@@ -162,7 +157,7 @@ Le bouton `Ajouter l'entrée d'un partenaire`, situé en haut du formulaire à d
 
 La liste des *entrées* d'un processus se trouve sous l'onglet *Entrées* du formulaire.
 
-Une sortie de processus est caractérisée par:
+Une donnée d'entrée/sortie de processus est caractérisée par:
 
 - un **nom**; exemple: *Facture client*, *Bon de commande*;
 - une **description**, qui donne un aperçu du contenu de la sortie;
@@ -266,11 +261,11 @@ Qu'est-ce que le risque
 Le mot risque contient 2 idées clés: *incertitude* et *résultat*. Dans l'usage commun, le risque est plus souvent
 associé aux résultats négatifs qu'aux positifs, mais en général les deux types de résultats sont présents. L'idée de
 résultat peut ếtre élargie à celles de *buts* et d'*objectifs*. Un conducteur qui brûle un feu rouge a 2 objectifs
-immédiats: gagner du temps au lieu d'attendre le feu vert, et eviter de causer un accident. Il existe une incertitude
+immédiats: gagner du temps au lieu d'attendre le feu vert, et éviter de causer un accident. Il existe une incertitude
 quand à l'atteinte de ces 2 objectifs. le premier objectif se rapporte à un résultat positif (gagner du temps) et le
 second à un resultat négatif (éviter un accident).
 
-Suivant la définition de la norme iso 31000:2019 le risque peut être considéré comme l'*effet de l'incertitude sur les objectifs*. Cet effet peut être positif ou négatif: Ainsi nous avons des risques positifs que nous nommons *opportunités* et des risques négatifs que nous nommons *menaces*. Le module *Gestion du risque* entend le risque comme la conjonction de la *conséquence d'un événement* (tel qu'un accident survenant suite au non respect du feu rouge) et *la probabilité d'occurence* dudit événement. Un autre aspect à prendre en compte dans la définition du risque est la capacité de l'agent ou du sujet du risque à *détecter* l'occurence du risque considéré.
+Suivant la définition de la norme iso 31000:2019 le risque peut être considéré comme l'*effet de l'incertitude sur les objectifs*. Cet effet peut être positif ou négatif: Ainsi nous avons des risques positifs que nous nommons *opportunités* et des risques négatifs que nous nommons *menaces*. Le module *Gestion du risque* entend le risque comme la conjonction de la *conséquence d'un événement* (tel qu'un accident survenant suite au non respect du feu rouge) et *la probabilité d'occurence* dudit événement. Un autre aspect à prendre en compte dans la définition du risque est la capacité de l'agent ou du sujet exposé au risque à *détecter* l'occurence du risque considéré.
 
 L'identification du risque
 ##########################
@@ -292,7 +287,7 @@ Les utilisateurs peuvent signaler des risques touchant les processus ou d'autres
 La creation d'un risque se fait en 2 étapes:
 
 - l'enregistrement des informations sur le risque et
-- le signalement du risque proprement dit.
+- le signalement proprement dit du risque.
 
 L'enregistrement des informations du risque
 *******************************************
@@ -326,7 +321,8 @@ En cliquant sur le bouton *Créer* de la page du registre des risques l'utilisat
 
 Après le signalement du risque, celui-ci doit être confirmé pour que la phase d'idenfication du risque soit achevée et que puisse commencer la phase d'évaluation du risque. Par défaut, seuls les utilisateurs appartenant au groupe *Risk Manager* (*cf.* `Groupes d'utilisateurs et Droits`_) peuvent confirmer le risque. Ils le font en cochant le champ *Confirmé* du formulaire de signalement du risque.
 
-Les utilisateurs du groupe *Risk Manager* peuvent également fixer la date de réévaluation du risque (il est de 90 jours par défaut), qui est la date au delà de laquelle le signalement du risque devient obsolète.
+Les utilisateurs du groupe *Risk Manager* peuvent également fixer la date de réévaluation du risque (il est de 90 jours par défaut), qui est la date au delà de laquelle le signalement du risque devient obsolète et donc inactif.
+Le formulaire du risque comporte un bouton pour désactiver / activer le risque. Si un risque inactif est activé, cela a le même effet que si l'on venait de le signaler.
 
 L'évaluation du risque
 ######################
@@ -345,7 +341,7 @@ La détectabilité
 
     Un exemple peut aider à comprendre la notion de détectabilité: imaginons une entreprise de négoce possédant un entrepôt de stockage de la marchandise; on désire évaluer le risque de fraude interne (vol de marchandises) dans cet entrepôt. La détectabilité permet de répondre à cette question: si un vol survenait dans cet entrepôt, combien de temps passerait avant que l'entreprise s'en rende compte? Dans cet exemple, si les contrôles et les inventaires physiques sont fréquents, disons une fois par mois, la détectabilité serait plus élevée que si ceux-ci survenaient seulement une fois par semestre par exemple.
 
-    La particularité de la détectabilité est que son évaluation change selon que le risque est positif ou négatif. En effet, les scores attribués à chaque niveau de l'échelle de détectabilité pour les **menaces** évoluent en sens inverse de ceux attribués pour les **opportunités**. Cela se comprend facilement si on considère comment le *facteur risque* est calculé. Dans le cas d'une menace comme dans l'exemple ci-dessous une grande capacité à détecter les occurrences fait baisser le score du risque, alors que quand il s'agit d'une opportunité, plus la capacité de l'entreprise à  détecter l'occurrence de l'opportunité est grande, plus elle a de chance de concrétiser cette opportunité, et plus le score du risque est élevé.
+    La particularité de la détectabilité est que son évaluation change selon que le risque est positif ou négatif. En effet, les scores attribués à chaque niveau de l'échelle de détectabilité pour les **menaces** évoluent en sens inverse de ceux attribués pour les **opportunités**. Cela se comprend facilement si on considère comment le *facteur risque* est calculé (*cf* `Création d'une évaluation`_). Dans le cas d'une menace comme dans l'exemple ci-dessous une grande capacité à détecter les occurrences fait baisser le score du risque, alors que quand il s'agit d'une opportunité, plus la capacité de l'entreprise à  détecter l'occurrence de l'opportunité est grande, plus elle a de chance de concrétiser cette opportunité, et plus le score du risque est élevé.
 
     Le tableau suivant donne l'échelle utilisée pour mesurer la détectabilité ainsi que les score attribué à chacun des niveau:
 
@@ -386,7 +382,7 @@ L'Occurrence :
 
     Les scientifiques expriment parfois la probabilité par un nombre compris entre 0 (impossible) et 1 (certain). Cela peut porter à croire que la probabilité peut être mesuré de la même façon que la température d'un objet. Ce n'est pas le cas. Lorsque des physiciens disent qu'un evenement donné a une probabilité de 1 sur 3.000.000 par exemple, ils utilisent les données expérimentales en leur possession et leur connaissances du sujet pour calculer cette probabilité.
 
-    Les probabilités peuvent être exprimées quantitativement ou qualitativement. Ce qu'il est important de retenir c'est que ces échelles quantitatives ne sont pas des mesures, mais des *quantifications* des probabilités. Des mesures,     telles que les indicateurs clés des risques, peuvent faire partie des connaissances utilisées pour attribuer la  probabilité. Mais ces indicateurs ne sont pas une mesure de la probabilité.
+    Les probabilités peuvent être exprimées qualitativement ou quantitativement. Ce qu'il est important de retenir c'est que ces échelles quantitatives ne sont pas des mesures, mais des *quantifications* des probabilités. Des mesures,     telles que les indicateurs clés des risques, peuvent faire partie des connaissances utilisées pour attribuer la  probabilité. Mais ces indicateurs ne sont pas une mesure de la probabilité.
 
     Souvent les fréquences d'un événement sont utilisées pour attribuer la probabilité, mais la fréquence est habituellement différente de la probabilité d'un événement particulier avec ses propres circonstances. Supposons qu'en moyenne une personne sur 100.000.000 soit tué par des lions chaque année en Afrique. La fréquence annuelle des morts suite à des attaques des lions sur un continent ne peut pas être une *mesure* de la probabilité de se faire tuer par un lion dans des circonstances particulières. Si un individu se trouve par exemple en plein milieu de la savane du Serengeti à pied en pleine nuit, savoir qu'une personne sur 100 millions est tué par des lions chaque année en Afrique ne suffira pas à le rassurer.
 
@@ -413,7 +409,7 @@ Pour ajouter une évaluation à un risque, dans le formulaire en mode lecture du
 
 Outre les valeurs à assigner à chacun des critères *détectabilité*, *sévérité* et *occurrence*, le formulaire comporte les champs suivant:
 
-- *date de réévaluation*: ce champ permet de fixer la date après laquelle l'évaluation sera obsolète; la durée de vie d'une évaluation est de 30 jours par défaut;
+- *date de réévaluation*: ce champ permet de fixer la date après laquelle l'évaluation sera obsolète et par conséquent celle de la *revue du risque*; la durée de vie d'une évaluation est de 30 jours par défaut;
 - *commentaire*: ce champ permet d'ajouter des détails à l'évaluation, par exemple une estimation de l'impact financier du risque.
 
 .. figure:: img/eval_form.png
@@ -508,6 +504,10 @@ Le formulaire des taches de traitement des risques comportent un champ *Critère
 
     Formulaire de tâche de traitement du risque
 
+La revue du risque
+##################
+À la fin du traitement du risque le risque doit être *revue*. La revue du risque consiste à revérifier les informations du risque, à réévaluer le risque pour confirmer que les objectifs du traitement du risque ont été atteint, et, le cas échéant à mettre en place de nouvelles mesures pour traiter le risque.
+
 Les rapports
 ------------
 
@@ -517,7 +517,7 @@ Le module `Gestion du risque` ne permet pour le moment de produire que 2 types d
     - son intitulé,
     - sa description,
     - sa (ses) cause(s),
-    - sa (ses) conséquences,
+    - sa (ses) conséquence(s),
     - dans quel étape du processus de gestion du risque il se trouve: identification, évaluation ou traitement;
     - Son statut (*acceptable*, *inacceptable*)
     - une représentation graphique de l'évalution au cours du temps de son **Facteur Risque** et de son **Seuil de Risque**.
@@ -585,12 +585,3 @@ Sur le plan de la sécurité, 2 types de processus peuvent être crées:
 
 - les processus *public*: ils sont visibles pour tous les employes avec leurs ressources et leurs procédures.
 - les processus privé: ces processus et leurs ressources ne peuvent être vus que par les utilisateurs du groupe *Manager* et les employés qui font partie du *personnel* du processus.
-
-
-
-
-
-
-
-
-
