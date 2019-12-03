@@ -235,7 +235,7 @@ class RiskIdentificationMixin(models.AbstractModel):
         compute='_compute_latest_eval', string='Last Evaluation Date', store=True)
     review_date = fields.Date(default=_compute_default_review_date,
                               string="Review Date", track_visibility="onchange")
-    owner = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
+    user_id = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
                             track_visibility="onchange")
     active = fields.Boolean('Active', compute='_compute_active', inverse='_inverse_active', search='_search_active',
                             track_visibility="onchange")
@@ -255,10 +255,10 @@ class RiskIdentificationMixin(models.AbstractModel):
     treatment_task_count = fields.Integer(
         related='treatment_task_id.subtask_count', string='Risk Treatment Tasks')
 
-    @api.onchange('owner')
+    @api.onchange('user_id')
     def _onchange_owner(self):
         if self.treatment_task_id:
-            self.treatment_task_id.user_id = self.owner
+            self.treatment_task_id.user_id = self.user_id
 
     @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
@@ -476,7 +476,7 @@ class RiskIdentificationMixin(models.AbstractModel):
         if self.status != 'N':
             pass
         else:
-            self.sudo().write({'owner': self.env.user.id})
+            self.sudo().write({'user_id': self.env.user.id})
 
     @api.depends('evaluation_ids')
     def _compute_latest_eval(self):
@@ -522,13 +522,6 @@ class RiskIdentificationMixin(models.AbstractModel):
 
         return groups
 
-    @api.model
-    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
-        user_field_lst = super(RiskIdentificationMixin, self)._message_get_auto_subscribe_fields(updated_fields,
-                                                                                                 auto_follow_fields=None)
-        user_field_lst.append('owner')
-        return user_field_lst
-
     @api.constrains('report_date', 'review_date')
     def _check_review_after_report(self):
         for rec in self:
@@ -559,7 +552,7 @@ class RiskIdentificationMixin(models.AbstractModel):
                 })
                 vals.update({
                     'review_date': fields.Date.context_today(self),
-                    'owner': False
+                    'user_id': False
                 })
                 self.with_context(active_test=False).mapped(
                     'treatment_task_id').write({'active': active})
@@ -727,13 +720,14 @@ class BusinessRisk(models.Model):
         })
 
         # add risk channel as follower
+        new = self.env.ref('risk_management.mt_business_risk_new')
         obsolete = self.env.ref('risk_management.mt_business_risk_obsolete')
         status = self.env.ref('risk_management.mt_business_risk_status')
         self.env['mail.followers'].create({
             'res_model': self._name,
             'res_id': risk.id,
             'channel_id': self.env.ref('risk_management.mail_channel_risk_management_risk').id,
-            'subtype_ids': [(6, False, [obsolete.id, status.id])]
+            'subtype_ids': [(6, False, [new.id, obsolete.id, status.id])]
         })
 
         return risk
@@ -918,6 +912,6 @@ class BusinessRiskEvaluation(models.Model):
                             'priority': '1',
                             'project_id': self.env.ref('risk_management.risk_treatment_project').id,
                             'business_risk_id': rec.business_risk_id.id,
-                            'user_id': rec.business_risk_id.owner.id if rec.business_risk_id.owner else False
+                            'user_id': rec.business_risk_id.user_id.id if rec.business_risk_id.user_id else False
                         })
         return res
