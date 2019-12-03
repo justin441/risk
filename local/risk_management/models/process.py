@@ -55,7 +55,7 @@ class BusinessProcess(models.Model):
     is_core = fields.Boolean(compute='_compute_is_core', store=True, string='Core Business Process?',
                              help='Is this a core business process? It is if it processes customer data.')
     visibility = fields.Selection([('private', 'Private'), ('public', 'Public')], string='Visibility', default='public')
-    responsible_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
+    user_id = fields.Many2one('res.users', ondelete='set null', string='Responsible',
                                      default=lambda self: self.env.user, index=True, track_visibility='onchange',
                                      domain=lambda self: [('id', 'in', self.company_id.user_ids.ids)])
     user_ids = fields.Many2many('res.users', string='Staff', compute='_compute_staff', track_visilibity='always',
@@ -82,10 +82,10 @@ class BusinessProcess(models.Model):
             'context': ctx
         }
 
-    @api.depends('task_ids', 'task_ids.owner_id')
+    @api.depends('task_ids', 'task_ids.user_id')
     def _compute_staff(self):
         for rec in self:
-            rec.user_ids = rec.task_ids.mapped('owner_id')
+            rec.user_ids = rec.task_ids.mapped('user_id')
 
     @api.constrains('input_data_ids')
     def _check_output_not_in_input(self):
@@ -218,7 +218,7 @@ class BusinessProcess(models.Model):
     def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
         user_field_lst = super(BusinessProcess, self)._message_get_auto_subscribe_fields(updated_fields,
                                                                                          auto_follow_fields=None)
-        user_field_lst.extend(['user_ids', 'responsible_id'])
+        user_field_lst.extend(['user_ids', 'user_id'])
         return user_field_lst
 
     @api.multi
@@ -562,21 +562,21 @@ class BusinessProcessTask(models.Model):
 
     name = fields.Char(required=True, translate=True, index=True)
     description = fields.Text(translate=True, index=True)
-    owner_id = fields.Many2one('res.users', ondelete="set null", string='Assigned To')
+    user_id = fields.Many2one('res.users', ondelete="set null", string='Assigned To')
     sequence = fields.Integer(default=10, index=True, string='Sequence')
     business_process_id = fields.Many2one(comodel_name='risk_management.business_process', ondelete='cascade',
                                           string="Process",
                                           index=True, required=True,
                                           default=lambda self: self.env.context.get('default_business_process_id'))
     company_id = fields.Many2one('res.company', related='business_process_id.company_id', string='Company')
-    manager_id = fields.Many2one('res.users', related='business_process_id.responsible_id', readonly=True,
+    manager_id = fields.Many2one('res.users', related='business_process_id.user_id', readonly=True,
                                  related_sudo=False, string='Process Manager')
     frequency = fields.Selection(selection=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'),
                                             ('quarterly', 'Quarterly'), ('annually', 'Annual')], string='Frequency',
                                  default='daily')
 
     def action_assign_to_me(self):
-        self.write({'owner_id': self.env.user.id})
+        self.write({'user_id': self.env.user.id})
 
 
 class BusinessProcessMethod(models.Model):

@@ -184,7 +184,7 @@
                 <field name="name"/>
                 <field name="business_process_id"/>
                 <field name="frequency"/>
-                <field name="owner_id"/>
+                <field name="user_id"/>
             </tree>
         </field>
     </record>
@@ -195,19 +195,19 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name" string="Tasks"/>
-                <field name="owner_id"/>
+                <field name="user_id"/>
                 <field name="description"/>
                 <field name="business_process_id"/>
                 <filter name="my_tasks" string="My tasks"
-                        domain="['|', ('owner_id', '=', uid), ('business_process_id.responsible_id', '=', uid)]"/>
-                <filter string="Unassigned" name="unassigned" domain="[('owner_id', '=', False)]"/>
+                        domain="['|', ('user_id', '=', uid), ('business_process_id.user_id', '=', uid)]"/>
+                <filter string="Unassigned" name="unassigned" domain="[('user_id', '=', False)]"/>
                 <filter string="Daily Tasks" name="daily" domain="[('frequency', '=', 'daily')]"/>
                 <filter string="Weekly Tasks" name="weekly" domain="[('frequency', '=', 'weekly')]"/>
                 <filter string="Monthly Tasks" name="monthly" domain="[('frequency', '=', 'monthly')]"/>
                 <filter string="Annual Task" name="annual" domain="[('frequency', '=', 'annually')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Process" name="process" context="{'group_by': 'business_process_id'}"/>
-                    <filter string="Owner" name="user_id" context="{'group_by': 'owner_id'}"/>
+                    <filter string="Owner" name="user_id" context="{'group_by': 'user_id'}"/>
                     <filter string="Manager" name="manager" context="{'group_by': 'manager_id'}"/>
                 </group>
 
@@ -222,7 +222,7 @@
             <form>
                 <header string="Task">
                     <button name="action_assign_to_me" string="Assign to Me" type="object" class="oe_highlight"
-                            attrs="{'invisible' : [('owner_id', '!=', False)]}"/>
+                            attrs="{'invisible' : [('user_id', '!=', False)]}"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -232,7 +232,7 @@
                     </div>
                     <group>
                         <field name="business_process_id"/>
-                        <field name="owner_id"/>
+                        <field name="user_id"/>
                     </group>
                     <group>
                         <field name="sequence" groups="base.group_no_one"/>
@@ -310,7 +310,7 @@
                 <field name="business_process_id" string="Process"/>
                 <field name="author_name"/>
                 <filter name="my_methods" string="My Methods"
-                        domain="[('business_process_id.responsible_id', '=', uid)]"/>
+                        domain="[('business_process_id.user_id', '=', uid)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Business Process" name="process" context="{'group_by': 'business_process_id'}"/>
                     <filter string="Origin" name="origin" context="{'group_by': 'author_name'}"/>
@@ -852,7 +852,7 @@
         <field name="model">risk_management.business_process</field>
         <field name="arch" type="xml">
             <kanban class="o_kanban_mobile" default_group_by="process_type">
-                <field name="responsible_id" string="Process Manager"/>
+                <field name="user_id" string="Process Manager"/>
                 <field name="process_type"/>
                 <field name="description"/>
                 <field name="color"/>
@@ -895,8 +895,8 @@
                                     </div>
                                     <div class="col-xs-4">
                                         <div class="oe_kanban_bottom_right">
-                                            <img t-att-src="kanban_image('res.users', 'image_small', record.responsible_id.raw_value)"
-                                                 t-att-title="record.responsible_id.value" width="24" height="24"
+                                            <img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)"
+                                                 t-att-title="record.user_id.value" width="24" height="24"
                                                  class="oe_kanban_avatar pull-right"/>
                                         </div>
                                     </div>
@@ -959,7 +959,7 @@
                     <group>
                         <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
                         <field name="process_type"/>
-                        <field name="responsible_id"/>
+                        <field name="user_id"/>
                         <field name="module" options="{'no_open': True}"/>
                     </group>
                     <notebook>
@@ -997,7 +997,7 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
-                <field name="responsible_id"/>
+                <field name="user_id"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="module"/>
             </tree>

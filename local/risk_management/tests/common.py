@@ -49,13 +49,13 @@ class TestProcessCases(common.TransactionCase):
         # create tasks
         self.task1 = self.env['risk_management.business_process.task'].create({
             'name': 'sales task ',
-            'owner_id': self.risk_user_1.id,
+            'user_id': self.risk_user_1.id,
             'business_process_id': self.fin.id
         })
 
         self.task2 = self.env['risk_management.business_process.task'].create({
             'name': 'quality task ',
-            'owner_id': self.risk_user_2.id,
+            'user_id': self.risk_user_2.id,
             'business_process_id': self.ref('risk_management.quality_process')
         })
 
