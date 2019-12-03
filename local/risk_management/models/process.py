@@ -226,7 +226,10 @@ class BusinessProcess(models.Model):
         groups = super(BusinessProcess, self)._notification_recipients(message, groups)
 
         for group_name, group_method, group_data in groups:
+            if group_name in ['customer', 'portal']:
+                continue
             group_data['has_button_access'] = True
+            group_data['has_button_unfollow'] = True
 
         return groups
 
