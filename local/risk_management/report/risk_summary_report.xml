@@ -93,7 +93,7 @@
                                                 <dl>
                                                     <dt>Assigned to:</dt>
                                                     <dd>
-                                                        <span t-field="o.owner"/>
+                                                        <span t-field="o.user_id"/>
                                                     </dd>
                                                 </dl>
                                             </td>

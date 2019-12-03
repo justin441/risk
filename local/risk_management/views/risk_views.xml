@@ -207,7 +207,7 @@
                 <filter string="Annual Task" name="annual" domain="[('frequency', '=', 'annually')]"/>
                 <group expand="0" string="Group By">
                     <filter string="Process" name="process" context="{'group_by': 'business_process_id'}"/>
-                    <filter string="Owner" name="owner" context="{'group_by': 'owner_id'}"/>
+                    <filter string="Owner" name="user_id" context="{'group_by': 'owner_id'}"/>
                     <filter string="Manager" name="manager" context="{'group_by': 'manager_id'}"/>
                 </group>
 
@@ -498,9 +498,9 @@
                 <filter name="opportunities" string="Opportunities" domain="[('risk_type', '=', 'O')]"/>
                 <separator/>
                 <filter name="my_reported" string="Reported by me" domain="[('reported_by', '=', uid)]"/>
-                <filter name="my_assigned" string="Assigned to me" domain="[('owner', '=', uid)]"/>
+                <filter name="my_assigned" string="Assigned to me" domain="[('user_id', '=', uid)]"/>
                 <filter name="my_followed" string="Followed by Me" domain="[('message_is_follower','=',True)]"/>
-                <filter name="unassigned" string="Unassigned" domain="[('owner', '=', False)]"/>
+                <filter name="unassigned" string="Unassigned" domain="[('user_id', '=', False)]"/>
                 <separator/>
                 <filter name="inactive" string="Latent" domain="[('active', '=', False)]"
                         groups="risk_management.group_risk_manager"/>
@@ -551,7 +551,7 @@
                 <field name="risk_type"/>
                 <field name="report_date"/>
                 <field name="review_date"/>
-                <field name="owner"/>
+                <field name="user_id"/>
                 <field name="status"/>
                 <field name="activity_ids"/>
                 <field name="stage"/>
@@ -617,8 +617,8 @@
                                         <field name="activity_ids" widget="kanban_activity"/>
                                     </div>
                                     <div class="oe_kanban_bottom_right">
-                                        <img t-att-src="kanban_image('res.users', 'image_small', record.owner.raw_value)"
-                                             t-att-title="record.owner.value" width="24" height="24"
+                                        <img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)"
+                                             t-att-title="record.user_id.value" width="24" height="24"
                                              class="oe_kanban_avatar"/>
                                     </div>
                                 </div>
@@ -636,7 +636,7 @@
         <field name="model">risk_management.business_risk</field>
         <field eval="2" name="priority"/>
         <field name="arch" type="xml">
-            <calendar date_start="review_date" string="Risks" mode="month" color="owner">
+            <calendar date_start="review_date" string="Risks" mode="month" color="user_id">
                 <field name="name"/>
             </calendar>
         </field>
@@ -665,7 +665,7 @@
             <form>
                 <header>
                     <button name="assign_to_me" string="Assign to Me" type="object" class="oe_highlight oe_read_only"
-                            attrs="{'invisible' : ['|', ('status', '!=', 'N'), ('owner', '!=', False)]}"
+                            attrs="{'invisible' : ['|', ('status', '!=', 'N'), ('user_id', '!=', False)]}"
                             groups="risk_management.group_risk_manager"/>
                     <button name="%(risk_management.act_set_business_risk_threshold_wizard)d"
                             type="action"
@@ -689,7 +689,7 @@
                                 icon="fa-tasks"
                                 attrs="{'invisible': ['|',
                                                         '|',
-                                                            ('owner', '=', False),
+                                                            ('user_id', '=', False),
                                                             ('state', 'not in', ['4', '5', '6']),
                                                         '|',
                                                             ('treatment_task_id', '=', False),
@@ -723,7 +723,7 @@
                     <group>
                         <group>
                             <field name="risk_type"/>
-                            <field name="owner" attrs="{'invisible': [('is_confirmed', '=', False)]}"/>
+                            <field name="user_id" attrs="{'invisible': [('is_confirmed', '=', False)]}"/>
                         </group>
                         <group>
                             <field name="is_confirmed" groups="risk_management.group_risk_manager"/>
