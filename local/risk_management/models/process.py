@@ -218,7 +218,7 @@ class BusinessProcess(models.Model):
     def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
         user_field_lst = super(BusinessProcess, self)._message_get_auto_subscribe_fields(updated_fields,
                                                                                          auto_follow_fields=None)
-        user_field_lst.extend(['user_ids', 'user_id'])
+        user_field_lst.extend(['user_ids'])
         return user_field_lst
 
     @api.multi
