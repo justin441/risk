@@ -1,4 +1,4 @@
-odoo.define('risk_management.pdf_polyfill', function (require) {
+odoo.define('risk_management.wkhtmltopdfFix', function (require) {
     // wkhtmltopdf 0.12.5 crash fix.
     // https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
     'use strict';

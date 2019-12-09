@@ -4,6 +4,7 @@
         <xpath expr="." position="inside">
             <link rel="stylesheet" type="text/css" href="/risk_management/static/src/lib/chartjs/Chart.css" />
             <link rel="stylesheet" type="text/css" href="risk_management/static/src/css/risk_profile.css" />
+            <script type="text/javascript" src="/risk_management/static/src/js/wkhtmltopdfFix.js"/>
             <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/Chart.js" />
             <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/chartjs-plugin-datalabels.js" />
             <script type="text/javascript" src="/risk_management/static/src/js/risk_profile_graph.js" />
@@ -117,17 +118,17 @@
                     </tbody>
                 </table>
                 <div class="row">
-                    <div class="col-md-12 profile-graph">
+                    <div class="col-md-12 report-graph">
                         <canvas id="per-category-pie"></canvas>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12 profile-graph">
+                    <div class="col-md-12 report-graph">
                         <canvas id="per-stage-pie"></canvas>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12 profile-graph">
+                    <div class="col-md-12 report-graph">
                         <canvas id="treatment-task-bar"></canvas>
                     </div>
                 </div>

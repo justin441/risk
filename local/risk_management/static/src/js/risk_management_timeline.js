@@ -7,25 +7,6 @@ odoo.define('risk_management.timeline_graph', function (require) {
     let ajax = require('web.ajax');
     Chart.plugins.unregister(ChartDataLabels);
 
-
-    // wkhtmltopdf 0.12.5 crash fix.
-    // https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
-    (function (setLineDash) {
-        CanvasRenderingContext2D.prototype.setLineDash = function () {
-            if (!arguments[0].length) {
-                arguments[0] = [1, 0];
-            }
-            // Now, call the original method
-            return setLineDash.apply(this, arguments);
-        };
-    })(CanvasRenderingContext2D.prototype.setLineDash);
-    Function.prototype.bind = Function.prototype.bind || function (thisp) {
-        var fn = this;
-        return function () {
-            return fn.apply(thisp, arguments);
-        };
-    };
-
     // risks ids
     let risk_ids = $('#risk-ids').data('risk') || [];
 
