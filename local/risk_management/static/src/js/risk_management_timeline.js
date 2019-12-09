@@ -1,6 +1,5 @@
 odoo.define('risk_management.timeline_graph', function (require) {
     'use strict';
-
     require('web.dom_ready');
     var core = require('web.core');
     var _t = core._t;

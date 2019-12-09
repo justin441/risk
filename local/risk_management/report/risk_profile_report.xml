@@ -2,12 +2,11 @@
 <odoo>
     <template id="assets_backend_risk_profile" name="Risk Report Asset" inherit_id="web.report_assets_editor">
         <xpath expr="." position="inside">
-            <link rel="stylesheet" type="text/css" href="/risk_management/static/src/lib/chartjs/Chart.css" />
-            <link rel="stylesheet" type="text/css" href="risk_management/static/src/css/risk_profile.css" />
-            <script type="text/javascript" src="/risk_management/static/src/js/wkhtmltopdfFix.js"/>
+            <link rel="stylesheet" type="text/css" href="/risk_management/static/src/lib/chartjs/Chart.css"/>
+            <link rel="stylesheet" type="text/css" href="risk_management/static/src/css/risk_profile.css"/>
             <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/Chart.js" />
-            <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/chartjs-plugin-datalabels.js" />
-            <script type="text/javascript" src="/risk_management/static/src/js/risk_profile_graph.js" />
+            <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/chartjs-plugin-datalabels.js"/>
+            <script type="text/javascript" src="/risk_management/static/src/js/risk_profile_graph.js"/>
         </xpath>
     </template>
 
