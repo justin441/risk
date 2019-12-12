@@ -57,7 +57,7 @@ odoo.define('risk_management.timeline_graph', function (require) {
                 });
 
                 // Average gap between evaluation dates
-                let avgTimeGap = (timeGapSum / evalLength) < (3600000 * 48) ? (3600000 * 48) : timeGapSum / evalLength; // 3600000 * 48 ms == 48 hours
+                let avgTimeGap = (timeGapSum / evalLength) < (3600000 * 48) ? (3600000 * 48) : timeGapSum / evalLength; // 3600000 ms * 48 == 48 hours
 
                 let dates = r.evaluations.map(function (evaluation) {
                     return evaluation.eval_date;
