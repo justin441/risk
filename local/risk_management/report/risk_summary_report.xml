@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+
+    <template id="assets_backend_risk" name="Risk Report Asset" inherit_id="web.web.assets_common.js">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/risk_management/static/src/js/wkhtmltopdfFix.js"/>
+        </xpath>
+    </template>
+
     <template id="assets_backend_risk" name="Risk Report Asset" inherit_id="web.report_assets_editor">
         <xpath expr="." position="inside">
             <link rel="stylesheet" type="text/css" href="/risk_management/static/src/lib/chartjs/Chart.css"/>
-            <script type="text/javascript" src="/risk_management/static/src/js/wkhtmltopdfFix.js"/>
             <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/Chart.js"/>
             <script type="text/javascript" src="/risk_management/static/src/lib/chartjs/chartjs-plugin-datalabels.js"/>
             <script type="text/javascript" src="/risk_management/static/src/js/risk_management_timeline.js"/>
