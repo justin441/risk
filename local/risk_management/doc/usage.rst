@@ -9,27 +9,33 @@ Documentation de l'utilisateur
 ------------------------------
 
 .. contents:: Table des matières
+    :local:
 
 Introduction
 ============
 
 Le module `Gestion du risque` est un module **Odoo** conçu pour faciliter la gestion des risques au sein de
-l'entreprise. Il permet aux utilisateurs de signaler les risques qu'ils perçoivent dans le cadre de leur fonction au
+l'entreprise. Il permet aux utilisateurs de signaler les risques qu'ils perçoivent dans le cadre de leurs activités au
 sein de l'entreprise, de suivre les évaluations de ses risques et, eventuellement, leur traitement.
 
-L'approche de la gestion du risque adoptée dans la conception du module `Gestion du risque` va dans le sens de la norme  ISO 9001:2015 qui voit la gestion du risque comme *un outil de l'amélioration continue*. Dans cette conception la gestion des risques se base par défaut sur la cartographie des processus de l'entreprise; cela offre l'option de rattacher chaque risque identifié à un de ces  processus. Cela dit en l'absence d'une cartographie des processus les risques peuvent être, toujours optionnellement, rattachés à d'autres actifs de l'entreprise.
+L'approche de la gestion du risque adoptée dans la conception du module `Gestion du risque` va dans le sens de la norme  ISO 9001:2015 qui voit la gestion
+du risque comme *un outil de l'amélioration continue*. Dans cette conception la gestion des risques se base par défaut sur la cartographie des processus de
+l'entreprise; cela offre l'option de rattacher chaque risque identifié à un de ces  processus. Cela dit en l'absence d'une cartographie des processus les
+risques peuvent être, toujours optionnellement, rattachés à d'autres actifs de l'entreprise.
 
 Fonctionnalités de l'application
 ================================
 Les fonctionnalités du module `Gestion du risque` peuvent être regroupées sous 2 catégories:
 
 #. La première et principale catégorie est celle de la gestion des risques; elle comprend les fonctionnalités suivantes:
+
     - le signalement des risques par les utilisateurs (en principes les employés de l'entreprise);
     - la notation des risques sur les critères de *détectabilité*, de *probabilité d'occurrence* et de *sévérite*;
     - le classement des risques par ordre de priorité, c'est à dire en fonction des scores de leur évaluation et de la tolérance de l'entreprise pour le risque;
     - le suivi des activités de traitement des risques.
 
-#. La seconde catégorie, celle de la modélisation des processus, est subsidiaire et implémente de façon simplifiée l'`approche processus`. Elle comprend les fonctionnalités suivantes:
+#. La seconde catégorie, subsidiaire à la précédente, est celle de la modélisation des processus. Il s'agit d'une implémentation simplifiée l'**approche processus**. Elle comprend les fonctionnalités suivantes:
+
     - la description des processus de l'entreprise ainsi que celle de leurs interfaces;
     - la définition des ressources et des méthodes  des processus;
     - la modification et l'adaptation des éléments précédents en réponse aux risques.
@@ -40,12 +46,15 @@ Les fonctionnalités du module `Gestion du risque` peuvent être regroupées sou
 La modélisation des Processus
 -----------------------------
 
-Le module `Gestion du risque` n'implémente pas une solution complète de **modélisation des processus metiers**, et, d'une façon générale, la fonctionnalité de modélisation des processus ne se conforme à aucune des méthodes courantes de  modélisations des processsus telles que `BPMP (Business Process Model and Notation) <https://www.omg.org/bpmn/>`_ ou
+Le module `Gestion du risque` n'implémente pas une solution complète de **modélisation des processus metiers**, et, d'une façon générale, la fonctionnalité de modélisation des processus
+ne se conforme à aucune des méthodes courantes de  modélisations des processsus telles que `BPMP (Business Process Model and Notation) <https://www.omg.org/bpmn/>`_ ou
 `EPC (Event-driven process chain) <https://fr.wikipedia.org/wiki/Chaines_de_processus_%C3%A9v%C3%A9nementielles>`_.
 De plus, cette fonctionnalité ne permet pas, du moins pour le moment, une représentation graphique du modèle des
 processus.
 
-La fonctionnalité de modélisation des processus est présente pour servir de fil conducteur et de point d'ancrage aux parties prenantes au processsus de gestion des risques (dans l'idéal tous les employés de l'entreprise seront parties prenantes à la gestion du risque). En effet chaque risque identifié peut être rattaché à un processus, et donc est accessible à partir de ce processus. De plus les risques peuvent être ajoutés à partir des processus. Par ailleurs la fonctionnalité de modélisation de processus permet de regrouper en un seul point pour être consultés par les utilisateurs:
+Le processus de gestion du risque commence par la précision du contexte dans laquelle celui-ci se déroule: il s'agit de définir le contexte interne et externe de l'entreprise. La fonctionnalité de modélisation des processus est présente pour servir de fil conducteur et de point d'ancrage aux parties prenantes au processsus de gestion des risques (dans l'idéal
+tous les employés de l'entreprise seront parties prenantes à la gestion du risque). La cartographie des processus permet de définir le contexte par défaut de la gestion des risque. En effet chaque risque identifié peut être rattaché à un processus, et donc est accessible à partir de
+ce processus. De plus les risques peuvent être ajoutés à partir des processus. Par ailleurs la fonctionnalité de modélisation de processus permet de regrouper en un seul point pour être consultés par les utilisateurs:
 
 - les processus,
 - les interfaces entre les processus,
@@ -64,6 +73,8 @@ Suivant la définition classique, un processus est un ensemble constitué d'acti
     :figclass: align-center
 
     Un processus
+
+L'*approche processus* offre une lecture transversale de l'organisation en décloisonant les services et en décrivant l'organisme par ses processus. A la différence de l'organigramme de l'entreprise, la cartographie des processus permet de visualiser la dynamique d'ensemble de l'entreprise avançant dans une direction donnée avec comme point de départ le besoin client et comme objectif sa satisfaction.
 
 L’*approche processus* est une approche systémique. Cela veut dire, entre autres, qu’il y aura plusieurs niveaux d’analyse. L'entreprise est un processus qui comprend d'autre processus qui constituent ses sous-processus ( par exemple: marketing,commercial, logistique entrante). Ces derniers peuvent être à leur tour divisés en des processus plus spécifiques encore, la finesse d'analyse étant dictée par des facteurs tels que la taille de l'entreprise ou son  domaine d'activité. La fonctionnalite de modélisation des processus du module *Gestion du risque* n'implémente pas un modèle hiérarchique des processus qui permettrait d'ajouter des sous-processus à un processus donnée.
 
