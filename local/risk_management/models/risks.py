@@ -3,6 +3,7 @@ import uuid
 import logging
 
 from odoo import models, fields, api, exceptions, _
+from .risk_utils import add_risk_activity
 
 RISK_REPORT_DEFAULT_MAX_AGE = 90
 RISK_ACT_DELAY = 15
@@ -236,7 +237,7 @@ class RiskIdentificationMixin(models.AbstractModel):
     review_date = fields.Date(default=_compute_default_review_date,
                               string="Review Date", track_visibility="onchange")
     user_id = fields.Many2one(comodel_name='res.users', ondelete='set null', string='Assigned to', index=True,
-                            track_visibility="onchange")
+                              track_visibility="onchange")
     active = fields.Boolean('Active', compute='_compute_active', inverse='_inverse_active', search='_search_active',
                             track_visibility="onchange")
     status = fields.Selection(selection=[('U', 'Unknown status'), ('A', 'Acceptable'), ('N', 'Unacceptable')],
@@ -262,22 +263,18 @@ class RiskIdentificationMixin(models.AbstractModel):
 
     @api.depends('latest_level_value', 'threshold_value')
     def _compute_priority(self):
-        risks = self.env[self._name].with_context(
-            active_test=False).search([]).sorted('create_date')
-        sorted_risks = risks.sorted(
-            lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
-        for risk in self:
-            risk.priority = list(sorted_risks).index(risk.id) + 1
+        self.compute_priorities()
 
     @api.model
-    def recompute_priorities(self):
-        """Recomputes priorities for all the risks in the database; called after any update that
+    def compute_priorities(self):
+        """Computes priorities for all the risks in the database; called after any update that
         modifies the risk level or the risk threshold
         """
         risks = self.env[self._name].with_context(
             active_test=False).search([]).sorted('create_date')
         sorted_risks = risks.sorted(
             lambda rec: rec.latest_level_value - rec.threshold_value, reverse=True).ids
+
         for risk in risks:
             risk.priority = list(sorted_risks).index(risk.id) + 1
 
@@ -590,33 +587,25 @@ class RiskIdentificationMixin(models.AbstractModel):
                         rec.treatment_task_id.active = True
                 elif rec.treatment_task_id and rec.treatment_task_id.active:
                     rec.treatment_task_id.active = False
-            self.recompute_priorities()
+            self.compute_priorities()
 
         activity = self.env['mail.activity']
-        ir_model = self.env['ir.model']
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
-        act_type = self.env.ref('risk_management.risk_activity_todo')
+        note = "Assess the probability of risk occurring and its possible impact," \
+               "as well as the company's ability to detect it should it occur."
+        summary = 'Next step in Risk Management: Evaluation'
 
         if vals.get('is_confirmed', False):
-            # close preceding activities
-            activity.search([
+            act_to_close = activity.search([
                 ('res_id', 'in', self.ids),
                 ('note', 'ilike', 'Check and confirm the existence of the risk'),
                 ('summary', 'ilike', 'Next step in Risk Management:')
-            ]).action_done()
+            ])
 
             # add next activities
             for rec in self:
-                rec.write({'activity_ids': [(0, False, {
-                    'res_id': rec.id,
-                    'res_model_id': ir_model._get_id(self._name),
-                    'activity_type_id': act_type.id,
-                    'summary': 'Next step in Risk Management: Evaluation',
-                    'note': '<p>Assess the probability of risk occurring and its possible impact,'
-                            'as well as the company\'s ability to detect it should it occur.</p>',
-                    'date_deadline': act_deadline
-                })]})
+                add_risk_activity(self.env, rec, note, act_deadline, act_to_close, summary)
 
         return res
 
@@ -680,8 +669,8 @@ class BusinessRisk(models.Model):
              ('company_id', '=', vals.get('company_id', self.env.user.company_id.id))])
         act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
         act_deadline = fields.Date.to_string(act_deadline_date)
-        ir_model = self.env['ir.model']
-        act_type = self.env.ref('risk_management.risk_activity_todo')
+        note = "Check and confirm the existence of the risk."
+        summary = "Next step in Risk Management: Confirm"
 
         if existing:
             # if by chance there is more than one existing, which should not be!
@@ -691,14 +680,7 @@ class BusinessRisk(models.Model):
                 vals.update({'active': True})
                 existing.write(vals)
                 # add an activity to verify the risk
-                self.env['mail.activity'].create({
-                    'res_id': existing.id,
-                    'res_model_id': ir_model._get_id(self._name),
-                    'activity_type_id': act_type.id,
-                    'note': '<p>Check and confirm the existence of the risk.</p>',
-                    'summary': 'Next step in Risk Management: Confirm',
-                    'date_deadline': act_deadline
-                })
+                add_risk_activity(self.env, existing, note, act_deadline, act_to_close=None, summary=summary)
                 return existing
             else:
                 raise exceptions.UserError(
@@ -710,14 +692,7 @@ class BusinessRisk(models.Model):
         risk = super(BusinessRisk, self).create(vals)
 
         # Next activity
-        self.env['mail.activity'].create({
-            'res_id': risk,
-            'res_model_id': ir_model._get_id(self._name),
-            'activity_type_id': act_type.id,
-            'note': '<p>Check and confirm the existence of the risk.</p>',
-            'summary': 'Next step in Risk Management: Confirm',
-            'date_deadline': act_deadline
-        })
+        add_risk_activity(self.env, existing, note, act_deadline, act_to_close=None, summary=summary)
 
         # add risk channel as follower
         new = self.env.ref('risk_management.mt_business_risk_new')
@@ -858,7 +833,7 @@ class BusinessRiskEvaluation(models.Model):
                 'note': '<p>Validate the risk assessment.</p>',
                 'date_deadline': fields.Date.to_string(act_deadline_date)
             })
-        self.env['risk_management.business_risk'].recompute_priorities()
+        self.env['risk_management.business_risk'].compute_priorities()
         return evaluation
 
     @api.multi
@@ -876,6 +851,9 @@ class BusinessRiskEvaluation(models.Model):
             res_model_id = self.env['ir.model']._get_id(
                 'risk_management.business_risk')
             act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+            note = "Select and implement measures to modify risk."
+            summary = "Next step in Risk Management: Treat risk"
+            deadline = fields.Date.to_string(act_deadline_date)
             for rec in self:
                 # mark previous activities as done
                 self.env['mail.activity'].search(['&', '&', ('res_id', '=', rec.business_risk_id.id),
@@ -890,14 +868,7 @@ class BusinessRiskEvaluation(models.Model):
                                                   ]).action_done()
                 if rec.business_risk_id.status == 'N':
                     # add an activity to treat the risk
-                    self.env['mail.activity'].create({
-                        'res_id': rec.business_risk_id.id,
-                        'res_model_id': res_model_id,
-                        'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                        'summary': 'Next step in Risk Management: Treat risk',
-                        'note': '<p>Select and implement measures to modify risk.</p>',
-                        'date_deadline': fields.Date.to_string(act_deadline_date)
-                    })
+                    add_risk_activity(self.env, rec.business_risk_id, note, deadline, summary=summary)
 
                     if not rec.business_risk_id.treatment_task_id:
                         # create a risk treatment task for the risk being evaluated

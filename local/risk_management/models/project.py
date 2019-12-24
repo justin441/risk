@@ -1,5 +1,6 @@
 import datetime
 from odoo import models, fields, api
+from .risk_utils import add_risk_activity
 
 RISK_ACT_DELAY = 15
 
@@ -61,26 +62,12 @@ class Task(models.Model):
         res = super(Task, self).write(vals)
         if res and vals.get('active', False):
             # task has been reactivated
-            activity = self.env['mail.activity']
-            res_model_id = self.env['ir.model']._get_id('risk_management.business_risk')
             act_deadline_date = datetime.date.today() + datetime.timedelta(days=RISK_ACT_DELAY)
+            deadline = fields.Date.to_string(act_deadline_date)
+            note = "Select and implement measures to modify risk."
             for rec in self:
                 if rec.business_risk_id:
                     # If it's a risk treatment task: this means the status of the risk changed to `Not acceptable`
-                    # close any preceding activities on business risk
-                    activity.search([
-                        ('res_id', '=', rec.business_risk_id.id),
-                        ('res_model_id', '=', res_model_id),
-                    ]).action_done()
+                    add_risk_activity(self.env, rec.business_risk_id, note, deadline)
 
-                    # Add a new activity
-                    rec.business_risk_id.write({
-                        'activity_ids': [(0, False, {
-                            'res_id': rec.business_risk_id.id,
-                            'res_model_id': res_model_id,
-                            'activity_type_id': self.env.ref('risk_management.risk_activity_todo').id,
-                            'note': '<p>Select and implement measures to modify risk.</p>',
-                            'date_deadline': fields.Date.to_string(act_deadline_date)
-                        })]
-                    })
         return res
