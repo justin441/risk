@@ -124,8 +124,8 @@ msgstr "Adaptability and flexibility of the strategic and production model of th
 
 #. module: risk_management
 #: model:ir.ui.view,arch_db:risk_management.business_process_form_view
-msgid "Add a partner input"
-msgstr "Ajouter l'entrée d'un partenaire"
+msgid "Input from Partner"
+msgstr "Ajouter Entrée Part."
 
 #. module: risk_management
 #: model:ir.model.fields,field_description:risk_management.field_risk_management_business_risk_ref_asset_id
