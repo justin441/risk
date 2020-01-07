@@ -917,7 +917,7 @@
                 <header>
                     <button name="add_partner_input"
                             type="object"
-                            string="Add a partner input"
+                            string="Input from Partner"
                             class="btn-danger oe_read_only"
                             groups="risk_management.group_manager"
                     />
@@ -1178,22 +1178,19 @@
         <field name="model">risk_management.risk.category</field>
         <field name="arch" type="xml">
             <form>
-                <sheet>
-                    <div class="oe_left oe_title">
+                <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
                         <h1>
                             <field name="name"/>
                         </h1>
                     </div>
-                    <div class="oe_right oe_button_box" name="buttons">
-                        <button name="%(risk_management.act_risk_category_2_risks_all)d"
-                                type="action"
-                                class="oe_stat_button"
-                                icon="fa-files-o">
-                            <field string="Risks" name="risk_count" widget="statinfo"/>
-                        </button>
-                    </div>
-                </sheet>
+                    <notebook>
+                        <page string="Risks List" accesskey="R">
+                            <field name="risk_info_ids"
+                                   context="{'default_risk_category_id': active_id}"
+                            />
+                        </page>
+                    </notebook>
             </form>
         </field>
 
