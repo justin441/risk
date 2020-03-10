@@ -8,6 +8,7 @@ class ProductStockHistory(models.Model):
     _auto = False
 
     product_id = fields.Many2one('product.product', 'Product', readonly=True)
+    product_active = fields.Boolean(string='Active', related='product_id.active')
     product_code = fields.Char(string='Reference', related='product_id.code')
     product_uom_po_id = fields.Many2one('product.uom', 'Purchase Unit of Measure', related='product_id.uom_po_id')
     product_uom_id = fields.Many2one('product.uom', 'Default Unit of Measure', related='product_id.uom_id')
